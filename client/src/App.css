@@ -1,0 +1,11 @@
+
+.main-page {
+    flex: 1;
+    color: white;
+}
+
+footer {
+    background-color: #282c34;
+    color: white;
+    text-align: center;
+}
