@@ -1,0 +1,26 @@
+  /*|  px  | rem |*/
+  /*+------+-----+*/
+  /*|  320 |  20 |*/
+  /*|  480 |  30 |*/
+  /*|  768 |  48 |*/
+  /*| 1024 |  64 |*/
+  /*| 1200 |  75 |*/
+  /*| 1600 | 100 |*/
+
+  *{
+    -webkit-text-size-adjust: none;
+  }
+
+:root {
+  font-size: 62.5%;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
