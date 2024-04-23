@@ -14,17 +14,26 @@
 :root {
   font-size: 62.5%;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-
+  margin: 0;
+  padding: 0;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+#root {
+  font-size: 1.6rem;
   margin: 0;
   min-height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
+  background-color: whitesmoke;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  width: 100%;
 }
