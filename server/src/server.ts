@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
         console.log("user " + userId + " creating lobby");
         // upsert user
         if(!await upsertUser(socket, userId, nickname)) return;
-        console.log("user + " + userId + " upserted");
+        console.log("user " + userId + " upserted");
         // create lobby
         const lobbyCode = await createLobby(socket, userId);
         if(!lobbyCode) return;
@@ -77,7 +77,7 @@ const generateUniqueLobbyCode = async (): Promise<string> => {
     while (!unique) {
         lobbyCode = Math.random().toString(36).substring(2, 7);
         const { count } = await supabase.from("lobbies").select("code").eq("code", lobbyCode);
-        if (count === 0) {
+        if (!count || count === 0) {
             unique = true;
         }
     }
@@ -97,7 +97,6 @@ const upsertUser = async (socket : Socket, userId : string, nickname : string) :
 const createLobby = async (socket : Socket, userId : string) : Promise<string | null> => {
     // generate unique lobby code
     const lobbyCode = await generateUniqueLobbyCode();
-
     // insert lobby to db
     const { data, error } = await supabase.from("lobbies").insert({ code: lobbyCode, host_user_id: userId }).select();
     if (error || !data) {
@@ -119,7 +118,7 @@ const userJoinLobby = async (socket : Socket, userId : string, lobbyCode : strin
 
     // check if user already joined lobby
     const { count: userCount } = await supabase.from("lobby_users").select("user_id").eq("user_id", userId);
-    if (!userCount || userCount > 0) {
+    if (userCount && userCount > 0) {
         console.error("user already joined lobby");
         socket.emit("error", { type: "USER_ALREADY_IN_LOBBY", message: "User already joined a lobby" });
         return false;
