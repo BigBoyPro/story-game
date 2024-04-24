@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
     console.log("a user connected");
 
     socket.on("create lobby", async (userId, nickname) => {
-        console.log("user " + userId + " creating lobby");
+        console.log("user " + userId + "sent create lobby request");
         // upsert user
         if(!await upsertUser(socket, userId, nickname)) return;
         console.log("user " + userId + " upserted");
@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
 
 
     socket.on("join lobby", async (userId, nickname, lobbyCode) => {
-        console.log("user " + userId + " joining lobby " + lobbyCode);
+        console.log("user " + userId + "sent  join lobby:" + lobbyCode + " request");
         // upsert user
         if(!await upsertUser(socket, userId, nickname)) return;
         console.log("user + " + userId + " upserted");
