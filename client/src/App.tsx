@@ -7,6 +7,7 @@ import io from 'socket.io-client';
 
 const socket = io('http://localhost:4000');
 
+
 function App() {
     useEffect(() => {
         socket.on('connect', () => {
@@ -21,6 +22,13 @@ function App() {
         socket.on('lobby info', (data) => {
             console.log(data);
         });
+        // Return a cleanup function to remove the listeners when the component unmounts
+        return () => {
+            socket.off('connect');
+            socket.off('disconnect');
+            socket.off('error');
+            socket.off('lobby info');
+        };
     }, []);
 
     const [nickname, setNickname] = useState('');
