@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="install dependencies" type="CompoundRunConfigurationType">
-    <toRun name="install client" type="js.build_tools.npm" />
-    <toRun name="install server" type="js.build_tools.npm" />
-    <method v="2" />
-  </configuration>
-</component>
