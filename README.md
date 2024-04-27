@@ -1,4 +1,4 @@
-# Story
+# EditableStory
 
 ## Pour les collegues
 ### Tout d'abord:

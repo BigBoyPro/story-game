@@ -1,72 +1,56 @@
 import './App.css'
-import StoryLogo from "./assets/story-logo.svg?react";
-import React, {useState} from "react";
-import { v4 as uuidv4 } from 'uuid';
-import { useEffect } from 'react';
-import io from 'socket.io-client';
+import {useEffect, useState} from "react";
+import {getError, getLobbyInfo, unmountError, unmountLobbyInfo} from "./utils/socketService.ts";
+import {Lobby} from "../../shared/sharedTypes.ts";
 
-const socket = io('http://localhost:4000');
+import {Route} from 'react-router-dom';
 
+import LobbyView from "./pages/LobbyView.tsx";
+import JoinView from "./pages/JoinView";
+import {LobbyContext} from "./LobbyContext.tsx";
+
+import { createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
+import GameView from "./pages/GameView.tsx";
+
+
+const router = createBrowserRouter(
+    createRoutesFromElements(
+        <>
+            <Route path="/" element={<JoinView />} />
+            <Route path="/lobby" element={<LobbyView />} />
+            <Route path="/game" element={<GameView />} />
+
+        </>
+    )
+);
 
 function App() {
+
+    const [lobby, setLobby] = useState<Lobby | null>(null);
     useEffect(() => {
-        socket.on('connect', () => {
-            console.log('connected to server');
+        getLobbyInfo(lobby => {
+            console.log('Lobby Info:', lobby);
+            setLobby(lobby);
         });
-        socket.on('disconnect', () => {
-            console.log('disconnected from server');
-        });
-        socket.on('error', (error) => {
+
+        getError(error => {
             console.error('Error:', error);
         });
-        socket.on('lobby info', (data) => {
-            console.log(data);
-        });
-        // Return a cleanup function to remove the listeners when the component unmounts
-        return () => {
-            socket.off('connect');
-            socket.off('disconnect');
-            socket.off('error');
-            socket.off('lobby info');
-        };
-    }, []);
 
-    const [nickname, setNickname] = useState('');
-    const [lobbyCode, setLobbyCode] = useState('');
-    const handleSubmit = (event : React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        let userId = localStorage.getItem('userId');
-        if (!userId) {
-            userId = uuidv4();
-            localStorage.setItem('userId', userId);
-        }
-        if (lobbyCode && lobbyCode.length > 0) {
-            // join existing lobby
-            socket.emit('join lobby', userId, nickname, lobbyCode);
-            console.log('joining lobby');
-        } else {
-            // create new lobby
-            socket.emit('create lobby', userId, nickname);
-            console.log('creating lobby');
-        }
-    }
+        return () => {
+            unmountLobbyInfo();
+            unmountError();
+        };
+    });
+
+
+
   return (
       <>
-          <div className={"main-page"}>
-              <div className={"play-box"}>
-                  <StoryLogo width={200} height={200}/>
-                  <h1>Story Mode</h1>
-                  <form onSubmit={(event) => handleSubmit(event) } >
-                      <input onChange={(event) => setNickname(event.target.value)}
-                          type="text" placeholder="Nickname"/>
-                      <input onChange={(event) => setLobbyCode(event.target.value)}
-                          type="text" placeholder="Optional Lobby Code"
-                      />
-                      <button type="submit" >Play</button>
-                  </form>
-              </div>
-          </div>
-          <footer>i'm foot</footer>
+          <LobbyContext.Provider value={lobby}>
+              <RouterProvider router={router}/>
+              <footer>i'm foot</footer>
+          </LobbyContext.Provider>
       </>
   )
 }

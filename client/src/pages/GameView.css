@@ -1,0 +1,31 @@
+.game-page {
+    flex: 1;
+    display: flex;
+}
+
+.game-box {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin: 2rem;
+    padding: 2rem 3rem;
+    background-color: white;
+    box-shadow: #282c3455 0 0 1rem 0.1rem;
+    border-radius: 0.8rem;
+}
+
+.side-bar {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    background-color: #282c34;
+    width: 20rem;
+    box-shadow: #282c3455 0 0 1rem 0.1rem;
+}
+.side-bar .user-box{
+    background-color: white;
+    padding: 1rem;
+    font-weight: bold;
+    border-radius: 0.8rem;
+}
