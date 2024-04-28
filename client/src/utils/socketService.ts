@@ -52,6 +52,27 @@ export const unmountStory = () => {
     socket.off('story');
 }
 
+export const getNextStory = (callback: (story: Story) => void) => {
+    socket.on('next story', story => {
+        callback(story);
+    });
+}
+
+export const unmountNextStory = () => {
+    socket.off('next story');
+}
+
+export const getEndGame = (callback: () => void) => {
+    socket.on('end game', () => {
+        callback();
+    });
+}
+
+export const unmountEndGame = () => {
+    socket.off('end game');
+}
+
+
 // Event Emitters:
 
 export const requestJoinLobby = (nickname: string, lobbyCode: string) => {
@@ -68,6 +89,15 @@ export const requestStartGame = (lobbyCode: string) => {
 
 export const requestStory = (lobbyCode: string) => {
     socket.emit('story', userId, lobbyCode);
+}
+
+export const requestNextStory = (lobbyCode: string, storyIndex: number) => {
+    socket.emit('next story', userId, lobbyCode, storyIndex);
+
+}
+
+export const requestEndGame = (lobbyCode: string) => {
+    socket.emit('end game', userId, lobbyCode);
 }
 
 export const sendStoryElements = (lobbyCode: string, storyId: number, elements: Array<StoryElement>) => {

@@ -14,7 +14,7 @@ function StoryComponent({
     onFinish?: (newStoryElements : Array<StoryElement>) => void}) {
 
     const lobby = useContext(LobbyContext);
-    const [newStoryElements, setNewStoryElements] = useState<Array<StoryElement>>([]);
+    const [newStoryElements, setNewStoryElements] = useState<Array<StoryElement>>(onFinish ? [] : story.elements);
 
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
 
@@ -42,7 +42,7 @@ function StoryComponent({
         <div className="story-page">
             {newStoryElements.map((element, index) => (
                 <StoryElementComponent key={index} storyElement={element}
-                                       setContent={onFinish ? (content) => updateElementContent(index, content) : () => {}}
+                                       setContent={(content) => updateElementContent(index, content)}
                                        isEditable={!!onFinish}/>
             ))}
             {onFinish &&

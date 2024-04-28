@@ -2,12 +2,14 @@
 export type User = {
     id: string;
     nickname: string;
+    lobbyCode?: string;
 };
 
 export type Lobby = {
     code: string;
     hostUserId: string;
     round: number;
+    usersSubmitted: number;
     users: Array<User>;
 };
 
