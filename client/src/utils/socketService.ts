@@ -14,7 +14,7 @@ export const userId = localStorage.getItem('userId')
 // Event Listeners:
 
 socket.on('connect', () => {
-    socket.emit('connected', userId);
+    socket.emit('get lobby', userId);
     console.log('connected to server');
 });
 
@@ -43,13 +43,13 @@ export const unmountError = () => {
 }
 
 export const getStory = (callback: (story: Story) => void) => {
-    socket.on('story', story => {
+    socket.on('get story', story => {
         callback(story);
     });
 }
 
 export const unmountStory = () => {
-    socket.off('story');
+    socket.off('get story');
 }
 
 export const getNextStory = (callback: (story: Story) => void) => {
@@ -101,6 +101,6 @@ export const requestEndGame = (lobbyCode: string) => {
 }
 
 export const sendStoryElements = (lobbyCode: string, storyId: number, elements: Array<StoryElement>) => {
-    socket.emit('send story elements', userId, lobbyCode, storyId, elements);
+    socket.emit('story elements', userId, lobbyCode, storyId, elements);
 }
 
