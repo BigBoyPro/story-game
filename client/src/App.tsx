@@ -1,6 +1,11 @@
 import './App.css'
 import {useEffect, useState} from "react";
-import {getError, getLobbyInfo, unmountError, unmountLobbyInfo} from "./utils/socketService.ts";
+import {
+    getError,
+    getLobbyInfo, requestStory,
+    unmountError,
+    unmountLobbyInfo
+} from "./utils/socketService.ts";
 import {Lobby} from "../../shared/sharedTypes.ts";
 
 import {Route} from 'react-router-dom';
@@ -11,15 +16,16 @@ import {LobbyContext} from "./LobbyContext.tsx";
 
 import { createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
 import GameView from "./pages/GameView.tsx";
+import ResultsView from "./pages/ResultsView.tsx";
 
 
 const router = createBrowserRouter(
     createRoutesFromElements(
         <>
-            <Route path="/" element={<JoinView />} />
-            <Route path="/lobby" element={<LobbyView />} />
-            <Route path="/game" element={<GameView />} />
-
+            <Route path="/" element={<JoinView/>}/>
+            <Route path="/lobby" element={<LobbyView/>}/>
+            <Route path="/game" element={<GameView/>}/>
+            <Route path="/results" element={<ResultsView/>}/>
         </>
     )
 );
@@ -28,14 +34,22 @@ function App() {
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
     useEffect(() => {
-        getLobbyInfo(lobby => {
-            console.log('Lobby Info:', lobby);
-            setLobby(lobby);
+        getLobbyInfo(newLobby => {
+            const oldLobbyRound = lobby?.round;
+            console.log('Lobby Info:', newLobby);
+            setLobby(newLobby);
+            if(newLobby.round != oldLobbyRound) {
+                if (newLobby.round > 0) {
+                    console.log("requesting new story because round changed")
+                    requestStory(newLobby.code)
+                }
+            }
         });
 
         getError(error => {
             console.error('Error:', error);
         });
+
 
         return () => {
             unmountLobbyInfo();

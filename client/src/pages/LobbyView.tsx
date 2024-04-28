@@ -26,6 +26,7 @@ function LobbyView() {
 
 
     const handleStartGame = () => {
+        redirection(lobby, navigate);
         // start game
         console.log('starting game')
         if(!lobby) {
@@ -40,6 +41,7 @@ function LobbyView() {
             <div className={"main-page"}>
                 <div className={"main-box"}>
                     <h1>Story Mode</h1>
+                    <p>code : {lobby?.code}</p>
                     <h2>Players:</h2>
                     <ul>
                         {lobby?.users?.map(user => <li key={user.id}>{(lobby?.hostUserId === user.id) && "Crown: "}{user.nickname}</li>)}

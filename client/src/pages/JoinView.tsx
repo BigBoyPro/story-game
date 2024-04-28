@@ -28,6 +28,8 @@ function JoinView() {
 
     const handleSubmit = (event : React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        redirection(lobby, navigate);
+
         if (lobbyCode && lobbyCode.length > 0) {
             // join existing lobby
             requestJoinLobby(nickname, lobbyCode)
