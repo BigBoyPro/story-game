@@ -28,9 +28,6 @@ function GameView() {
         getStory((story) => {
             // don't set story if the last story element is from the current user
             if (story.elements.length == 0 || story.elements[story.elements.length - 1].userId != userId) {
-                console.log('last story element: ');
-                console.log(story.elements[story.elements.length - 1])
-                console.log('last story element ' + story.elements[story.elements.length - 1]?.userId + ' not equal to ' + userId);
                 setStory(story);
                 console.log('Story:', story);
             }

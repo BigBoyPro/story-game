@@ -34,3 +34,8 @@ export enum StoryElementType{
     Image = 'image',
     Audio = 'audio'
 }
+
+export type Error = {
+    type: string;
+    message: string;
+}
