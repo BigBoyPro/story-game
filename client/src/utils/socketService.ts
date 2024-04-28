@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import {Lobby, Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {Error, Lobby, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 const socket = io('http://localhost:4000');
 
@@ -32,7 +32,7 @@ export const unmountLobbyInfo = () => {
     socket.off('lobby info');
 }
 
-export const getError = (callback: (error: any) => void) => {
+export const getError = (callback: (error: Error) => void) => {
     socket.on('error', error => {
         callback(error);
     });
@@ -43,7 +43,7 @@ export const unmountError = () => {
 }
 
 export const getStory = (callback: (story: Story) => void) => {
-    socket.on('get story', story => {
+    socket.on('story', story => {
         callback(story);
     });
 }
@@ -88,7 +88,7 @@ export const requestStartGame = (lobbyCode: string) => {
 }
 
 export const requestStory = (lobbyCode: string) => {
-    socket.emit('story', userId, lobbyCode);
+    socket.emit('get story', userId, lobbyCode);
 }
 
 export const requestNextStory = (lobbyCode: string, storyIndex: number) => {
