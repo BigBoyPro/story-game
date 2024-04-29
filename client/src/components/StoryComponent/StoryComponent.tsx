@@ -4,6 +4,7 @@ import {Story, StoryElement, StoryElementType} from "../../../../shared/sharedTy
 import {LobbyContext} from "../../LobbyContext.tsx";
 import StoryElementComponent from "../StoryElementComponent/StoryElementComponent.tsx";
 import {userId} from "../../utils/socketService.ts";
+import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 
 
 function StoryComponent({
@@ -14,37 +15,39 @@ function StoryComponent({
     onFinish?: (newStoryElements : Array<StoryElement>) => void}) {
 
     const lobby = useContext(LobbyContext);
-    const [newStoryElements, setNewStoryElements] = useState<Array<StoryElement>>(onFinish ? [] : story.elements);
+    const [storyElements, setStoryElements] = useState<Array<StoryElement>>(onFinish ? [] : story.elements);
 
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
 
     const addElement = () => {
         if (lobby && type) {
             // add new element to the story
-            setNewStoryElements([...newStoryElements, { index: newStoryElements.length, userId: userId, storyId: story.id , type, content: "" }]);
-            // add
+            setStoryElements([...storyElements, { index: storyElements.length, userId: userId, storyId: story.id , type, content: "" }]);
+            story.elements[0].
         }
     };
 
     const updateElementContent = (index: number, content: string) => {
-        const UpdatedNewStoryElements = [...newStoryElements];
+        const UpdatedNewStoryElements = [...storyElements];
         UpdatedNewStoryElements[index].content = content;
-        setNewStoryElements(UpdatedNewStoryElements);
+        setStoryElements(UpdatedNewStoryElements);
     };
+
 
     const handleFinish = () => {
         if(!onFinish) return;
-        setNewStoryElements([]);
-        onFinish(newStoryElements);
+        setStoryElements([]);
+        onFinish(storyElements);
     };
-
-    return (
+        return (
         <div className="story-page">
-            {newStoryElements.map((element, index) => (
-                <StoryElementComponent key={index} storyElement={element}
-                                       setContent={(content) => updateElementContent(index, content)}
-                                       isEditable={!!onFinish}/>
-            ))}
+            {
+                (lobby?.users.map((user) => {
+                    return story.elements.filter((element) => { element.userId == user.id })
+                })).map((elements) => {
+                    <StoryUserComponent elements={elements} />
+                })
+            }
             {onFinish &&
                 <>
                     <div className="side-button-container">
