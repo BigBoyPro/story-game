@@ -347,20 +347,6 @@ server.listen(4000, () => {
     console.log("Server is running on port 4000");
 });
 
-
-// Add a new function to update the lastActive timestamp in the database
-const dbUpdateUserLastActive = async (socket: Socket, userId: string): Promise<boolean> => {
-    try {
-        await pool.query('UPDATE users SET last_active = NOW() WHERE id = $1', [userId]);
-        return true;
-    } catch (error) {
-        console.error("error updating user last active: " + error);
-        socket.emit("error", {type: "DB_ERROR_UPDATE_USER_LAST_ACTIVE", message: "An error occurred while updating user last active"});
-        return false;
-    }
-};
-
-// Step 2: Periodically remove inactive users
 setInterval(async () => {
     // Get all users who haven't been active for 5 minutes
     const inactiveUsers = await dbSelectInactiveUsers(null,5);
@@ -405,6 +391,20 @@ setInterval(async () => {
         io.to(lobbyCode).emit("lobby info", lobby);
     }
 },  2 * 60 * 1000); // Run every 2 minutes
+
+
+
+// Add a new function to update the lastActive timestamp in the database
+const dbUpdateUserLastActive = async (socket: Socket, userId: string): Promise<boolean> => {
+    try {
+        await pool.query('UPDATE users SET last_active = NOW() WHERE id = $1', [userId]);
+        return true;
+    } catch (error) {
+        console.error("error updating user last active: " + error);
+        socket.emit("error", {type: "DB_ERROR_UPDATE_USER_LAST_ACTIVE", message: "An error occurred while updating user last active"});
+        return false;
+    }
+};
 
 // Add a new function to get all users who haven't been active for a certain number of minutes
 const dbSelectInactiveUsers = async (socket: (Socket | null), minutes: number): Promise<User[]> => {
