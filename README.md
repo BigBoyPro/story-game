@@ -67,7 +67,9 @@ Pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en ha
 
   
 - Ajouter des fonctionnalités:
-  - Ajouter la logique et l'ui pour les images et l'audio
-  - Ajouter le nom du joueur de chaque `story element` dans la page des resultats
+    - Ajouter les parametres du lobby
+    - Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees
+    - Ajouter la logique et l'ui pour les images et l'audio
+    - Ajouter le nom du joueur de chaque `story element` dans la page des resultats
 
-  - Ajouter je t'aime
+    - Ajouter je t'aime
