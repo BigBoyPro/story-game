@@ -42,36 +42,30 @@ pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en ha
 ### Taches a faire:
 
 - Améliorer le design de l'application :
-    - Ajouter des couleurs
-    - Ajouter des animations
-    - Ajouter des transitions
-    - Ajouter des effets visuels
-    - Ajouter des images
-    - Ajouter des icones
-    - Ajouter des polices
-    - Ajouter des ombres
-    - Ajouter des bordures
+    - [ ] Faire un croquis de l'application
+    - [ ] Rendre l'application responsive (mobile, tablette, desktop)
+    - [ ] Ajouter des couleurs, des images, des animations, etc.
   
 
 - Mieux organiser le code:
-    - Ajouter des commentaires
-    - Factoriser le code (separer les composants)
+    - [ ] Ajouter des commentaires
+    - [ ] Factoriser le code (separer les composants)
 
 
 - Ameliorer les fonctionnalités:
-  - `DEJA FAIT` ~~Ajouter la logique et l'ui pour quitter le lobby~~
-  - Ajouter un timer pour passer au round suivant
+  - [x] ~~Ajouter la logique et l'ui pour quitter le lobby~~
+  - [ ] Ajouter un timer pour passer au round suivant
 (Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant)
-  - Ajouter une colonne dans `stories` pour stocker le `last user id` qui a modifié la `story`
+  - [ ] Faire que si le joueur n'envoie pas de `story element` le serveur cree un `story element` vide pour lui.
 
   
 - Ajouter des fonctionnalités:
-    - Ajouter les parametres du lobby:
-        - Voir les histoires des autres joueurs ou seulement le dernier `story element` ou les `story elements` du dernier joueur
-        - Choisir le nombre de `story elements` par `story`
-        - Configurer le timer
-    - `DEJA FAIT` ~~Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees~~
-    - Ajouter la logique et l'ui pour les images et l'audio
-    - Ajouter le nom du joueur de chaque `story element` dans la page des resultats
+    - [ ] Ajouter les parametres du lobby:
+        - [ ] Voir les histoires des autres joueurs ou seulement le dernier `story element` ou les `story elements` du dernier joueur
+        - [ ] Choisir le nombre de `story elements` par `story`
+        - [ ] Configurer le timer
+    - [x] ~~Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees~~
+    - [ ] Ajouter la logique et l'ui pour les images et l'audio
+    - [x] ~~Ajouter le nom du joueur de chaque `story element` dans la page des resultats~~
 
-    - Ajouter je t'aime
+    - [ ] Ajouter je t'aime
