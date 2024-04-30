@@ -26,17 +26,27 @@ export const getLobbyInfo = (callback: (lobby: Lobby) => void) => {
     socket.on('lobby info', lobby => {
         callback(lobby);
     });
-};
+}
 
 export const unmountLobbyInfo = () => {
     socket.off('lobby info');
+}
+
+export const getLeftLobby = (callback: () => void) => {
+    socket.on('left lobby', () => {
+        callback();
+    });
+}
+
+export const unmountLeftLobby = () => {
+    socket.off('left lobby');
 }
 
 export const getError = (callback: (error: Error) => void) => {
     socket.on('error', error => {
         callback(error);
     });
-};
+}
 
 export const unmountError = () => {
     socket.off('error');
@@ -49,7 +59,7 @@ export const getStory = (callback: (story: Story) => void) => {
 }
 
 export const unmountStory = () => {
-    socket.off('get story');
+    socket.off('story');
 }
 
 export const getNextStory = (callback: (story: Story) => void) => {
@@ -77,11 +87,11 @@ export const unmountEndGame = () => {
 
 export const requestJoinLobby = (nickname: string, lobbyCode: string) => {
     socket.emit('join lobby', userId, nickname, lobbyCode);
-};
+}
 
 export const requestCreateLobby = (nickname: string) => {
     socket.emit('create lobby', userId, nickname);
-};
+}
 
 export const requestStartGame = (lobbyCode: string) => {
     socket.emit('start game', userId, lobbyCode);

@@ -2,9 +2,9 @@ import './App.css'
 import {useEffect, useState} from "react";
 import {
     getError,
-    getLobbyInfo, requestStory,
+    getLobbyInfo, getLeftLobby, requestStory,
     unmountError,
-    unmountLobbyInfo
+    unmountLobbyInfo, unmountLeftLobby
 } from "./utils/socketService.ts";
 import {Lobby} from "../../shared/sharedTypes.ts";
 
@@ -46,6 +46,11 @@ function App() {
             }
         });
 
+        getLeftLobby(() => {
+            console.log('Lobby Left');
+            setLobby(null);
+        });
+
         getError(error => {
             console.error('Error:', error);
         });
@@ -54,6 +59,7 @@ function App() {
         return () => {
             unmountLobbyInfo();
             unmountError();
+            unmountLeftLobby();
         };
     }, []);
 

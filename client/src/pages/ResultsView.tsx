@@ -64,6 +64,7 @@ function ResultsView() {
 
     const handleEndGame = () => {
         if(!lobby) return;
+        console.log('ending game')
         requestEndGame(lobby.code)
     };
 
