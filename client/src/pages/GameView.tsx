@@ -26,10 +26,11 @@ function GameView() {
         redirection(lobby, navigate);
 
         getStory((story) => {
+            console.log('Story received:', story);
+
             // don't set story if the last story element is from the current user
             if (story.elements.length == 0 || story.elements[story.elements.length - 1].userId != userId) {
                 setStory(story);
-                console.log('Story:', story);
             }
         });
 
@@ -47,7 +48,7 @@ function GameView() {
     }
 
   return(
-      <div className="game-page" key={story ? story.id : 'initial'}>
+      <div className="game-page" >
           <div className="game-box">
               <h2>Write your own story!             Round : {lobby?.round}/{lobby?.users.length}</h2>
               {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
