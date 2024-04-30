@@ -37,6 +37,7 @@ function LobbyView() {
     }
     const handleBack = () => {
         if(!lobby) return;
+        console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
     };
 

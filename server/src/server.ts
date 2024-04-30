@@ -164,11 +164,15 @@ io.on("connection", (socket :Socket) => {
             console.log("user " + userId + " sent leave lobby:" + lobbyCode + " request");
             return await dbBeginTransaction(pool);
         }
-        const success = async (client: PoolClient, lobby: Lobby) => {
+        const success = async (client: PoolClient, lobby: (Lobby | null)) => {
             await dbCommitTransaction(client);
             socket.leave(lobbyCode);
             socket.emit("left lobby");
-            io.to(lobbyCode).emit("lobby info", lobby);
+            if(lobby) {
+                io.to(lobby.code).emit("lobby info", lobby);
+            }else {
+                console.log("lobby " + lobbyCode + " removed");
+            }
             console.log("user " + userId + " left lobby " + lobbyCode);
         }
         const fail = async (client: PoolClient) => {
@@ -183,7 +187,7 @@ io.on("connection", (socket :Socket) => {
         if (!await dbUpdateUserLastActive(client, socket, userId)) return await fail(client);
 
         // get lobby
-        const lobby = await dbSelectLobby(client, socket, lobbyCode);
+        let lobby = await dbSelectLobby(client, socket, lobbyCode);
         if (!lobby) return await fail(client);
         console.log("lobby " + lobbyCode + " fetched");
 
@@ -191,9 +195,9 @@ io.on("connection", (socket :Socket) => {
         if (!checkUserInLobby(socket, lobby, userId)) return await fail(client);
         console.log("user " + userId + " is in lobby " + lobbyCode);
 
+        const otherUser = lobby.users.find(user => user.id !== userId);
         // if user is host change host
         if (lobby.hostUserId === userId) {
-            const otherUser = lobby.users.find(user => user.id !== userId);
             if (otherUser) {
                 if (!await dbUpdateLobbyHost(client, socket, lobbyCode, otherUser.id)) return await fail(client);
                 lobby.hostUserId = otherUser.id;
@@ -206,6 +210,11 @@ io.on("connection", (socket :Socket) => {
         console.log("user " + userId + " removed from lobby " + lobbyCode);
         lobby.users = lobby.users.filter(user => user.id !== userId);
 
+        if (!otherUser) {
+            if (!await dbDeleteLobby(client, socket, lobbyCode)) return await fail(client);
+            console.log("lobby " + lobbyCode + " removed");
+            lobby = null;
+        }
 
         await success(client, lobby)
     });
@@ -495,9 +504,9 @@ setInterval(async () => {
         console.log("checking for inactive users");
         return await dbBeginTransaction(pool);
     }
-    const success = async (client: PoolClient, lobby: (Lobby | null)) => {
+    const success = async (client: PoolClient, lobbies: Map<string,Lobby>) => {
         await dbCommitTransaction(client);
-        if (lobby) {
+        for (const lobby of lobbies.values()) {
             io.to(lobby.code).emit("lobby info", lobby);
         }
         console.log("inactive users checked");
@@ -511,14 +520,18 @@ setInterval(async () => {
 
     // Get all users who haven't been active for 5 minutes
     const shortInactiveUsers = await dbSelectInactiveUsers(client, null,5);
+    const activeLobbiesMap = new Map<string, Lobby>();
 
     // Remove each inactive user
     for (const inactiveUser of shortInactiveUsers) {
+
         const lobbyCode = await dbSelectUserLobbyCode(client, null, inactiveUser.id);
         let lobby : (Lobby | null) = null;
         if (lobbyCode) {
             lobby = await dbSelectLobby(client, null, lobbyCode);
             if (!lobby) return await fail(client);
+
+            activeLobbiesMap.set(lobbyCode, lobby);
 
             const otherUser = lobby.users.find(user => user.id !== inactiveUser.id);
             // if user is host change host
@@ -541,17 +554,18 @@ setInterval(async () => {
             if (!otherUser) {
                 if (!await dbDeleteLobby(client, null, lobbyCode)) return await fail(client);
                 console.log("lobby " + lobbyCode + " removed");
+                activeLobbiesMap.delete(lobbyCode);
             }
 
             lobby.users = lobby.users.filter(user => user.id !== inactiveUser.id);
-        }
+            // remove user from db
 
-        // remove user from db
+        }
         if (!await dbDeleteUser(client, null, inactiveUser.id)) return await fail(client);
         console.log("user " + inactiveUser.id + " removed from db");
-
-        await success(client, lobby)
     }
+
+    await success(client, activeLobbiesMap)
 
 },  2 * 60 * 1000)
 // Run every 2 minutes
