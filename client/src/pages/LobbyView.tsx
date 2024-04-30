@@ -1,12 +1,12 @@
 import {LobbyContext} from "../LobbyContext.tsx";
 import {useContext, useEffect} from "react";
-import {requestStartGame, userId} from "../utils/socketService.ts";
+import {requestLeaveLobby, requestStartGame, userId} from "../utils/socketService.ts";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {Lobby} from "../../../shared/sharedTypes.ts";
 
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby) {
+    if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {
         } else if (lobby.round > 0) {
             console.log('navigating to game')
@@ -35,10 +35,19 @@ function LobbyView() {
         }
         requestStartGame(lobby.code)
     }
+    const handleBack = () => {
+        if(!lobby) return;
+        requestLeaveLobby(lobby.code);
+
+    };
+
     // Always block navigation
     return (
         <>
             <div className={"main-page"}>
+                <div className={"header"}>
+                    <button onClick={handleBack}>Back</button>
+                </div>
                 <div className={"main-box"}>
                     <h1>Story Mode</h1>
                     <p>code : {lobby?.code}</p>

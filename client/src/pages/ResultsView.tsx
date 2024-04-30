@@ -14,7 +14,7 @@ import {
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby) {
+    if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {
             navigate("/lobby", {replace: true});
         } else if(lobby.round <= lobby.users.length){

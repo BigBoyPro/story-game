@@ -32,12 +32,11 @@ Sinon vous pouvez aussi lancer le serveur avec la commande suivante:
 
 
 ### Pour acceder a la base de donnees:
-J'ai utilise `supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne.  
-Pour y acceder, vous pouvez vous connecter sur le site suivant: https://supabase.com/dashboard/sign-in?  
-Puis vous devez crrer un compte et me demander de vous mettre dans l'organisation `BIGSHELL` pour que vous puissiez acceder a la base de donnees.
-Moi j'utilise l'UI du site de `supabase` pour creer les tables et tout, mais vous pouvez utiliser ce que vous voulez.  
-Pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donner les differentes URL de connection.
-
+J'ai utilise `supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne,
+pour y acceder, vous pouvez vous connecter sur le site suivant: https://supabase.com/dashboard/sign-in.  
+Puis vous devez creer un compte et me demander de vous mettre dans l'organisation `BIGSHELL`, pour que vous puissiez acceder a la base de donnees.  
+Moi j'utilise l'UI du site de `supabase` pour creer les tables et tout, mais vous pouvez utiliser ce que vous voulez,
+pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donner les differentes URL de connection.
 
 
 ### Taches a faire:
@@ -56,18 +55,21 @@ Pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en ha
 
 - Mieux organiser le code:
     - Ajouter des commentaires
-    - Factoriser le code (Separer les composants)
+    - Factoriser le code (separer les composants)
 
 
 - Ameliorer les fonctionnalités:
   - Ajouter la logique et l'ui pour quitter le lobby
-  - Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant
-  (Ajouter un timer pour passer au round suivant)
+  - Ajouter un timer pour passer au round suivant
+(Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant)
   - Ajouter une colonne dans `stories` pour stocker le `last user id` qui a modifié la `story`
 
   
 - Ajouter des fonctionnalités:
-    - Ajouter les parametres du lobby
+    - Ajouter les parametres du lobby:
+        - Voir les histoires des autres joueurs ou seulement le dernier `story element` ou les `story elements` du dernier joueur
+        - Choisir le nombre de `story elements` par `story`
+        - Configurer le timer
     - Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees
     - Ajouter la logique et l'ui pour les images et l'audio
     - Ajouter le nom du joueur de chaque `story element` dans la page des resultats

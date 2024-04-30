@@ -1,45 +1,31 @@
-import {useContext, useState} from "react";
-import "./StoryComponent.css"
-import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
-import {LobbyContext} from "../../LobbyContext.tsx";
+import {StoryElement} from "../../../../shared/sharedTypes.ts";
 import StoryElementComponent from "../StoryElementComponent/StoryElementComponent.tsx";
-import {userId} from "../../utils/socketService.ts";
+import {useContext} from "react";
+import {LobbyContext} from "../../LobbyContext.tsx";
 
 
-function StoryUserComponent({elements, isEditable}: {elements : StoryElement[], isEditable : boolean}) {
+function StoryUserComponent({elements, isEditable, onElementContentUpdate}: {
+    elements: StoryElement[],
+    isEditable: boolean,
+    onElementContentUpdate?: (index: number, content: string) => void
+}) {
     const lobby = useContext(LobbyContext);
-    const [storyElements, setStoryElements] = useState<Array<StoryElement>>(elements);
-
-
-    const addElement = () => {
-        if (lobby && type) {
-            // add new element to the story
-            setStoryElements([...storyElements, { index: storyElements.length, userId: userId, storyId: story.id , type, content: "" }]);
-            elements[0].
-        }
+    const getUserNameFromId = (userId: string) : string => {
+        const nickname = lobby?.users.find(user => user.id === userId)?.nickname;
+        if(nickname)
+            return nickname;
+        return "unknown";
     };
-
-    const updateElementContent = (index: number, content: string) => {
-        const UpdatedNewStoryElements = [...storyElements];
-        UpdatedNewStoryElements[index].content = content;
-        setStoryElements(UpdatedNewStoryElements);
-    };
-
-    const handleFinish = () => {
-        if(!onFinish) return;
-        setStoryElements([]);
-        onFinish(storyElements);
-    };
-
     return (
-        <div className="story-page">
-            {storyElements.map((element, index) => (
+        <div className="story-element">
+            { !isEditable && elements.length > 0 &&
+                <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
+            }
+            {elements.map((element, index) => (
                 <StoryElementComponent key={index} storyElement={element}
-                                       setContent={(content) => updateElementContent(index, content)}
+                                       setContent={(content) => onElementContentUpdate && onElementContentUpdate(index, content)}
                                        isEditable={isEditable}/>
             ))}
-
-
         </div>
     );
 }

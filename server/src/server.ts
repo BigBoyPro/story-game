@@ -123,6 +123,42 @@ io.on("connection", (socket :Socket) => {
     });
 
 
+    socket.on("leave lobby", async (userId: string, lobbyCode: string) => {
+        console.log("user " + userId + " sent leave lobby request");
+
+        // get lobby
+        const lobby = await dbSelectLobby(socket, lobbyCode);
+        if (!lobby) return;
+        console.log("lobby " + lobbyCode + " fetched");
+
+        // check if user is in lobby
+        const userInLobby = lobby.users.find(user => user.id === userId);
+        if (!userInLobby) {
+            console.error("user " + userId + " is not in lobby " + lobbyCode);
+            socket.emit("error", {type: "USER_NOT_IN_LOBBY", message: "User is not in lobby"});
+            return;
+        }
+        console.log("user " + userId + " is in lobby " + lobbyCode);
+
+        // if user is host change host
+        if (lobby.hostUserId === userId) {
+            const otherUser = lobby.users.find(user => user.id !== userId);
+            if (otherUser) {
+                if (!await dbUpdateLobbyHost(socket, lobbyCode, otherUser.id)) return;
+                lobby.hostUserId = otherUser.id;
+                console.log("host changed to " + otherUser.id);
+            }
+        }
+
+        // remove user from lobby
+        if (!await dbUpdateUserLobbyCode(socket, userId, null)) return;
+        console.log("user " + userId + " removed from lobby " + lobbyCode);
+
+        // remove user from lobby users
+        lobby.users = lobby.users.filter(user => user.id !== userId);
+        io.to(lobbyCode).emit("lobby info", lobby);
+    });
+
 
     socket.on("start game", async (userId: string, lobbyCode: string) => {
         console.log("user " + userId + " sent start game request");
@@ -166,6 +202,8 @@ io.on("connection", (socket :Socket) => {
         io.to(lobbyCode).emit("lobby info", lobby);
 
     });
+
+
 
     socket.on("get story", async (userId: string, lobbyCode: string) => {
         console.log("user " + userId + " sent story request");
@@ -217,7 +255,7 @@ io.on("connection", (socket :Socket) => {
     });
 
 
-    socket.on("story elements", async (userId: string, lobbyCode: string, storyId: number, elements: StoryElement[]) => {
+    socket.on("story elements", async (userId: string, lobbyCode: string, elements: StoryElement[]) => {
         console.log("user " + userId + " sent story elements");
         // update user last active
         if (!await dbUpdateUserLastActive(socket, userId)) return;
@@ -347,53 +385,74 @@ server.listen(4000, () => {
 });
 
 setInterval(async () => {
+    console.log("checking for inactive users");
     // Get all users who haven't been active for 5 minutes
-    const inactiveUsers = await dbSelectInactiveUsers(null,5);
+    const shortInactiveUsers = await dbSelectInactiveUsers(null,5);
 
     // Remove each inactive user
-    for (const inactiveUser of inactiveUsers) {
+    for (const inactiveUser of shortInactiveUsers) {
         const lobbyCode = await dbSelectUserLobbyCode(null, inactiveUser.id);
-        if (!lobbyCode) return;
+        if (lobbyCode) {
+            const lobby = await dbSelectLobby(null, lobbyCode);
+            if (!lobby) continue;
 
-
-        const lobby = await dbSelectLobby(null, lobbyCode);
-        if (!lobby) return;
-
-        const otherUser = lobby.users.find(user => user.id !== inactiveUser.id);
-
-        // if user is host change host
-        if (lobby.hostUserId === inactiveUser.id) {
-            if (otherUser) {
-                if (!await dbUpdateLobbyHost(null, lobbyCode, otherUser.id)) return;
-                console.log("host changed to " + otherUser.id);
+            const otherUser = lobby.users.find(user => user.id !== inactiveUser.id);
+            // if user is host change host
+            if (lobby.hostUserId === inactiveUser.id) {
+                if (otherUser) {
+                    if (!await dbUpdateLobbyHost(null, lobbyCode, otherUser.id)) continue;
+                    lobby.hostUserId = otherUser.id;
+                    console.log("host changed to " + otherUser.id);
+                }
             }
-        }
 
-        // if game is in progress leave user in lobby
-        if (lobby.round != 0) return;
+            // if game is in progress leave user in lobby
+            if (lobby.round != 0) continue;
 
-        // remove user from lobby
-        if (!await dbUpdateUserLobbyCode(null, inactiveUser.id, null)) return;
-        console.log("user " + + " removed from lobby " + lobbyCode);
+            // remove user from lobby
+            if (!await dbUpdateUserLobbyCode(null, inactiveUser.id, null)) continue;
+            console.log("user " + +" removed from lobby " + lobbyCode);
 
-        // remove lobby if user is the last one
-        if(!otherUser) {
-            if (!await dbDeleteLobby(null, lobbyCode)) return;
-            console.log("lobby " + lobbyCode + " removed");
+            // remove lobby if user is the last one
+            if (!otherUser) {
+                if (!await dbDeleteLobby(null, lobbyCode)) continue;
+                console.log("lobby " + lobbyCode + " removed");
+            }
+
+            lobby.users = lobby.users.filter(user => user.id !== inactiveUser.id);
+            io.to(lobbyCode).emit("lobby info", lobby);
         }
 
         // remove user from db
-        if (!await dbDeleteUser(null, inactiveUser.id)) return;
+        if (!await dbDeleteUser(null, inactiveUser.id)) continue;
         console.log("user " + inactiveUser.id + " removed from db");
-
-        lobby.users = lobby.users.filter(user => user.id !== inactiveUser.id);
-        io.to(lobbyCode).emit("lobby info", lobby);
     }
-},  2 * 60 * 1000); // Run every 2 minutes
+
+},  2 * 60 * 1000)
+// Run every 2 minutes
 
 
 
-// Add a new function to update the lastActive timestamp in the database
+const generateUniqueLobbyCode = async (socket: Socket): Promise<string | null> => {
+    let unique = false;
+    let lobbyCode = '';
+    while (!unique) {
+        lobbyCode = Math.random().toString(36).substring(2, 7);
+        try {
+            const res = await pool.query('SELECT COUNT(*) FROM lobbies WHERE code = $1', [lobbyCode]);
+            const count = res.rows[0].count;
+            unique = count == 0;
+        } catch (error) {
+            console.error("error checking generated lobby code: " + error);
+            socket.emit("error", {type: "DB_ERROR_CHECK_GENERATED_LOBBY_CODE", message: "An error occurred while checking generated lobby code"});
+            return null;
+        }
+    }
+    return lobbyCode;
+}
+
+
+
 const dbUpdateUserLastActive = async (socket: Socket, userId: string): Promise<boolean> => {
     try {
         await pool.query('UPDATE users SET last_active = NOW() WHERE id = $1', [userId]);
@@ -637,25 +696,6 @@ const dbSelectUserLobbyCode = async (socket: (Socket | null), userId: string): P
     }
 };
 
-
-
-const generateUniqueLobbyCode = async (socket: Socket): Promise<string | null> => {
-    let unique = false;
-    let lobbyCode = '';
-    while (!unique) {
-        lobbyCode = Math.random().toString(36).substring(2, 7);
-        try {
-            const res = await pool.query('SELECT COUNT(*) FROM lobbies WHERE code = $1', [lobbyCode]);
-            const count = res.rows[0].count;
-            unique = count == 0;
-        } catch (error) {
-            console.error("error checking generated lobby code: " + error);
-            socket.emit("error", {type: "DB_ERROR_CHECK_GENERATED_LOBBY_CODE", message: "An error occurred while checking generated lobby code"});
-            return null;
-        }
-    }
-    return lobbyCode;
-}
 
 
 
