@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {requestCreateLobby, requestJoinLobby} from "../utils/socketService.ts";
+import {requestCreateLobby, requestJoinLobby, userId} from "../utils/socketService.ts";
 import StoryLogo from "../assets/story-logo.svg?react";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
@@ -7,7 +7,7 @@ import {Lobby} from "../../../shared/sharedTypes.ts";
 
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby) {
+    if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {
             navigate("/lobby", {replace: true});
         } else if (lobby.round > 0) {
