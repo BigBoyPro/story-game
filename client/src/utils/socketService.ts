@@ -114,7 +114,7 @@ export const requestLeaveLobby = (lobbyCode: string) => {
     socket.emit('leave lobby', userId, lobbyCode);
 }
 
-export const sendStoryElements = (lobbyCode: string, elements: Array<StoryElement>) => {
+export const sendStoryElements = (lobbyCode: string, elements: StoryElement[]) => {
     socket.emit('story elements', userId, lobbyCode, elements);
 }
 

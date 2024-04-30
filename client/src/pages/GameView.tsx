@@ -39,7 +39,7 @@ function GameView() {
         }
     }, [lobby, navigate]);
 
-    const OnFinish = (newStoryElements : Array<StoryElement>) => {
+    const OnFinish = (newStoryElements : StoryElement[]) => {
         console.log(newStoryElements);
         if (!lobby || !story) return;
         console.log('sending story elements');

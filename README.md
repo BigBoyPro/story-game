@@ -55,8 +55,8 @@ pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en ha
 - Ameliorer les fonctionnalités:
   - [x] ~~Ajouter la logique et l'ui pour quitter le lobby~~
   - [ ] Ajouter un timer pour passer au round suivant
-(Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant)
-  - [ ] Faire que si le joueur n'envoie pas de `story element` le serveur cree un `story element` vide pour lui.
+(Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant) `EN COURS`
+  - [ ] Faire que si le joueur n'envoie pas de `story element` le serveur cree un `story element` vide pour lui. `EN COURS`
 
   
 - Ajouter des fonctionnalités:
