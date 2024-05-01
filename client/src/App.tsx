@@ -1,10 +1,8 @@
 import './App.css'
 import {useEffect, useState} from "react";
 import {
-    onError,
-    onLobbyInfo, onLeftLobby, requestStory,
-    offError,
-    offLobbyInfo, offLeftLobby, onUsersSubmitted, offUsersSubmitted
+    onError, onLobbyInfo, onLeftLobby, requestStory,
+    offError, offLobbyInfo, offLeftLobby, onUsersSubmitted, offUsersSubmitted
 } from "./utils/socketService.ts";
 import {Lobby} from "../../shared/sharedTypes.ts";
 
