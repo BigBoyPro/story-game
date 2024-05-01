@@ -12,6 +12,7 @@ import {
     userId,
     offGetStoryElements
 } from "../utils/socketService.ts";
+import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     if (lobby && lobby.users.find(user => user.id === userId)) {
@@ -25,12 +26,15 @@ const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     }
 };
 
+
+
+
 function GameView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
     const [story, setStory] = useState<Story | null>(null);
     // const [remainingTime, setRemainingTime] = useState<number | null>(null);
-   const newStoryElementsRef = useRef<StoryElement[]>([]);
+    const newStoryElementsRef = useRef<StoryElement[]>([]);
     useEffect(() => {
         redirection(lobby, navigate);
 
@@ -47,21 +51,11 @@ function GameView() {
             console.log('Get story elements');
             onFinish();
         });
-        // let timerId: NodeJS.Timeout | null = null;
-        //
-        // if (lobby?.roundStartAt && lobby?.roundEndAt) {
-        //     const endTime = new Date(lobby.roundEndAt).getTime();
-        //     timerId = setInterval(() => {
-        //         const now = Date.now();
-        //         const remaining = endTime - now;
-        //         setRemainingTime(Math.max(remaining, 0));
-        //     }, 1000);
-        // }
+
 
         return () => {
             offStory();
             offGetStoryElements();
-            // if(timerId) clearInterval(timerId);
         }
     }, [lobby, lobby?.roundStartAt, lobby?.roundEndAt, navigate, story]);
 
@@ -98,6 +92,7 @@ function GameView() {
       <div className="game-page" >
           <div className="game-box">
               <h2>Write your own story!             Round : {lobby?.round}/{lobby?.users.length}</h2>
+              {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
               {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
               { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
           </div>

@@ -36,8 +36,10 @@ const io = new Server(server, {
     }
 });
 
-const ROUND_SECONDS =  30;
-const USERS_TIMEOUT_SECONDS = 10 ;
+const ROUND_MILLISECONDS =  30 * 1000;
+const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
+const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
+
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
@@ -90,8 +92,11 @@ const startNewRound = async (lobbyCode: string) => {
     }
     // proceed to the next round
     let newLobbyRound = lobby.round + 1;
-    let roundStartTime: (Date | null) = new Date();
-    let roundEndTime: (Date | null) = new Date(roundStartTime.getTime() + ROUND_SECONDS * 1000);
+    // set round start time now + 2 seconds for the users to receive the lobby info before the round starts
+    const shiftedNow = Date.now() + 2 * 1000;
+    let roundStartTime: (Date | null) = new Date(shiftedNow);
+    let roundEndTime: (Date | null) = new Date(shiftedNow + ROUND_MILLISECONDS);
+
     if (newLobbyRound > lobby.users.length) {
         newLobbyRound = -1;
         roundStartTime = null;
@@ -132,7 +137,7 @@ const waitForRound = (lobby: Lobby) => {
                     if(lobbyTimeouts.has(lobby.code)) {
                         await startNewRound(lobby.code);
                     }
-                }, USERS_TIMEOUT_SECONDS * 1000));
+                }, USERS_TIMEOUT_MILLISECONDS));
             }
         }
     }, 500);
@@ -630,7 +635,7 @@ setInterval(async () => {
 
     await success(client, activeLobbiesMap)
 
-},  2 * 60 * 1000)
+},  INACTIVE_USERS_CHECK_MILLISECONDS)
 // Run every 2 minutes
 
 
@@ -781,15 +786,17 @@ const dbSelectLobby = async (db: (Pool | PoolClient), socket: (Socket | null), l
         }
         const users = await dbSelectUsersForLobby(db, socket, lobbyCode);
         if (!users) return null;
+
         return {
             code: lobbyCode,
             hostUserId: data[0].host_user_id,
             users: users,
             round: data[0].round,
             usersSubmitted: data[0].users_submitted,
-            roundStartAt: new Date(data[0].round_start_at),
-            roundEndAt: new Date(data[0].round_end_at)
+            roundStartAt: data[0].round_start_at ? new Date(data[0].round_start_at) : null,
+            roundEndAt: data[0].round_end_at ? new Date(data[0].round_end_at) : null
         };
+
     } catch (error) {
         console.error("error getting lobby: " + error);
         if(socket)
