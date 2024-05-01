@@ -1,4 +1,4 @@
-import {Lobby, Story, StoryElement, User} from "../../shared/sharedTypes";
+import {Lobby, Story, StoryElement, StoryElementType, User} from "../../shared/sharedTypes";
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
@@ -11,6 +11,8 @@ interface Socket extends BaseSocket {
 }
 
 require('dotenv').config();
+
+
 const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
 
 
@@ -34,7 +36,119 @@ const io = new Server(server, {
     }
 });
 
+const ROUND_SECONDS = 10;
+const USERS_TIMEOUT_SECONDS = 10 ;
 
+const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
+
+
+const startNewRound = async (lobbyCode: string) => {
+    const begin = async (): Promise<PoolClient> => {
+        console.log("***starting new round***");
+        return await dbBeginTransaction(pool);
+    }
+    const success = async (client: PoolClient, lobby: Lobby) => {
+        await dbCommitTransaction(client);
+        io.to(lobby.code).emit("lobby info", lobby);
+    }
+    const fail = async (client: PoolClient) => {
+        await dbRollbackTransaction(client);
+        console.error("error waiting for story elements");
+        return null;
+    }
+    const client = await begin();
+
+    const lobby = await dbSelectLobby(client, null, lobbyCode);
+    if (!lobby) return await fail(client);
+
+    console.log("round: " + lobby.round);
+
+    if (lobby.usersSubmitted < lobby.users.length && lobby.round > 0) {
+        // push an empty story element for each user who hasn't submitted
+        const submittedUserIds = await dbSelectStoryElementDistinctUserIdsForRound(client, null, lobby.code, lobby.round);
+        if (!submittedUserIds) return await fail(client);
+        const storyElements: StoryElement[] = [];
+        for (const user of lobby.users) {
+            if (!submittedUserIds.includes(user.id)) {
+                console.log("user " + user.id + " has not submitted");
+                const storyIndex = getStoryIndexForUser(lobby, user.id);
+                const storyId = await dbSelectStoryIdByIndex(client, null, lobbyCode, storyIndex);
+                const storyElement: StoryElement = {
+                    index: storyIndex,
+                    userId: user.id,
+                    storyId: storyId,
+                    round: lobby.round,
+                    type: StoryElementType.Empty,
+                    content: ""
+                };
+                storyElements.push(storyElement);
+            }
+        }
+        if(storyElements.length > 0) {
+            if (!await dbInsertStoryElements(client, null, storyElements)) return await fail(client);
+        }
+    }
+    // proceed to the next round
+    let newLobbyRound = lobby.round + 1;
+    let roundStartTime: (Date | null) = new Date();
+    let roundEndTime: (Date | null) = new Date(roundStartTime.getTime() + ROUND_SECONDS * 1000);
+    if (newLobbyRound > lobby.users.length) {
+        newLobbyRound = -1;
+        roundStartTime = null;
+        roundEndTime = null;
+    }
+
+    if (!await dbUpdateLobbyUsersSubmitted(client, null, lobbyCode, 0)) return await fail(client);
+    lobby.usersSubmitted = 0;
+    console.log("users submitted reset to 0");
+    if (!await dbUpdateLobbyRound(client, null, lobbyCode, newLobbyRound, roundStartTime, roundEndTime)) return await fail(client);
+    lobby.round = newLobbyRound;
+    lobby.roundStartAt = roundStartTime;
+    lobby.roundEndAt = roundEndTime;
+
+    await success(client, lobby)
+
+    if (lobby.round > 0) {
+        waitForRound(lobby);
+    }
+};
+
+
+const waitForRound = (lobby: Lobby) => {
+    let roundTimer: NodeJS.Timeout | null = null;
+    console.log("***waiting for round : " + lobby.round + "***");
+    roundTimer = setInterval(async () => {
+        if (lobby.roundEndAt) {
+            console.log("seconds left: " + (lobby.roundEndAt.getTime() - Date.now()) / 1000);
+            if (Date.now() >= lobby.roundEndAt.getTime()) {
+                console.log("***round " + lobby.round + " ended***");
+                // ask for story elements
+                if(roundTimer) clearInterval(roundTimer);
+                roundTimer = null
+                io.to(lobby.code).emit("get story elements");
+                console.log("waiting for story elements from all users");
+                // wait for story elements from all users
+                lobbyTimeouts.set(lobby.code, setTimeout(async () => {
+                    if(lobbyTimeouts.has(lobby.code)) {
+                        await startNewRound(lobby.code);
+                    }
+                }, USERS_TIMEOUT_SECONDS * 1000));
+            }
+        }
+    }, 500);
+    if(lobbyTimeouts.has(lobby.code)) {
+        clearTimeout(lobbyTimeouts.get(lobby.code));
+        clearInterval(lobbyTimeouts.get(lobby.code))
+    }
+    lobbyTimeouts.set(lobby.code, roundTimer);
+};
+
+function getStoryIndexForUser(lobby: Lobby, userId: string) {
+    const shuffledUsers = shuffleSeed.shuffle(lobby.users, lobby.code);
+    // get the user index
+    const userIndex = shuffledUsers.findIndex(user => user.id === userId);
+    return (userIndex + 1 + lobby.round) % lobby.users.length;
+}
 
 io.on("connection", (socket :Socket) => {
     console.log("a user connected");
@@ -98,7 +212,7 @@ io.on("connection", (socket :Socket) => {
         const client = await begin();
 
         // upsert user
-        const user : User = {id: userId, nickname: nickname}
+        const user : User = {id: userId, nickname: nickname, lobbyCode: null};
         if (!await dbUpsertUser(client, socket, user)) return await fail(client);
         console.log("user " + userId + " upserted");
 
@@ -107,7 +221,7 @@ io.on("connection", (socket :Socket) => {
         if (!lobbyCode) return await fail(client);
 
         // insert lobby
-        const lobby : Lobby = {code: lobbyCode, hostUserId: userId, users: [], round: 0, usersSubmitted: 0};
+        const lobby : Lobby = {code: lobbyCode, hostUserId: userId, users: [], round: 0, usersSubmitted: 0, roundStartAt: null , roundEndAt: null};
         if(!await dbInsertLobby(client, socket, lobby)) return await fail(client);
         console.log("lobby created with code " + lobby);
 
@@ -144,12 +258,10 @@ io.on("connection", (socket :Socket) => {
         // get lobby
         const lobby = await dbSelectLobby(client, socket, lobbyCode);
         if (!lobby) return await fail(client);
-        console.log("lobby " + lobbyCode + " fetched");
 
         // upsert user
-        const user = {id: userId, nickname: nickname};
+        const user = {id: userId, nickname: nickname, lobbyCode: null};
         if (!await dbUpsertUser(client, socket, user)) return await fail(client);
-        console.log("user " + userId + " upserted");
 
         // join lobby
         if (!await dbUpdateUserLobbyCode(client, socket, userId, lobbyCode)) return await fail(client);
@@ -189,7 +301,6 @@ io.on("connection", (socket :Socket) => {
         // get lobby
         let lobby = await dbSelectLobby(client, socket, lobbyCode);
         if (!lobby) return await fail(client);
-        console.log("lobby " + lobbyCode + " fetched");
 
         // check if user is in lobby
         if (!checkUserInLobby(socket, lobby, userId)) return await fail(client);
@@ -242,7 +353,6 @@ io.on("connection", (socket :Socket) => {
         // get lobby
         const lobby = await dbSelectLobby(client, socket, lobbyCode);
         if (!lobby) return await fail(client);
-        console.log("lobby " + lobbyCode + " fetched");
 
         // check if user is host
         if (lobby.hostUserId !== userId) {
@@ -259,12 +369,6 @@ io.on("connection", (socket :Socket) => {
             return await fail(client);
         }
 
-        // update lobby round
-        const newLobbyRound = lobby.round + 1;
-        if (!await dbUpdateLobbyRound(client, socket, lobbyCode, newLobbyRound)) return await fail(client);
-        lobby.round = newLobbyRound;
-        console.log("lobby round incremented to " + newLobbyRound);
-
         // create all stories
         const users = lobby.users;
         const storyNames = ["Once upon a time", "In a galaxy far far away", "A long time ago in a land of magic", "In a world of mystery", "In a land of dragons", "In a kingdom of knights"];
@@ -273,74 +377,12 @@ io.on("connection", (socket :Socket) => {
             if(!await dbInsertStory(client, socket, lobbyCode, i, storyName)) return await fail(client);
         }
 
-
         await success(client, lobby)
+
+        await startNewRound(lobbyCode);
+
     });
 
-
-
-    socket.on("get story", async (userId: string, lobbyCode: string) => {
-        const begin = () => {
-            console.log("user " + userId + " sent get story request");
-        }
-        const success = () => {
-            console.log("story sent to " + userId);
-        }
-        const fail = () => {
-            console.error("error getting story");
-        }
-        begin();
-        // update user last active
-        if (!await dbUpdateUserLastActive(pool, socket, userId)) return fail();
-
-        const lobby = await dbSelectLobby(pool, socket, lobbyCode);
-        if (!lobby) return fail();
-        console.log("lobby " + lobbyCode + " fetched");
-
-        // check if user is in lobby
-        if (!checkUserInLobby(socket, lobby, userId)) return fail();
-        console.log("user " + userId + " is in lobby " + lobbyCode);
-
-
-        // shuffle the user order based on the lobby code
-        if (!lobby.users) return fail();
-        const shuffledUsers = shuffleSeed.shuffle(lobby.users, lobbyCode);
-        // get the user index
-        const userIndex = shuffledUsers.findIndex(user => user.id === userId);
-        const storyIndex = (userIndex + 1 + lobby.round) % lobby.users.length;
-        // get the story for the user
-        const story = await dbSelectStoryWithIndex(pool, socket, storyIndex, lobbyCode);
-        if (!story) return fail();
-        console.log("story fetched");
-        socket.emit("story", story);
-        success()
-    });
-
-
-
-
-
-
-    socket.on("next story", async (userId: string, lobbyCode: string, index: number) => {
-        const begin = () => {
-            console.log("user " + userId + " sent next story request from " + lobbyCode + " with index " + index);
-        }
-        const success = (story: Story) => {
-            console.log("story sent to " + userId + " in lobby " + story.lobbyCode + " with index " + index);
-            io.to(story.lobbyCode).emit("next story", story);
-        }
-        const fail = () => {
-        }
-        begin();
-        // update user last active
-        if (!await dbUpdateUserLastActive(pool, socket, userId)) return fail();
-
-        const story = await dbSelectStoryByIndex(pool, socket, lobbyCode, index);
-        if (!story) return fail();
-        console.log("story fetched");
-
-        success(story)
-    });
 
 
     socket.on("story elements", async (userId: string, lobbyCode: string, elements: StoryElement[]) => {
@@ -348,10 +390,10 @@ io.on("connection", (socket :Socket) => {
             console.log("user " + userId + " sent story elements");
             return await dbBeginTransaction(pool);
         }
-        const success = async (client: PoolClient, lobby: Lobby) => {
+        const success = async (client: PoolClient, usersSubmitted : number) => {
             await dbCommitTransaction(client);
-            io.to(lobby.code).emit("lobby info", lobby);
-            console.log("story elements sent by " + userId + " in lobby " + lobby.code)
+            io.to(lobbyCode).emit("users submitted", usersSubmitted);
+            console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
         }
 
         const fail = async (client: PoolClient) => {
@@ -365,40 +407,46 @@ io.on("connection", (socket :Socket) => {
         // get lobby
         const lobby = await dbSelectLobby(client, socket, lobbyCode);
         if (!lobby) return await fail(client);
-        console.log("lobby " + lobbyCode + " fetched");
 
         // check if user is in lobby
         if (!checkUserInLobby(socket, lobby, userId)) return await fail(client);
 
-        console.log("user " + userId + " is in lobby " + lobbyCode);
-
         // insert story elements to db
+
         if (!await dbInsertStoryElements(client, socket, elements)) return await fail(client);
-        console.log("story elements inserted");
 
         // check if all users have submitted their story elements
         let newLobby : (Lobby | null) = lobby;
 
-        if (newLobby.usersSubmitted + 1 < newLobby.users.length) {
+        const allUserSubmitted = newLobby.usersSubmitted + 1 >= newLobby.users.length;
+        if (!allUserSubmitted) {
             console.log("not all users have submitted their story elements");
             // update users submitted
-            if(!await dbUpdateLobbyUsersSubmitted(client, socket, lobbyCode, newLobby.usersSubmitted + 1)) return await fail(client);
-            newLobby.usersSubmitted++;
-            console.log("users submitted incremented to " + newLobby.usersSubmitted);
-        }else {
+            const usersSubmitted = await dbLockedUpdateLobbyIncrementUsersSubmitted(client, socket, lobbyCode)
+            if(!usersSubmitted) return await fail(client);
+            newLobby.usersSubmitted = usersSubmitted;
+            console.log("users submitted incremented to " + usersSubmitted);
+
+        } else {
             console.log("all users have submitted their story elements");
-            // reset users submitted
-            if(!await dbUpdateLobbyUsersSubmitted(client, socket, lobbyCode, 0)) return await fail(client);
-            newLobby.usersSubmitted = 0;
-            // proceed to the next round
-            const newLobbyRound = lobby.round + 1;
-            if (!await dbUpdateLobbyRound(client, socket, lobbyCode, newLobbyRound)) return await fail(client);
-            lobby.round = newLobbyRound;
-            console.log("lobby round incremented to " + newLobbyRound);
+
+            // start new round
+            console.log("clearing timeout for lobby " + lobbyCode);
+            if(lobbyTimeouts.has(lobbyCode)) {
+                clearTimeout(lobbyTimeouts.get(lobbyCode));
+                clearInterval(lobbyTimeouts.get(lobbyCode));
+                lobbyTimeouts.delete(lobbyCode);
+                console.log("timeout or interval cleared for lobby " + lobbyCode);
+            }
+
+
         }
+        await success(client, newLobby.usersSubmitted)
 
-
-        await success(client, newLobby)
+        if(allUserSubmitted) {
+            console.log("***round " + lobby.round + " ended***");
+            await startNewRound(lobbyCode);
+        }
     });
 
 
@@ -428,67 +476,83 @@ io.on("connection", (socket :Socket) => {
         const lobby = await dbSelectLobby(client, socket, lobbyCode);
         if (!lobby) return await fail(client);
 
-        console.log("lobby " + lobbyCode + " fetched");
-
         // check if user is host
         if (lobby.hostUserId !== userId) {
             console.error("user " + userId + " is not host");
             socket.emit("error", {type: "USER_NOT_HOST", message: "Only the host can end the game"});
             return await fail(client);
         }
-        console.log("user " + userId + " is host");
 
         // remove all stories and story elements
         if(!await dbDeleteAllStories(client, socket, lobbyCode)) return await fail(client);
 
         // reset lobby round
-        if(!await dbUpdateLobbyRound(client, socket, lobbyCode, 0)) return await fail(client);
+        if(!await dbUpdateLobbyRound(client, socket, lobbyCode, 0, null, null)) return await fail(client);
         lobby.round = 0;
 
         await success(client, lobby)
     });
 
 
+    socket.on("get story", async (userId: string, lobbyCode: string) => {
+        const begin = () => {
+            console.log("user " + userId + " sent get story request");
+        }
+        const success = () => {
+            console.log("story sent to " + userId);
+        }
+        const fail = () => {
+            console.error("error getting story");
+        }
+        begin();
+        // update user last active
+        if (!await dbUpdateUserLastActive(pool, socket, userId)) return fail();
+
+        const lobby = await dbSelectLobby(pool, socket, lobbyCode);
+        if (!lobby) return fail();
+
+        // check if user is in lobby
+        if (!checkUserInLobby(socket, lobby, userId)) return fail();
+
+
+        // shuffle the user order based on the lobby code
+        if (!lobby.users) return fail();
+        const storyIndex = getStoryIndexForUser(lobby, userId);
+        // get the story for the user
+        const story = await dbSelectStoryWithIndex(pool, socket, storyIndex, lobbyCode);
+        if (!story) return fail();
+        socket.emit("story", story);
+        success()
+    });
+
+
+
+
+    socket.on("next story", async (userId: string, lobbyCode: string, index: number) => {
+        const begin = () => {
+            console.log("user " + userId + " sent next story request from " + lobbyCode + " with index " + index);
+        }
+        const success = (story: Story) => {
+            console.log("story sent to " + userId + " in lobby " + story.lobbyCode + " with index " + index);
+            io.to(story.lobbyCode).emit("next story", story);
+        }
+        const fail = () => {
+            console.error("error getting next story");
+        }
+        begin();
+        // update user last active
+        if (!await dbUpdateUserLastActive(pool, socket, userId)) return fail();
+
+        const story = await dbSelectStoryByIndex(pool, socket, lobbyCode, index);
+        if (!story) return fail();
+
+        success(story)
+    });
+
+
     socket.on("disconnect", async () => {
         console.log("user disconnected");
-        // // if user is in a lobby and a game is in progress leave him in the lobby else remove him from the lobby
-        // if(!socket.userId) return fail();
-        // const lobbyCode = await dbSelectUserLobbyCode(socket, socket.userId);
-        // if (!lobbyCode) return fail();
-        //
-        //
-        // const lobby = await dbSelectLobby(socket, lobbyCode);
-        // if (!lobby) return fail();
-        //
-        // const otherUser = lobby.users.find(user => user.id !== socket.userId);
-        //
-        // // if user is host change host
-        // if (lobby.hostUserId === socket.userId) {
-        //     if (otherUser) {
-        //         if (!await dbUpdateLobbyHost(socket, lobbyCode, otherUser.id)) return fail();
-        //         console.log("host changed to " + otherUser.id);
-        //     }
-        // }
-        //
-        // // if game is in progress leave user in lobby
-        // if (lobby.round != 0) return fail();
-        //
-        // // remove user from lobby
-        // if (!await dbUpdateUserLobbyCode(socket, socket.userId, null)) return fail();
-        // console.log("user " + + " removed from lobby " + lobbyCode);
-        //
-        // // remove lobby if user is the last one
-        // if(!otherUser) {
-        //     if (!await dbDeleteLobby(socket, lobbyCode)) return fail();
-        //     console.log("lobby " + lobbyCode + " removed");
-        // }
-        //
-        // // remove user from db
-        // if (!await dbDeleteUser(socket, socket.userId)) return fail();
-        // console.log("user " + socket.userId+ " removed from db");
-        //
-        // lobby.users = lobby.users.filter(user => user.id !== socket.userId);
-        // io.to(lobbyCode).emit("lobby info", lobby);
+
     });
 });
 
@@ -519,7 +583,7 @@ setInterval(async () => {
     const client = await begin();
 
     // Get all users who haven't been active for 5 minutes
-    const shortInactiveUsers = await dbSelectInactiveUsers(client, null,5);
+    const shortInactiveUsers = await dbSelectInactiveUsers(client, null,5 * 60);
     const activeLobbiesMap = new Map<string, Lobby>();
 
     // Remove each inactive user
@@ -605,6 +669,7 @@ const generateUniqueLobbyCode = async (socket: Socket): Promise<string | null> =
 }
 
 
+
 const dbBeginTransaction = async (pool : Pool) : Promise<PoolClient> => {
     const client = await pool.connect();
     await client.query('BEGIN');
@@ -621,141 +686,53 @@ const dbRollbackTransaction = async (client: PoolClient) => {
     client.release();
 };
 
-const dbUpdateUserLastActive = async (db: (Pool | PoolClient), socket: Socket, userId: string): Promise<boolean> => {
-    try {
-        await db.query('UPDATE users SET last_active = NOW() WHERE id = $1', [userId]);
-        return true;
-    } catch (error) {
-        console.error("error updating user last active: " + error);
-        socket.emit("error", {type: "DB_ERROR_UPDATE_USER_LAST_ACTIVE", message: "An error occurred while updating user last active"});
-        return false;
-    }
-};
-
-// Add a new function to get all users who haven't been active for a certain number of minutes
-const dbSelectInactiveUsers = async (db: (Pool | PoolClient), socket: (Socket | null), minutes: number): Promise<User[]> => {
-    try {
-        const interval = `${minutes} minutes`;
-        const res = await db.query(`SELECT * FROM users WHERE NOW() - last_active > INTERVAL '${interval}'`);
-        const data = res.rows;
-        return data.map(row => ({id: row.id, nickname: row.nickname, lobbyCode: row.lobby_code, lastActive: row.last_active}));
-    } catch (error) {
-        console.error("error selecting inactive users: " + error);
-        if (socket)
-            socket.emit("error", {type: "DB_ERROR_SELECT_INACTIVE_USERS", message: "An error occurred while selecting inactive users"});
-        return [];
-    }
-};
-
-const dbDeleteUser = async (db: (Pool | PoolClient), socket: (Socket | null), userId: string) : Promise<boolean> => {
-    try {
-        await db.query('DELETE FROM users WHERE id = $1', [userId]);
-        return true;
-    } catch (error) {
-        console.error("error deleting user: " + error);
-        if(socket)
-            socket.emit("error", {type: "DB_ERROR_DELETE_USER", message: "An error occurred while deleting user"});
-        return false;
-    }
-};
-
-
-const dbDeleteLobby = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string) : Promise<boolean> => {
-    try {
-        await db.query('DELETE FROM lobbies WHERE code = $1', [lobbyCode]);
-        return true;
-    } catch (error) {
-        console.error("error deleting lobby: " + error);
-        if(socket)
-            socket.emit("error", {type: "DB_ERROR_DELETE_LOBBY", message: "An error occurred while deleting lobby"});
-        return false;
-    }
-
-}
-
-
-const dbUpdateLobbyHost = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, hostUserId: string) : Promise<boolean> => {
-    try {
-        await db.query('UPDATE lobbies SET host_user_id = $1 WHERE code = $2', [hostUserId, lobbyCode]);
-        return true;
-    } catch (error) {
-        console.error("error updating lobby host: " + error);
-        if(socket)
-            socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_HOST", message: "An error occurred while updating lobby host"});
-        return false;
-    }
-};
-
-
-
-const dbSelectStoryByIndex = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string, index: number) : Promise<Story | null> => {
-    try {
-        const res = await db.query('SELECT * FROM stories WHERE lobby_code = $1 AND index = $2', [lobbyCode, index]);
-        const data = res.rows;
-        if (!data || data.length === 0) {
-            console.error("story not found by index");
-            socket.emit("error", {type: "STORY_NOT_FOUND_BY_INDEX", message: "Story not found by index"});
-            return null;
-        }
-        const story = data[0];
-        const storyElements = await dbSelectStoryElements(db, socket, story.id);
-        if (!storyElements) return null;
-        return {id: story.id, index: story.index, lobbyCode: story.lobby_code, name: story.name, elements: storyElements};
-    } catch (error) {
-        console.error("error getting story by index: " + error);
-        socket.emit("error", {type: "DB_ERROR_GET_STORY_BY_INDEX", message: "An error occurred while getting story by index"});
-        return null;
-    }
-};
-
-const dbUpdateLobbyUsersSubmitted = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string, usersSubmitted: number) : Promise<boolean> => {
-    try {
-        await db.query('UPDATE lobbies SET users_submitted = $1 WHERE code = $2', [usersSubmitted, lobbyCode]);
-        return true;
-    } catch (error) {
-        console.error("error updating lobby users submitted: " + error);
-        socket.emit("error", { type: "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED", message: "An error occurred while updating lobby users submitted" });
-        return false;
-    }
-};
-
-
-const dbInsertStory = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string, index: number, storyName: string) : Promise<boolean> => {
-    try {
-        await db.query('INSERT INTO stories (index, lobby_code, name) VALUES ($1, $2, $3)', [index, lobbyCode, storyName]);
-        return true;
-    } catch (error) {
-        console.error("error inserting story: " + error);
-        socket.emit("error", {type: "DB_ERROR_INSERT_STORY", message: "An error occurred while inserting story"});
-        return false;
-    }
-};
 
 
 const dbSelectStoryElements = async (db: (Pool | PoolClient), socket: Socket, storyId: number) : Promise<StoryElement[] | null> => {
     try {
-        const res = await db.query('SELECT * FROM story_elements WHERE story_id = $1', [storyId]);
+        const res = await db.query(`SELECT *
+                                    FROM story_elements
+                                    WHERE story_id = $1`, [storyId]);
         const data = res.rows;
-        return data.map(row => ({index: row.index, userId: row.user_id, storyId: row.story_id, type: row.type, content: row.content}));
+        return data.map(row => ({
+            index: row.index,
+            userId: row.user_id,
+            storyId: row.story_id,
+            round: row.round,
+            type: row.type,
+            content: row.content
+        }));
     } catch (error) {
         console.error("error getting all story elements: " + error);
         socket.emit("error", { type: "DB_ERROR_GET_STORY_ELEMENTS", message: "An error occurred while getting all story elements" });
         return null;
     }
 };
+
+
+
 const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), socket: Socket, storyIndex: number, lobbyCode: string) : Promise<Story | null> => {
     try {
-        const res = await db.query('SELECT * FROM stories WHERE lobby_code = $1 AND index = $2', [lobbyCode, storyIndex]);
+        const res = await db.query(`SELECT *
+                                    FROM stories
+                                    WHERE lobby_code = $1
+                                      AND index = $2`, [lobbyCode, storyIndex]);
         const data = res.rows;
         if (!data || data.length === 0) {
             console.error("story not found");
-            socket.emit("error", { type: "STORY_NOT_FOUND", message: "Story not found" });
+            socket.emit("error", {type: "STORY_NOT_FOUND", message: "Story not found"});
             return null;
         }
         const story = data[0];
         const storyElements = await dbSelectStoryElements(db, socket, story.id);
         if (!storyElements) return null;
-        return { id: story.id, index: story.index, lobbyCode: story.lobbyCode, name: story.name, elements: storyElements};
+        return {
+            id: story.id,
+            index: story.index,
+            lobbyCode: story.lobbyCode,
+            name: story.name,
+            elements: storyElements
+        };
     } catch (error) {
         console.error("error getting story: " + error);
         socket.emit("error", { type: "DB_ERROR_GET_STORY", message: "An error occurred while getting story" });
@@ -764,21 +741,13 @@ const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), socket: Socket, s
 };
 
 
-const dbDeleteAllStories = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string) : Promise<boolean> => {
-    try {
-        await db.query('DELETE FROM stories WHERE lobby_code = $1', [lobbyCode]);
-        // story elements are deleted automatically due to the foreign key constraint
-        return true;
-    } catch (error) {
-        console.error("error removing stories: " + error);
-        socket.emit("error", {type: "DB_ERROR_REMOVE_STORIES", message: "An error occurred while removing stories"});
-        return false;
-    }
-};
 
 const dbSelectUsersForLobby = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string) : Promise<User[] | null>=> {
     try {
-        const res = await db.query('SELECT * FROM users WHERE lobby_code = $1 ORDER BY created_at', [lobbyCode]);
+        const res = await db.query(`SELECT *
+                                    FROM users
+                                    WHERE lobby_code = $1
+                                    ORDER BY created_at`, [lobbyCode]);
         const data = res.rows;
         return data.map(row => ({id: row.id, nickname: row.nickname, lobbyCode: row.lobby_code}));
     } catch (error) {
@@ -793,17 +762,27 @@ const dbSelectUsersForLobby = async (db: (Pool | PoolClient), socket: (Socket | 
 
 const dbSelectLobby = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string): Promise<Lobby | null> => {
     try {
-        const res = await db.query('SELECT * FROM lobbies WHERE code = $1', [lobbyCode]);
+        const res = await db.query(`SELECT *
+                                    FROM lobbies
+                                    WHERE code = $1`, [lobbyCode]);
         const data = res.rows;
         if (!data || data.length === 0) {
             console.error("lobby not found");
-            if(socket)
+            if (socket)
                 socket.emit("error", {type: "LOBBY_NOT_FOUND", message: "Lobby not found"});
             return null;
         }
         const users = await dbSelectUsersForLobby(db, socket, lobbyCode);
         if (!users) return null;
-        return {code: lobbyCode, hostUserId: data[0].host_user_id, users: users, round: data[0].round , usersSubmitted: data[0].users_submitted};
+        return {
+            code: lobbyCode,
+            hostUserId: data[0].host_user_id,
+            users: users,
+            round: data[0].round,
+            usersSubmitted: data[0].users_submitted,
+            roundStartAt: new Date(data[0].round_start_at),
+            roundEndAt: new Date(data[0].round_end_at)
+        };
     } catch (error) {
         console.error("error getting lobby: " + error);
         if(socket)
@@ -814,26 +793,68 @@ const dbSelectLobby = async (db: (Pool | PoolClient), socket: (Socket | null), l
 
 
 
-const dbInsertStoryElements = async (db: (Pool | PoolClient), socket: Socket, elements: StoryElement[]): Promise<boolean> => {
+const dbSelectStoryByIndex = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string, index: number) : Promise<Story | null> => {
     try {
-        const query = 'INSERT INTO story_elements (index, user_id, story_id, type, content) VALUES ' + elements.map((_element, index) => `($${index * 5 + 1}, $${index * 5 + 2}, $${index * 5 + 3}, $${index * 5 + 4}, $${index * 5 + 5})`).join(', ');
-        await db.query(query, elements.flatMap(element => [element.index, element.userId, element.storyId, element.type, element.content]));
-        return true;
+        const res = await db.query(`SELECT *
+                                    FROM stories
+                                    WHERE lobby_code = $1
+                                      AND index = $2`, [lobbyCode, index]);
+        const data = res.rows;
+        if (!data || data.length === 0) {
+            console.error("story not found by index");
+            socket.emit("error", {type: "STORY_NOT_FOUND_BY_INDEX", message: "Story not found by index"});
+            return null;
+        }
+        const story = data[0];
+        const storyElements = await dbSelectStoryElements(db, socket, story.id);
+        if (!storyElements) return null;
+        return {
+            id: story.id,
+            index: story.index,
+            lobbyCode: story.lobby_code,
+            name: story.name,
+            elements: storyElements
+        };
     } catch (error) {
-        console.error("error inserting story elements: " + error);
-        socket.emit("error", { type: "DB_ERROR_INSERT_STORY_ELEMENTS", message: "An error occurred while inserting story elements" });
-        return false;
+        console.error("error getting story by index: " + error);
+        socket.emit("error", {type: "DB_ERROR_GET_STORY_BY_INDEX", message: "An error occurred while getting story by index"});
+        return null;
     }
 };
 
 
+
+const dbSelectInactiveUsers = async (db: (Pool | PoolClient), socket: (Socket | null), seconds: number): Promise<User[]> => {
+    try {
+        const res = await db.query(`SELECT *
+                                    FROM users
+                                    WHERE NOW() - last_active > INTERVAL '${seconds}' SECOND`);
+        const data = res.rows;
+        return data.map(row => ({
+            id: row.id,
+            nickname: row.nickname,
+            lobbyCode: row.lobby_code,
+            lastActive: row.last_active
+        }));
+    } catch (error) {
+        console.error("error selecting inactive users: " + error);
+        if (socket)
+            socket.emit("error", {type: "DB_ERROR_SELECT_INACTIVE_USERS", message: "An error occurred while selecting inactive users"});
+        return [];
+    }
+};
+
+
+
 const dbSelectUserLobbyCode = async (db: (Pool | PoolClient), socket: (Socket | null), userId: string): Promise<string | null> => {
     try {
-        const res = await db.query('SELECT lobby_code FROM users WHERE id = $1', [userId]);
+        const res = await db.query(`SELECT lobby_code
+                                    FROM users
+                                    WHERE id = $1`, [userId]);
         const data = res.rows;
         if (!data || data.length === 0) {
             console.error("user not found");
-            if(socket)
+            if (socket)
                 socket.emit("error", {type: "USER_NOT_FOUND", message: "User not found"});
             return null;
         }
@@ -848,11 +869,90 @@ const dbSelectUserLobbyCode = async (db: (Pool | PoolClient), socket: (Socket | 
 };
 
 
+const dbSelectStoryElementDistinctUserIdsForRound = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, round : number): Promise<string[] | null> => {
+    try {
+        const res = await db.query(`SELECT DISTINCT user_id
+                                    FROM story_elements
+                                    WHERE story_id IN (SELECT id
+                                                       FROM stories
+                                                       WHERE lobby_code = $1)
+                                      AND round = $2`, [lobbyCode, round]);
+        const data = res.rows;
+        return data.map(row => row.user_id);
+    } catch (error) {
+        console.error("error selecting last user ids in lobby: " + error);
+        if (socket)
+            socket.emit("error", {type: "DB_ERROR_SELECT_LAST_USER_IDS_IN_LOBBY", message: "An error occurred while selecting last user ids in lobby"});
+        return null;
+    }
+};
+
+
+const dbSelectStoryIdByIndex = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, index: number) => {
+    try {
+        const res = await db.query(`SELECT id
+                                    FROM stories
+                                    WHERE lobby_code = $1
+                                      AND index = $2`, [lobbyCode, index]);
+        return res.rows[0].id;
+    } catch (error) {
+        console.error("error selecting story id by index: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_SELECT_STORY_ID_BY_INDEX", message: "An error occurred while selecting story id by index"});
+        return null;
+    }
+};
+
+const dbInsertStory = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string, index: number, storyName: string) : Promise<boolean> => {
+    try {
+        await db.query(`INSERT INTO stories (index, lobby_code, name)
+                        VALUES ($1, $2, $3)`, [index, lobbyCode, storyName]);
+        return true;
+    } catch (error) {
+        console.error("error inserting story: " + error);
+        socket.emit("error", {type: "DB_ERROR_INSERT_STORY", message: "An error occurred while inserting story"});
+        return false;
+    }
+};
+
+
+const dbInsertStoryElements = async (db: (Pool | PoolClient), socket: (Socket | null), elements: StoryElement[]): Promise<boolean> => {
+    try {
+        const query = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
+                       VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ');
+        await db.query(query, elements.flatMap(element => [element.index, element.userId, element.storyId, element.round, element.type, element.content]));
+        return true;
+    } catch (error) {
+        console.error("error inserting story elements: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_INSERT_STORY_ELEMENTS", message: "An error occurred while inserting story elements"});
+        return false;
+    }
+};
+
+
+
+const dbInsertLobby = async (db: (Pool | PoolClient), socket: Socket, lobby : Lobby): Promise<boolean> => {
+    try {
+        await db.query(`INSERT INTO lobbies (code, host_user_id, round, users_submitted, round_start_at, round_end_at)
+                        VALUES ($1, $2, $3, $4, $5, $6)`,
+            [lobby.code, lobby.hostUserId, lobby.round, lobby.usersSubmitted, lobby.roundStartAt, lobby.roundEndAt]);
+        return true;
+    }catch (error) {
+        console.error("error creating lobby: " + error);
+        socket.emit("error", {type: "DB_ERROR_CREATE_LOBBY", message: "An error occurred while creating lobby"});
+        return false;
+    }
+}
+
 
 
 const dbUpsertUser = async (db: (Pool | PoolClient), socket: Socket, user: User): Promise<boolean> => {
     try {
-        await db.query('INSERT INTO users (id, nickname) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET nickname = $2, last_active = NOW()' , [user.id, user.nickname]);
+        await db.query(`INSERT INTO users (id, nickname, lobby_code)
+                        VALUES ($1, $2, $3)
+                        ON CONFLICT (id) DO UPDATE SET nickname    = $2,
+                                                       last_active = NOW()`, [user.id, user.nickname, user.lobbyCode]);
         return true;
     } catch (error) {
         console.error("error upserting user: " + error);
@@ -863,26 +963,30 @@ const dbUpsertUser = async (db: (Pool | PoolClient), socket: Socket, user: User)
 
 
 
-const dbInsertLobby = async (db: (Pool | PoolClient), socket: Socket, lobby : Lobby): Promise<boolean> => {
+const dbUpdateUserLastActive = async (db: (Pool | PoolClient), socket: Socket, userId: string): Promise<boolean> => {
     try {
-        await db.query('INSERT INTO lobbies (code, host_user_id, round, users_submitted) VALUES ($1, $2, $3, $4)',
-            [lobby.code, lobby.hostUserId, lobby.round, lobby.usersSubmitted]);
+        await db.query(`UPDATE users
+                        SET last_active = NOW()
+                        WHERE id = $1`, [userId]);
         return true;
     } catch (error) {
-        console.error("error creating lobby: " + error);
-        socket.emit("error", {type: "DB_ERROR_CREATE_LOBBY", message: "An error occurred while creating lobby"});
+        console.error("error updating user last active: " + error);
+        socket.emit("error", {type: "DB_ERROR_UPDATE_USER_LAST_ACTIVE", message: "An error occurred while updating user last active"});
         return false;
     }
-}
-
+};
 
 
 const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), socket: (Socket | null), userId: string, lobbyCode: string | null): Promise<boolean> => {
     try {
         if(lobbyCode === null) {
-            await db.query('UPDATE users SET lobby_code = NULL WHERE id = $1', [userId]);
+            await db.query(`UPDATE users
+                            SET lobby_code = NULL
+                            WHERE id = $1`, [userId]);
         } else {
-            await db.query('UPDATE users SET lobby_code = $1 WHERE id = $2', [lobbyCode, userId]);
+            await db.query(`UPDATE users
+                            SET lobby_code = $1
+                            WHERE id = $2`, [lobbyCode, userId]);
         }
         return true;
     } catch (error) {
@@ -894,18 +998,116 @@ const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), socket: (Socket | 
 }
 
 
-
-const dbUpdateLobbyRound = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string, round: number) : Promise<boolean> => {
+const dbUpdateLobbyHost = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, hostUserId: string) : Promise<boolean> => {
     try {
-        await db.query('UPDATE lobbies SET round = $1 WHERE code = $2', [round, lobbyCode]);
+        await db.query(`UPDATE lobbies
+                        SET host_user_id = $1
+                        WHERE code = $2`, [hostUserId, lobbyCode]);
+        return true;
+    }catch (error) {
+        console.error("error updating lobby host: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_HOST", message: "An error occurred while updating lobby host"});
+        return false;
+    }
+};
+
+
+const dbLockedUpdateLobbyIncrementUsersSubmitted = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string) : Promise<number | null> => {
+    try {
+        await db.query(`LOCK TABLE lobbies IN ROW EXCLUSIVE MODE`);
+
+        await db.query(`SELECT *
+                        from lobbies
+                        WHERE code = $1 FOR UPDATE`, [lobbyCode]);
+
+        await db.query(`UPDATE lobbies
+                        SET users_submitted = users_submitted + 1
+                        WHERE code = $1`, [lobbyCode]);
+        const res = await db.query(`SELECT users_submitted FROM lobbies WHERE code = $1`, [lobbyCode]);
+        return res.rows[0].users_submitted;
+    } catch (error) {
+        console.error("error updating lobby users submitted: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED", message: "An error occurred while updating lobby users submitted"});
+        return null;
+
+    }
+};
+
+const dbUpdateLobbyUsersSubmitted = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, usersSubmitted: number) : Promise<boolean> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET users_submitted = $1
+                        WHERE code = $2`, [usersSubmitted, lobbyCode]);
+        return true;
+    } catch (error) {
+        console.error("error updating lobby users submitted: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED", message: "An error occurred while updating lobby users submitted"});
+        return false;
+    }
+};
+
+
+const dbUpdateLobbyRound = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, round: number, roundStartAt: (Date | null), roundEndAt: (Date | null)) : Promise<boolean> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET round = $1,
+                            round_start_at = $2,
+                            round_end_at = $3
+                        WHERE code = $4`, [round, roundStartAt, roundEndAt, lobbyCode]);
         return true;
     } catch (error) {
         console.error("error updating lobby round: " + error);
-        socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_ROUND", message: "An error occurred while updating lobby round"});
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_ROUND", message: "An error occurred while updating lobby round"});
         return false;
     }
 }
 
 
 
+const dbDeleteUser = async (db: (Pool | PoolClient), socket: (Socket | null), userId: string) : Promise<boolean> => {
+    try {
+        await db.query(`DELETE
+                        FROM users
+                        WHERE id = $1`, [userId]);
+        return true;
+    } catch (error) {
+        console.error("error deleting user: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_DELETE_USER", message: "An error occurred while deleting user"});
+        return false;
+    }
+};
+
+
+const dbDeleteLobby = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string) : Promise<boolean> => {
+    try {
+        await db.query(`DELETE
+                        FROM lobbies
+                        WHERE code = $1`, [lobbyCode]);
+        return true;
+    } catch (error) {
+        console.error("error deleting lobby: " + error);
+        if(socket)
+            socket.emit("error", {type: "DB_ERROR_DELETE_LOBBY", message: "An error occurred while deleting lobby"});
+        return false;
+    }
+
+}
+const dbDeleteAllStories = async (db: (Pool | PoolClient), socket: Socket, lobbyCode: string) : Promise<boolean> => {
+    try {
+        await db.query(`DELETE
+                        FROM stories
+                        WHERE lobby_code = $1`, [lobbyCode]);
+        // story elements are deleted automatically due to the foreign key constraint
+        return true;
+    } catch (error) {
+        console.error("error removing stories: " + error);
+        socket.emit("error", {type: "DB_ERROR_REMOVE_STORIES", message: "An error occurred while removing stories"});
+        return false;
+    }
+};
 

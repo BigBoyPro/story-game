@@ -1,10 +1,10 @@
 import './App.css'
 import {useEffect, useState} from "react";
 import {
-    getError,
-    getLobbyInfo, getLeftLobby, requestStory,
-    unmountError,
-    unmountLobbyInfo, unmountLeftLobby
+    onError,
+    onLobbyInfo, onLeftLobby, requestStory,
+    offError,
+    offLobbyInfo, offLeftLobby, onUsersSubmitted, offUsersSubmitted
 } from "./utils/socketService.ts";
 import {Lobby} from "../../shared/sharedTypes.ts";
 
@@ -34,7 +34,8 @@ function App() {
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
     useEffect(() => {
-        getLobbyInfo(newLobby => {
+
+        onLobbyInfo(newLobby => {
             const oldLobbyRound = lobby?.round;
             console.log('Lobby Info:', newLobby);
             setLobby(newLobby);
@@ -46,21 +47,30 @@ function App() {
             }
         });
 
-        getLeftLobby(() => {
+        onUsersSubmitted((usersSubmitted : number) => {
+            console.log('Users Submitted:', usersSubmitted);
+            if(lobby) {
+                lobby.usersSubmitted++;
+                setLobby({...lobby});
+            }
+        });
+
+        onLeftLobby(() => {
             console.log('Lobby Left');
             setLobby(null);
         });
 
-        getError(error => {
+        onError(error => {
             console.error('Error:', error);
         });
 
-
         return () => {
-            unmountLobbyInfo();
-            unmountError();
-            unmountLeftLobby();
-        };
+            offLobbyInfo();
+            offError();
+            offLeftLobby();
+            offUsersSubmitted();
+        }
+
     }, []);
 
 
