@@ -29,19 +29,16 @@ function GameView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
     const [story, setStory] = useState<Story | null>(null);
-
+    // const [remainingTime, setRemainingTime] = useState<number | null>(null);
    const newStoryElementsRef = useRef<StoryElement[]>([]);
     useEffect(() => {
-        console.log('redirecting',story);
         redirection(lobby, navigate);
-        console.log('redirected',story);
 
         onStory((story) => {
-            console.log('Story received:', story);
-
+            const showStory = story.elements.length == 0 || story.elements[story.elements.length - 1].userId != userId;
+            console.log('Story received:', story, showStory);
             // don't set story if the last story element is from the current user
-            if (story.elements.length == 0 || story.elements[story.elements.length - 1].userId != userId) {
-                console.log('Setting story');
+            if (showStory) {
                 setStory(story);
             }
         });
@@ -50,12 +47,23 @@ function GameView() {
             console.log('Get story elements');
             onFinish();
         });
+        // let timerId: NodeJS.Timeout | null = null;
+        //
+        // if (lobby?.roundStartAt && lobby?.roundEndAt) {
+        //     const endTime = new Date(lobby.roundEndAt).getTime();
+        //     timerId = setInterval(() => {
+        //         const now = Date.now();
+        //         const remaining = endTime - now;
+        //         setRemainingTime(Math.max(remaining, 0));
+        //     }, 1000);
+        // }
 
         return () => {
             offStory();
             offGetStoryElements();
+            // if(timerId) clearInterval(timerId);
         }
-    }, [lobby, navigate, story]);
+    }, [lobby, lobby?.roundStartAt, lobby?.roundEndAt, navigate, story]);
 
     const onFinish = () => {
         console.log('onFinish');
