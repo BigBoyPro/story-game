@@ -4,11 +4,11 @@ import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
 import {
-    getEndGame,
-    getNextStory,
+    onEndGame,
+    onNextStory,
     requestEndGame,
-    requestNextStory, unmountEndGame,
-    unmountNextStory,
+    requestNextStory, offEndGame,
+    offNextStory,
     userId
 } from "../utils/socketService.ts";
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
@@ -17,7 +17,7 @@ const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {
             navigate("/lobby", {replace: true});
-        } else if(lobby.round <= lobby.users.length){
+        } else if(lobby.round != -1){
             navigate("/game", {replace: true});
         }
     }else{
@@ -33,12 +33,12 @@ function ResultsView() {
     useEffect(() => {
         redirection(lobby, navigate);
 
-        getNextStory((story) => {
+        onNextStory((story) => {
             setStory(story);
             console.log('Story:', story);
         });
 
-        getEndGame(() => {
+        onEndGame(() => {
             console.log('Game Ended');
             setStory(null);
             if(lobby) {
@@ -51,8 +51,8 @@ function ResultsView() {
         if(lobby && !story) requestNextStory(lobby.code,0)
 
         return () => {
-            unmountNextStory()
-            unmountEndGame()
+            offNextStory()
+            offEndGame()
         }
     }, [lobby, navigate]);
 

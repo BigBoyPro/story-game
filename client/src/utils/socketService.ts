@@ -22,63 +22,83 @@ socket.on('disconnect', () => {
     console.log('disconnected from server');
 });
 
-export const getLobbyInfo = (callback: (lobby: Lobby) => void) => {
+export const onLobbyInfo = (callback: (lobby: Lobby) => void) => {
     socket.on('lobby info', lobby => {
         callback(lobby);
     });
 }
 
-export const unmountLobbyInfo = () => {
+export const offLobbyInfo = () => {
     socket.off('lobby info');
 }
 
-export const getLeftLobby = (callback: () => void) => {
+export const onLeftLobby = (callback: () => void) => {
     socket.on('left lobby', () => {
         callback();
     });
 }
 
-export const unmountLeftLobby = () => {
+export const offLeftLobby = () => {
     socket.off('left lobby');
 }
 
-export const getError = (callback: (error: Error) => void) => {
+export const onError = (callback: (error: Error) => void) => {
     socket.on('error', error => {
         callback(error);
     });
 }
 
-export const unmountError = () => {
+export const offError = () => {
     socket.off('error');
 }
 
-export const getStory = (callback: (story: Story) => void) => {
+export const onStory = (callback: (story: Story) => void) => {
     socket.on('story', story => {
         callback(story);
     });
 }
 
-export const unmountStory = () => {
+export const offStory = () => {
     socket.off('story');
 }
 
-export const getNextStory = (callback: (story: Story) => void) => {
+export const onGetStoryElements = (callback: () => void) => {
+    socket.on('get story elements', () => {
+        callback();
+    });
+}
+
+export const offGetStoryElements = () => {
+    socket.off('get story elements');
+}
+
+export const onUsersSubmitted = (callback: (usersSubmitted: number) => void) => {
+    socket.on('users submitted', usersSubmitted => {
+        callback(usersSubmitted);
+    });
+}
+
+export const offUsersSubmitted = () => {
+    socket.off('users submitted');
+}
+
+export const onNextStory = (callback: (story: Story) => void) => {
     socket.on('next story', story => {
         callback(story);
     });
 }
 
-export const unmountNextStory = () => {
+export const offNextStory = () => {
     socket.off('next story');
 }
 
-export const getEndGame = (callback: () => void) => {
+export const onEndGame = (callback: () => void) => {
     socket.on('end game', () => {
         callback();
     });
 }
 
-export const unmountEndGame = () => {
+export const offEndGame = () => {
     socket.off('end game');
 }
 

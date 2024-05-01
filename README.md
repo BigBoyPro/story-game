@@ -1,7 +1,11 @@
 # EditableStory
 
-## Pour les collegues
-### Tout d'abord:
+
+### Pour les collegues:
+
+## Setup
+
+---
 
 Vous devez installer `nodejs` depuis le site officiel: https://nodejs.org/en/download/current
 
@@ -31,41 +35,57 @@ Sinon vous pouvez aussi lancer le serveur avec la commande suivante:
     npm run dev
 
 
+
+
 ### Pour acceder a la base de donnees:
-J'ai utilise `supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne,
-pour y acceder, vous pouvez vous connecter sur le site suivant: https://supabase.com/dashboard/sign-in.  
-Puis vous devez creer un compte et me demander de vous mettre dans l'organisation `BIGSHELL`, pour que vous puissiez acceder a la base de donnees.  
-Moi j'utilise l'UI du site de `supabase` pour creer les tables et tout, mais vous pouvez utiliser ce que vous voulez,
-pour avoir l'URL de connection cliquer sur la base de donnees `story` puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donner les differentes URL de connection.
+J'ai utilise `Supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne,
+pour y acceder, vous pouvez `creer un compte` sur le site suivant: https://supabase.com/dashboard/sign-in.  
+Puis donner moi votre `mail` pour que je puisse vous inviter dans l'organisation `BIGSHELL`, pour que vous puissiez acceder a la base de donnees `story`.  
 
 
-### Taches a faire:
+Moi j'utilise l'UI du [site de supabase](https://supabase.com/dashboard/project/nhldzevrwuqvytdltqgi/editor) pour creer les tables et tout...  
+Mais si vous voulez utiliser autre chose, pour avoir `l'URL de Connection` a la la base de donnees cliquer sur la bdd `story` pour aller sur le [Dashboard](https://supabase.com/dashboard/project/nhldzevrwuqvytdltqgi), 
+puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donner les differentes URL de connection.
 
-- Améliorer le design de l'application :
-    - [ ] Faire un croquis de l'application
-    - [ ] Rendre l'application responsive (mobile, tablette, desktop)
-    - [ ] Ajouter des couleurs, des images, des animations, etc.
+
+
+## Taches
+
+---
+
+### Améliorer le design et l'UI de l'application :
+- [ ] Ajouter des validations pour les inputs
+- [ ] Faire un croquis de l'application
+- [ ] Rendre l'application responsive (mobile, tablette, desktop)
+- [ ] Ajouter des couleurs, des images, des animations, etc...
   
 
-- Mieux organiser le code:
-    - [ ] Ajouter des commentaires
-    - [ ] Factoriser le code (separer les composants)
+### Mieux organiser le code:
+- [ ] Ajouter des commentaires
+- [ ] Factoriser le code (separer les composants)
 
 
-- Ameliorer les fonctionnalités:
-  - [x] ~~Ajouter la logique et l'ui pour quitter le lobby~~
-  - [ ] Ajouter un timer pour passer au round suivant
+### Ameliorer les fonctionnalités:
+- [x] ~~Ajouter la logique et l'ui pour quitter le lobby~~
+- [ ] Ajouter un timer pour passer au round suivant
 (Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant) `EN COURS`
-  - [ ] Faire que si le joueur n'envoie pas de `story element` le serveur cree un `story element` vide pour lui. `EN COURS`
+- [ ] Faire que si le joueur n'envoie pas de `story element` le serveur cree un `story element` vide pour lui. `EN COURS`
 
   
-- Ajouter des fonctionnalités:
-    - [ ] Ajouter les parametres du lobby:
-        - [ ] Voir les histoires des autres joueurs ou seulement le dernier `story element` ou les `story elements` du dernier joueur
-        - [ ] Choisir le nombre de `story elements` par `story`
-        - [ ] Configurer le timer
-    - [x] ~~Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees~~
-    - [ ] Ajouter la logique et l'ui pour les images et l'audio
-    - [x] ~~Ajouter le nom du joueur de chaque `story element` dans la page des resultats~~
+### Ajouter des fonctionnalités:
+- [ ] Faire en sorte d'afficher les `story elements` dans l'ordre ou ils ont ete envoyes pour chaque utilisateur
+- [ ] Ajouter la logique et l'ui pour les images et l'audio
+- [ ] Ajouter les parametres du lobby:
+    - [ ] Voir les histoires des autres joueurs ou seulement le dernier `story element` ou les `story elements` du dernier joueur
+    - [ ] Choisir le nombre de `story elements` par `story`
+    - [ ] Configurer le timer (Ajouter le mode Dynamic)
 
-    - [ ] Ajouter je t'aime
+- [ ] Ajouter un systeme de personages et de lieux(les lieux sont juste l'image de fond de l'histoire)
+- [ ] Ajouter un mode `Solo` pour le joueurs qui veulent juste creer des histoires
+- [ ] Commencer l'histoire en choisissant le nom de l'histoire et les differents presonnages avec leurs descriptions
+- [x] ~~Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees~~
+- [x] ~~Ajouter le nom du joueur de chaque `story element` dans la page des resultats~~
+- [ ] Ajouter la fonction de Partager l'histoire sur les reseaux sociaux
+
+
+- [ ] Ajouter je t'aime

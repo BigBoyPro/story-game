@@ -1,4 +1,4 @@
-import {useContext, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import "./StoryComponent.css"
 import {Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import {LobbyContext} from "../../LobbyContext.tsx";
@@ -8,20 +8,29 @@ import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 
 function StoryComponent({
                             story,
-                            onFinish
+                            onFinish,
+                            onNewStoryElementsChange
                         }: {
-    story : Story,
-    onFinish?: (newStoryElements : Array<StoryElement>) => void}) {
+    story: Story,
+    onFinish?: (newStoryElements: StoryElement[]) => void,
+    onNewStoryElementsChange?: (newStoryElements: StoryElement[]) => void
+}) {
 
     const lobby = useContext(LobbyContext);
-    const [newStoryElements, setNewStoryElements] = useState<Array<StoryElement>>([]);
-
+    const [newStoryElements, setNewStoryElements] = useState<StoryElement[]>([]);
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
+
+
+    useEffect(() => {
+        if(onNewStoryElementsChange) {
+            onNewStoryElementsChange(newStoryElements);
+        }
+    }, [newStoryElements]);
 
     const addElement = () => {
         if (lobby && type) {
             // add new element to the story
-            setNewStoryElements([...newStoryElements, { index: newStoryElements.length, userId: userId, storyId: story.id , type, content: "" }]);
+            setNewStoryElements([...newStoryElements, { index: newStoryElements.length, userId: userId, storyId: story.id, round: lobby.round, type, content: "" }]);
         }
     };
 
@@ -35,8 +44,8 @@ function StoryComponent({
 
     const handleFinish = () => {
         if(!onFinish) return;
-        setNewStoryElements([]);
         onFinish(newStoryElements);
+        setNewStoryElements([]);
     };
 
     function getStoryElementsForEachUser() {
@@ -64,6 +73,7 @@ function StoryComponent({
                         <button onClick={addElement}>+</button>
                         <select value={type} onChange={(e) => setType(e.target.value as StoryElementType)}>
                             {Object.values(StoryElementType).map((value) => (
+                                value !== StoryElementType.Empty &&
                                 <option key={value}
                                         value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
                             ))}

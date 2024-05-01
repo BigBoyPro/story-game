@@ -2,7 +2,7 @@
 export type User = {
     id: string;
     nickname: string;
-    lobbyCode?: string;
+    lobbyCode: (string | null);
 };
 
 export type Lobby = {
@@ -10,7 +10,9 @@ export type Lobby = {
     hostUserId: string;
     round: number;
     usersSubmitted: number;
-    users: Array<User>;
+    users: User[];
+    roundStartAt: (Date | null);
+    roundEndAt: (Date | null);
 };
 
 export type Story = {
@@ -18,18 +20,20 @@ export type Story = {
     index: number;
     lobbyCode: string;
     name: string;
-    elements: Array<StoryElement>;
+    elements: StoryElement[];
 };
 
 export type StoryElement = {
     index: number;
     storyId: number;
     userId: string;
+    round: number;
     type: StoryElementType;
     content: string;
 };
 
 export enum StoryElementType{
+    Empty = 'empty',
     Text = 'text',
     Image = 'image',
     Audio = 'audio'
