@@ -53,35 +53,48 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 - [ ] Ajouter des validations pour les inputs
 - [ ] Faire un croquis de l'application
 - [ ] Rendre l'application responsive (mobile, tablette, desktop)
-- [ ] Ajouter des couleurs, des images, des animations, etc...
-  
+- [ ] Ajouter des couleurs, des images
+- [ ] Ajouter des animations
+- [ ] Faire en sorte d'afficher les `story elements` dans l'ordre ou ils ont ete envoyes pour chaque utilisateur
+
 
 ### Mieux organiser le code:
 - [ ] Ajouter des commentaires
 - [ ] Factoriser le code (separer les composants)
 
-
-### Ameliorer les fonctionnalités:
-- [x] ~~Ajouter la logique et l'ui pour quitter le lobby~~
-- [x] ~~Ajouter un timer pour passer au round suivant
-(Le serveur ne doit plus attendre que les joueurs envoient leurs `story elements` pour passer au round suivant) `EN COURS`~~
-- [x] ~~Faire que si le joueur n'envoie pas de `story element` le serveur cree un `story element` vide pour lui. `EN COURS`~~
-
   
 ### Ajouter des fonctionnalités:
-- [ ] Faire en sorte d'afficher les `story elements` dans l'ordre ou ils ont ete envoyes pour chaque utilisateur
-- [ ] Ajouter la logique et l'ui pour les images et l'audio
-- [ ] Ajouter les parametres du lobby:
-    - [ ] Voir les histoires des autres joueurs ou seulement le dernier `story element` ou les `story elements` du dernier joueur
-    - [ ] Choisir le nombre de `story elements` par `story`
-    - [ ] Configurer le timer (Ajouter le mode Dynamic)
+- [ ] Securiser le server
+- [ ] Ajouter un moment avant chaque `round` pour que les utilisateurs puissent voir les `story elements` des joueurs precedents
+- [ ] Ajouter la logique et l'ui pour les images et l'audio `RADIA`
+- [ ] Ajouter la fonction de dessiner des images pour les `story elements` `DARYL`
+- [ ] Ajouter les parametres du lobby: 
+  - [ ] Voir toute l'histoire d'avant ou ne voir que le dernier `story element` ou les `story elements` du dernier utilisateur
+  - [ ] Choisir le nombre de `story elements` par `story` le nombre de texte, d'images et d'audio
+  - [ ] Configurer le timer (Ajouter le mode Dynamic)
+  - [ ] Commencer l'histoire en choisissant le nom de l'histoire et les differents presonnages avec leurs descriptions et le theme
 
-- [ ] Ajouter un systeme de personages et de lieux(les lieux sont juste l'image de fond de l'histoire)
-- [ ] Ajouter un mode `Solo` pour le joueurs qui veulent juste creer des histoires
-- [ ] Commencer l'histoire en choisissant le nom de l'histoire et les differents presonnages avec leurs descriptions
-- [x] ~~Modifier le server pour faire un systeme de `Transactions SQL` pour les ecritures dans la base de donnees~~
-- [x] ~~Ajouter le nom du joueur de chaque `story element` dans la page des resultats~~
+- [ ] Ajouter des modes de jeu
+  - [ ] Ajouter un mode `Solo` pour le joueurs qui veulent juste creer des histoires
+  
+- [ ] Ajouter les liens d'invite
+
+- [ ] Ajouter un systeme de personages 
+
+- [ ] Ajouter un systeme de lieux (les lieux sont juste l'image de fond de l'histoire)
+
+- [ ] Ajouter le text to speech pour les `story elements` et plusieurs voix
+
 - [ ] Ajouter la fonction de Partager l'histoire sur les reseaux sociaux
+- [ ] Ajouter un systeme de vote pour le `MVP` de l'histoire
+- [ ] Ajouter un systeme de vote pour la meilleure `story`
 
+- [ ] Ajouter un systeme de defis
+  - [ ] Utiser un mot specifique dans l'histoire
+  - [ ] Possibilite de defier les autres joueurs
+
+- [ ] Ajouter un systeme de joueur rogue qui s'incruste dans les histoires des autres joueurs
+
+- [ ] Ajouter un systeme de login
 
 - [ ] Ajouter je t'aime

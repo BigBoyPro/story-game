@@ -653,7 +653,12 @@ const generateUniqueLobbyCode = async (socket: Socket): Promise<string | null> =
     let unique = false;
     let lobbyCode = '';
     while (!unique) {
-        lobbyCode = Math.random().toString(36).substring(2, 7);
+        for(let i = 0; i < 5; i++) {
+            // Generate a random number between 65 and 90, for ASCII values of A-Z
+            const ascii = Math.floor(Math.random() * 26) + 65;
+            // Convert the ASCII value to a character and add it to the lobbyCode
+            lobbyCode += String.fromCharCode(ascii);
+        }
         try {
             const res = await pool.query('SELECT COUNT(*) FROM lobbies WHERE code = $1', [lobbyCode]);
             const count = res.rows[0].count;
