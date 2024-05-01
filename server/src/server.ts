@@ -36,7 +36,7 @@ const io = new Server(server, {
     }
 });
 
-const ROUND_SECONDS = 10;
+const ROUND_SECONDS =  30;
 const USERS_TIMEOUT_SECONDS = 10 ;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
