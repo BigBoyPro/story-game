@@ -32,8 +32,9 @@ function App() {
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
     useEffect(() => {
-
         onLobbyInfo(newLobby => {
+
+
             const oldLobbyRound = lobby?.round;
             console.log('Lobby Info:', newLobby);
             setLobby(newLobby);

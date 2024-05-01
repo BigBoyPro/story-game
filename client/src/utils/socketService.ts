@@ -24,7 +24,9 @@ socket.on('disconnect', () => {
 });
 
 export const onLobbyInfo = (callback: (lobby: Lobby) => void) => {
-    socket.on('lobby info', lobby => {
+    socket.on('lobby info', (lobby : Lobby) => {
+        lobby.roundStartAt = lobby.roundStartAt ? new Date(lobby.roundStartAt) : null;
+        lobby.roundEndAt = lobby.roundEndAt ? new Date(lobby.roundEndAt) : null;
         callback(lobby);
     });
 }
