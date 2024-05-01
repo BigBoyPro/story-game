@@ -58,7 +58,7 @@ const startNewRound = async (lobbyCode: string) => {
     }
     const client = await begin();
 
-    const lobby = await dbSelectLobby(client, null, lobbyCode);
+    const lobby = await dbSelectLobby(client, null, lobbyCode,true);
     if (!lobby) return await fail(client);
 
     console.log("round: " + lobby.round);
@@ -299,7 +299,7 @@ io.on("connection", (socket :Socket) => {
         if (!await dbUpdateUserLastActive(client, socket, userId)) return await fail(client);
 
         // get lobby
-        let lobby = await dbSelectLobby(client, socket, lobbyCode);
+        let lobby = await dbSelectLobby(client, socket, lobbyCode, true);
         if (!lobby) return await fail(client);
 
         // check if user is in lobby
@@ -405,7 +405,7 @@ io.on("connection", (socket :Socket) => {
         if (!await dbUpdateUserLastActive(client, socket, userId)) return await fail(client);
 
         // get lobby
-        const lobby = await dbSelectLobby(client, socket, lobbyCode);
+        const lobby = await dbSelectLobby(client, socket, lobbyCode, true);
         if (!lobby) return await fail(client);
 
         // check if user is in lobby
@@ -422,10 +422,9 @@ io.on("connection", (socket :Socket) => {
         if (!allUserSubmitted) {
             console.log("not all users have submitted their story elements");
             // update users submitted
-            const usersSubmitted = await dbLockedUpdateLobbyIncrementUsersSubmitted(client, socket, lobbyCode)
-            if(!usersSubmitted) return await fail(client);
-            newLobby.usersSubmitted = usersSubmitted;
-            console.log("users submitted incremented to " + usersSubmitted);
+            if(!await dbUpdateLobbyUsersSubmittedIncrement(client, socket, lobbyCode)) return await fail(client);
+            newLobby.usersSubmitted++;
+            console.log("users submitted incremented to " + newLobby.usersSubmitted);
 
         } else {
             console.log("all users have submitted their story elements");
@@ -473,7 +472,7 @@ io.on("connection", (socket :Socket) => {
         if (!await dbUpdateUserLastActive(client, socket, userId)) return await fail(client);
 
         // get lobby
-        const lobby = await dbSelectLobby(client, socket, lobbyCode);
+        const lobby = await dbSelectLobby(client, socket, lobbyCode, true);
         if (!lobby) return await fail(client);
 
         // check if user is host
@@ -592,7 +591,7 @@ setInterval(async () => {
         const lobbyCode = await dbSelectUserLobbyCode(client, null, inactiveUser.id);
         let lobby : (Lobby | null) = null;
         if (lobbyCode) {
-            lobby = await dbSelectLobby(client, null, lobbyCode);
+            lobby = await dbSelectLobby(client, null, lobbyCode, true);
             if (!lobby) return await fail(client);
 
             activeLobbiesMap.set(lobbyCode, lobby);
@@ -760,11 +759,14 @@ const dbSelectUsersForLobby = async (db: (Pool | PoolClient), socket: (Socket | 
 
 
 
-const dbSelectLobby = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string): Promise<Lobby | null> => {
+const dbSelectLobby = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string, lock = false): Promise<Lobby | null> => {
     try {
+
         const res = await db.query(`SELECT *
                                     FROM lobbies
-                                    WHERE code = $1`, [lobbyCode]);
+                                    WHERE code = $1
+                                        ${lock ? 'FOR UPDATE' : ''}`, [lobbyCode]);
+
         const data = res.rows;
         if (!data || data.length === 0) {
             console.error("lobby not found");
@@ -1013,24 +1015,18 @@ const dbUpdateLobbyHost = async (db: (Pool | PoolClient), socket: (Socket | null
 };
 
 
-const dbLockedUpdateLobbyIncrementUsersSubmitted = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string) : Promise<number | null> => {
+const dbUpdateLobbyUsersSubmittedIncrement = async (db: (Pool | PoolClient), socket: (Socket | null), lobbyCode: string) : Promise<boolean> => {
     try {
-        await db.query(`LOCK TABLE lobbies IN ROW EXCLUSIVE MODE`);
-
-        await db.query(`SELECT *
-                        from lobbies
-                        WHERE code = $1 FOR UPDATE`, [lobbyCode]);
-
         await db.query(`UPDATE lobbies
                         SET users_submitted = users_submitted + 1
                         WHERE code = $1`, [lobbyCode]);
-        const res = await db.query(`SELECT users_submitted FROM lobbies WHERE code = $1`, [lobbyCode]);
-        return res.rows[0].users_submitted;
+
+        return true
     } catch (error) {
         console.error("error updating lobby users submitted: " + error);
         if(socket)
             socket.emit("error", {type: "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED", message: "An error occurred while updating lobby users submitted"});
-        return null;
+        return false;
 
     }
 };

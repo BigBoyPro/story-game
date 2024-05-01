@@ -5,8 +5,6 @@
 
 ## Setup
 
----
-
 Vous devez installer `nodejs` depuis le site officiel: https://nodejs.org/en/download/current
 
 Vous devez lancer le `install client` et le `install server` en haut a droite pour que le code fonctionne 
@@ -50,8 +48,6 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 
 
 ## Taches
-
----
 
 ### Améliorer le design et l'UI de l'application :
 - [ ] Ajouter des validations pour les inputs
