@@ -36,7 +36,7 @@ const io = new Server(server, {
     }
 });
 
-const ROUND_MILLISECONDS =  30 * 1000;
+const ROUND_MILLISECONDS =  5 * 60 * 1000;
 const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
 const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
 
