@@ -7,6 +7,12 @@ import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 import {uploadImage} from "../../utils/imageAPI.ts";
 
 
+
+
+
+
+
+
 function StoryComponent({
                             story,
                             onFinish,
@@ -32,7 +38,12 @@ function StoryComponent({
         if (lobby && type) {
             if (type == StoryElementType.Image){
                     document.getElementById('importDiag')?.click()
-            } else {
+            }
+            if (type ==StoryElementType.Audio){
+                    addAudioElement();
+
+            }
+             else {
                 // add new element to the story
                 setNewStoryElements([...newStoryElements, {
                     index: newStoryElements.length,
@@ -85,6 +96,20 @@ function StoryComponent({
             }]);
         }
     };
+   
+    const [audioName, setAudioType] = useState<string>("");
+    const addAudioElement = () => {
+        if (!lobby || !audioName) return;
+    const audioURL = `/Audio/${audioName}.mp3`; 
+    setNewStoryElements([...newStoryElements, {
+      index: newStoryElements.length,
+      userId: userId,
+      storyId: story.id,
+      round: lobby.round,
+      type: StoryElementType.Audio,
+      content: audioURL
+        }]);
+      };
 
     return (
         <div className="story-page">
@@ -103,7 +128,15 @@ function StoryComponent({
                      <div className="side-button-container">
                         <button onClick={addElement}>+</button>
                          <input onChange={addImageElement} type="file" id="importDiag" accept="image/*" hidden={true} />
-
+                         {type === StoryElementType.Audio &&
+              <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
+                <option value="">please select a background music</option>
+                <option value="romantic">romantic</option>
+                <option value="scary">Scary</option>
+                <option value="sad">Sad</option>
+                <option value="suspense">suspense</option>
+              </select>
+            }
                          <select value={type} onChange={(event) => setType(event.target.value as StoryElementType)}>
                             {Object.values(StoryElementType).map((value) => (
                                 value !== StoryElementType.Empty &&
