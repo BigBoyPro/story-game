@@ -100,16 +100,16 @@ function StoryComponent({
     const [audioName, setAudioType] = useState<string>("");
     const addAudioElement = () => {
         if (!lobby || !audioName) return;
-    const audioURL = `/audio/${audioName}.mp3`;
-    setNewStoryElements([...newStoryElements, {
-      index: newStoryElements.length,
-      userId: userId,
-      storyId: story.id,
-      round: lobby.round,
-      type: StoryElementType.Audio,
-      content: audioURL
+        const audioURL = `/audio/${audioName}.mp3`;
+        setNewStoryElements([...newStoryElements, {
+            index: newStoryElements.length,
+            userId: userId,
+            storyId: story.id,
+            round: lobby.round,
+            type: StoryElementType.Audio,
+            content: audioURL
         }]);
-      };
+    };
 
     return (
         <div className="story-page">
