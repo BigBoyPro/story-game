@@ -100,7 +100,7 @@ function StoryComponent({
     const [audioName, setAudioType] = useState<string>("");
     const addAudioElement = () => {
         if (!lobby || !audioName) return;
-    const audioURL = `/Audio/${audioName}.mp3`; 
+    const audioURL = `/audio/${audioName}.mp3`;
     setNewStoryElements([...newStoryElements, {
       index: newStoryElements.length,
       userId: userId,
