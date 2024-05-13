@@ -39,10 +39,6 @@ export enum StoryElementType{
     Audio = 'audio'
 }
 
-export type Error = {
-    type: string;
-    message: string;
-}
 
 export enum LogLevel {
     Error = 0,
@@ -55,7 +51,7 @@ export type OpResult<T> = {
     data?: T;
     error?: OpError;
 };
-type OpError = {
+export type OpError = {
     type: ErrorType;
     logLevel: LogLevel;
     error: any;

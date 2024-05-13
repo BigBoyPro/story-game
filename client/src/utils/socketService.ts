@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import {Error, Lobby, Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
 const socket = io('http://localhost:4000');
@@ -47,7 +47,7 @@ export const offLeftLobby = () => {
     socket.off('left lobby');
 }
 
-export const onError = (callback: (error: Error) => void) => {
+export const onError = (callback: (error: OpError) => void) => {
     socket.on('error', error => {
         callback(error);
     });
