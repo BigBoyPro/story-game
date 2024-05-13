@@ -23,10 +23,12 @@ socket.on('disconnect', () => {
     console.log('disconnected from server');
 });
 
-export const onLobbyInfo = (callback: (lobby: Lobby) => void) => {
-    socket.on('lobby info', (lobby : Lobby) => {
+export const onLobbyInfo = (callback: (lobby: (Lobby | null)) => void) => {
+    socket.on('lobby info', (lobby : (Lobby | null)) => {
+        if(lobby){
         lobby.roundStartAt = lobby.roundStartAt ? new Date(lobby.roundStartAt) : null;
         lobby.roundEndAt = lobby.roundEndAt ? new Date(lobby.roundEndAt) : null;
+        }
         callback(lobby);
     });
 }
