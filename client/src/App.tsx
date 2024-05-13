@@ -34,11 +34,10 @@ function App() {
     useEffect(() => {
         onLobbyInfo(newLobby => {
 
-
             const oldLobbyRound = lobby?.round;
             console.log('Lobby Info:', newLobby);
             setLobby(newLobby);
-            if(newLobby.round != oldLobbyRound) {
+            if(newLobby && newLobby.round != oldLobbyRound) {
                 if (newLobby.round > 0) {
                     console.log("requesting new story because round changed")
                     requestStory(newLobby.code)

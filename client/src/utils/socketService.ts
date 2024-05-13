@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import {Error, Lobby, Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
 const socket = io('http://localhost:4000');
@@ -23,10 +23,12 @@ socket.on('disconnect', () => {
     console.log('disconnected from server');
 });
 
-export const onLobbyInfo = (callback: (lobby: Lobby) => void) => {
-    socket.on('lobby info', (lobby : Lobby) => {
+export const onLobbyInfo = (callback: (lobby: (Lobby | null)) => void) => {
+    socket.on('lobby info', (lobby : (Lobby | null)) => {
+        if(lobby){
         lobby.roundStartAt = lobby.roundStartAt ? new Date(lobby.roundStartAt) : null;
         lobby.roundEndAt = lobby.roundEndAt ? new Date(lobby.roundEndAt) : null;
+        }
         callback(lobby);
     });
 }
@@ -45,7 +47,7 @@ export const offLeftLobby = () => {
     socket.off('left lobby');
 }
 
-export const onError = (callback: (error: Error) => void) => {
+export const onError = (callback: (error: OpError) => void) => {
     socket.on('error', error => {
         callback(error);
     });
