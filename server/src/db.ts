@@ -220,6 +220,43 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
         };
     }
 }
+
+export const dbSelectLobbiesPlaying = async (db: (Pool | PoolClient)): Promise<OpResult<Lobby[]>> => {
+    try {
+        const res = await db.query(`SELECT *
+                                    FROM lobbies
+                                    WHERE round > 0`);
+        const data = res.rows;
+        // get users for each lobby
+        const lobbies : Lobby[] = [];
+        for (const lobby of data) {
+            const {data: users, error, success} = await dbSelectUsersForLobby(db, lobby.code);
+            if (!success || !users) return {success: false, error: error};
+            lobbies.push({
+                code: lobby.code,
+                hostUserId: lobby.host_user_id,
+                round: lobby.round,
+                usersSubmitted: lobby.users_submitted,
+                roundStartAt: lobby.round_start_at ? new Date(lobby.round_start_at) : null,
+                roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
+                users: users
+            });
+        }
+        return {success: true, data: lobbies};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_LOBBIES_PLAYING,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+
+    
+}
+
 export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: string, index: number): Promise<OpResult<Story>> => {
     try {
         const res = await db.query(`SELECT *

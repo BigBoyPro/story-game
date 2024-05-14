@@ -95,24 +95,22 @@ export enum ErrorType {
     DB_ERROR_COMMIT = "DB_ERROR_COMMIT",
     DB_ERROR_ROLLBACK = "DB_ERROR_ROLLBACK",
     DB_ERROR_SELECT_LOBBY_COUNT = "DB_ERROR_SELECT_LOBBY_COUNT",
+    DB_ERROR_SELECT_LOBBIES_PLAYING = "DB_ERROR_SELECT_LOBBIES_PLAYING",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
     const res = await operation();
-    if (!res.success) {
-        const error = res.error;
-        if (error) {
-            switch (error.logLevel) {
-                case LogLevel.Information:
-                    console.info(error.error);
-                    break
-                case LogLevel.Warning:
-                    console.warn(error.error);
-                    break;
-                case LogLevel.Error:
-                    console.error(error.error);
-                    break;
-            }
+    if (res.error) {
+        switch (res.error.logLevel) {
+            case LogLevel.Information:
+                console.info(res.error.error);
+                break
+            case LogLevel.Warning:
+                console.warn(res.error.error);
+                break;
+            case LogLevel.Error:
+                console.error(res.error.error);
+                break;
         }
     }
     return res;

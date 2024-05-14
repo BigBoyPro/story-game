@@ -128,7 +128,6 @@ export const requestStory = (lobbyCode: string) => {
 
 export const requestNextStory = (lobbyCode: string, storyIndex: number) => {
     socket.emit('next story', userId, lobbyCode, storyIndex);
-
 }
 
 export const requestEndGame = (lobbyCode: string) => {
