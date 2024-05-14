@@ -3,7 +3,6 @@ import {Lobby, OpResult, processOp, StoryElement, StoryElementType} from "../../
 import {Server} from "socket.io";
 import {
     dbInsertStoryElements,
-    dbSelectLobby,
     dbSelectStoryElementDistinctUserIdsForRound,
     dbSelectStoryIdByIndex,
     dbTransaction, dbUpdateLobbyRound, dbUpdateLobbyUsersSubmitted
@@ -16,18 +15,17 @@ const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
-export const onNewRound = async (io : Server, pool: Pool, lobbyCode: string) => {
-    const lobbyRes = await processOp(() =>
-        newRound(pool, lobbyCode)
+export const onNewRound = async (io : Server, pool: Pool, lobby: Lobby) => {
+    const {data: newLobby, error, success} = await processOp(() =>
+        newRound(pool, lobby)
     )
-    if (!lobbyRes.success || !lobbyRes.data) {
-        console.error("error starting new round: " + lobbyRes.error);
+    if (!success || !newLobby) {
+        console.error("error starting new round: ");
         return;
     }
-    const lobby = lobbyRes.data;
 
-    io.to(lobby.code).emit("lobby info", lobby);
-    if (lobby.round > 0) waitForRound(io, pool, lobby);
+    io.to(newLobby.code).emit("lobby info", newLobby);
+    if (newLobby.round > 0) waitForRound(io, pool, newLobby);
 };
 
 const waitForRound = (io: Server, pool: Pool, lobby: Lobby) => {
@@ -56,21 +54,16 @@ const onEndRound = (io : Server, pool: Pool, lobby: Lobby) => {
     io.to(lobby.code).emit("get story elements");
     // set timeout for users to submit story elements
     setLobbyTimeout(lobby.code, setTimeout(async () => {
-        await onNewRound(io ,pool, lobby.code);
+        await onNewRound(io ,pool, lobby);
     }, USERS_TIMEOUT_MILLISECONDS));
 };
 
 
 
-const newRound = (pool: Pool, lobbyCode: string) => {
+const newRound = (pool: Pool, lobby: Lobby) => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
         console.log("***starting new round***");
-        clearLobbyTimeouts(lobbyCode);
-
-        const lobbyRes = await dbSelectLobby(client, lobbyCode, true);
-        if (!lobbyRes.success || !lobbyRes.data) return {success: false, error: lobbyRes.error};
-
-        const lobby = lobbyRes.data;
+        clearLobbyTimeouts(lobby.code);
 
         console.log("round: " + lobby.round);
 
@@ -88,7 +81,7 @@ const newRound = (pool: Pool, lobbyCode: string) => {
                     console.log("user " + user.id + " has not submitted");
                     const storyIndex = storyIndexForUser(lobby, user.id);
 
-                    const storyIdRes = await dbSelectStoryIdByIndex(client, lobbyCode, storyIndex);
+                    const storyIdRes = await dbSelectStoryIdByIndex(client, lobby.code, storyIndex);
                     if (!storyIdRes.success || !storyIdRes.data) return {success: false, error: storyIdRes.error};
 
                     const storyId = storyIdRes.data;
@@ -121,12 +114,12 @@ const newRound = (pool: Pool, lobbyCode: string) => {
             roundStartTime = null;
             roundEndTime = null;
         }
-        const updateUsersSubmittedRes = await dbUpdateLobbyUsersSubmitted(client, lobbyCode, 0)
+        const updateUsersSubmittedRes = await dbUpdateLobbyUsersSubmitted(client, lobby.code, 0)
         if (!updateUsersSubmittedRes.success) return {success: false, error: updateUsersSubmittedRes.error};
         lobby.usersSubmitted = 0;
         console.log("users submitted reset to 0");
 
-        const updateRoundRes = await dbUpdateLobbyRound(client, lobbyCode, newLobbyRound, roundStartTime, roundEndTime);
+        const updateRoundRes = await dbUpdateLobbyRound(client, lobby.code, newLobbyRound, roundStartTime, roundEndTime);
         if (!updateRoundRes.success) return {success: false, error: updateRoundRes.error};
 
         lobby.round = newLobbyRound;
@@ -136,6 +129,23 @@ const newRound = (pool: Pool, lobbyCode: string) => {
         return {success: true, data: lobby};
     });
 };
+
+
+
+const restartRound = (pool: Pool, lobby: Lobby) => {
+    return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
+        console.log("***restarting round***");
+        clearLobbyTimeouts(lobby.code);
+
+        console.log("round: " + lobby.round);
+
+        const {data: submittedUserIds, error, success} = await dbSelectStoryElementDistinctUserIdsForRound(client, lobby.code, lobby.round);
+        if (!success || !submittedUserIds) return {success: false, error};
+
+
+    });
+
+}
 
 export const setLobbyTimeout = (lobbyCode: string, timeout: NodeJS.Timeout) => {
     lobbyTimeouts.set(lobbyCode, timeout);

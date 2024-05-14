@@ -13,6 +13,7 @@ import {
 } from "../utils/socketService.ts";
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 
+
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {

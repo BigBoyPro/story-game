@@ -26,7 +26,7 @@ export async function onStartGame(io: Server, pool: Pool, userId: string, lobbyC
     broadcastLobbyInfo(io, lobbyCode, lobby);
     console.log("started game in lobby " + lobbyCode);
 
-    await onNewRound(io, pool, lobbyCode);
+    await onNewRound(io, pool, lobby);
 }
 
 

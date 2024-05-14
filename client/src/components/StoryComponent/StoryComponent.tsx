@@ -132,8 +132,8 @@ function StoryComponent({
               <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
                 <option value="">please select a background music</option>
                 <option value="romantic">romantic</option>
-                <option value="scary">Scary</option>
-                <option value="sad">Sad</option>
+                <option value="Scary2">Scary</option>
+                <option value="Sad">Sad</option>
                 <option value="suspense">suspense</option>
               </select>
             }
