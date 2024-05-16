@@ -1,92 +1,80 @@
 import {Pool, PoolClient} from "pg";
 import {
-    dbDeleteLobby, dbDeleteUser,
-    dbSelectInactiveUsers,
-    dbSelectLobby,
-    dbSelectUserLobbyCode,
+    dbDeleteLobbies, dbDeleteUsers,
+    dbSelectUsersInactive, dbSelectLobbies,
     dbTransaction,
     dbUpdateLobbyHost,
-    dbUpdateUserLobbyCode
 } from "../db";
 import {Lobby, OpResult, processOp} from "../../../shared/sharedTypes";
 import {Server} from "socket.io";
+import {broadcastLobbyInfo} from "./socketService";
 
+const INACTIVE_USER_SECONDS = 60 * 60;
 
 export const inactiveUsersHandler = async (io: Server, pool: Pool) => {
     console.log("checking for inactive users");
 
-    const activeLobbiesRes = await processOp(() =>
+    const {data: activeLobbies, error, success} = await processOp(() =>
         inactiveUsersCheck(pool)
     );
-    if (!activeLobbiesRes.success) {
-        console.error("error checking inactive users: " + activeLobbiesRes.error);
+    if (!success) {
+        console.error("error checking inactive users: " + error);
         return;
     }
 
-    const activeLobbies = activeLobbiesRes.data;
     if (Array.isArray(activeLobbies)) {
         for (const lobby of activeLobbies) {
-            io.to(lobby.code).emit("lobby info", lobby);
+            broadcastLobbyInfo(io,lobby.code, lobby);
         }
     }
     console.log("inactive users checked");
 };
 
-
-const inactiveUsersCheck = (pool: Pool) => {
+const inactiveUsersCheck = async (pool: Pool) => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby[]>> => {
-        // Get all users who haven't been active for 5 minutes
-        console.log("checking for inactive users");
-        let {data: shortInactiveUsers, error, success} = await dbSelectInactiveUsers(client, 5 * 60);
-        if (!success || !shortInactiveUsers) return {success, error};
+        let {data: inactiveUsers, error, success} = await dbSelectUsersInactive(client, INACTIVE_USER_SECONDS);
+        if (!success || !inactiveUsers) return {success, error};
 
-        const activeLobbiesMap = new Map<string, Lobby>();
-
-        // Remove each inactive user
-        for (const inactiveUser of shortInactiveUsers) {
-
-            let {data: lobbyCode, error, success} = await dbSelectUserLobbyCode(pool, inactiveUser.id);
-            if (!success) return {success, error};
-
-            let lobby: (Lobby | null) = null;
-            if (lobbyCode) {
-                let {data: lobby, error, success} = await dbSelectLobby(pool, lobbyCode, true);
-                if (!success || !lobby) return {success, error};
-                activeLobbiesMap.set(lobbyCode, lobby);
-
-                const otherUser = lobby.users.find(user => user.id !== inactiveUser.id);
-                // if user is host change host
-                if (lobby.hostUserId === inactiveUser.id) {
-                    if (otherUser) {
-                        const updateHostRes = await dbUpdateLobbyHost(client, lobbyCode, otherUser.id);
-                        if (!updateHostRes.success) return {success: false, error: updateHostRes.error};
-
-                        lobby.hostUserId = otherUser.id;
-                        console.log("host changed to " + otherUser.id);
-                    }
-                }
-
-                // if game is in progress leave user in lobby
-                if (lobby.round != 0) continue;
-
-                // remove user from lobby
-                ({success, error} = await dbUpdateUserLobbyCode(client, inactiveUser.id, null))
-                if (!success) return {success, error};
-
-                // remove lobby if user is the last one
-                if (!otherUser) {
-                    ({success, error} = await dbDeleteLobby(client, lobbyCode))
-                    if (!success) return {success, error};
-                    activeLobbiesMap.delete(lobbyCode);
-                }
-
-                lobby.users = lobby.users.filter(user => user.id !== inactiveUser.id);
+        const inactiveUserIds = new Set<string>();
+        const lobbyCodes = [];
+        for (const user of inactiveUsers) {
+            inactiveUserIds.add(user.id);
+            if (user.lobbyCode) {
+                lobbyCodes.push(user.lobbyCode);
             }
-            // remove user from db
-            ({success, error} = await dbDeleteUser(client, inactiveUser.id))
-            if (!success) return {success, error};
-            console.log("user " + inactiveUser.id + " removed from db");
         }
-        return {success: true, data: Array.from(activeLobbiesMap.values())};
+
+        let {data: lobbies, error: lobbiesError, success: lobbiesSuccess} = await dbSelectLobbies(client, lobbyCodes);
+        if (!lobbiesSuccess || !lobbies) return {success: lobbiesSuccess, error: lobbiesError};
+
+        const activeLobbies = [];
+        const lobbiesToRemove = [];
+        for (const lobby of lobbies) {
+            let activeUser = null;
+            for (const user of lobby.users) {
+                if (!inactiveUserIds.has(user.id)) {
+                    activeUser = user;
+                    break;
+                }
+            }
+            if (activeUser) {
+                if(inactiveUserIds.has(lobby.hostUserId)){
+                    ({error, success} = await dbUpdateLobbyHost(client, lobby.code, activeUser.id));
+                    if (!success) return {success, error};
+                    activeLobbies.push(lobby);
+                }
+            } else {
+                lobbiesToRemove.push(lobby.code);
+            }
+        }
+
+
+        ({error, success} = await dbDeleteLobbies(client, lobbiesToRemove));
+        if (!success) return {success, error};
+
+        ({error, success} =  await dbDeleteUsers(client, Array.from(inactiveUserIds)));
+        if (!success) return {success, error};
+
+        return {success: true, data: activeLobbies};
     });
 }

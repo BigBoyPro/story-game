@@ -16,11 +16,13 @@ import {uploadImage} from "../../utils/imageAPI.ts";
 function StoryComponent({
                             story,
                             onFinish,
-                            onNewStoryElementsChange
+                            onNewStoryElementsChange,
+                            userIndex
                         }: {
     story: Story,
     onFinish?: () => void,
-    onNewStoryElementsChange?: (newStoryElements: StoryElement[]) => void
+    onNewStoryElementsChange?: (newStoryElements: StoryElement[]) => void,
+    userIndex?: number
 }) {
 
     const lobby = useContext(LobbyContext);
@@ -114,9 +116,15 @@ function StoryComponent({
     return (
         <div className="story-page">
             {
-                getStoryElementsForEachUser().map((elements, index) => (
-                    <StoryUserComponent key={index} elements={elements} isEditable={false} />
-                ))
+                getStoryElementsForEachUser().map((elements, index) => {
+                    console.log('User Index:', userIndex);
+                    console.log('Index:', index);
+                    console.log('hidden:', userIndex !== undefined ? (index >= userIndex) : false);
+                    return (
+                        <StoryUserComponent key={index} elements={elements} isEditable={false}
+                                            hidden={userIndex !== undefined ? (index > userIndex) : false}/>
+                    );
+                })
             }
             {/* new element for the current user*/}
             {onFinish &&
@@ -129,14 +137,14 @@ function StoryComponent({
                         <button onClick={addElement}>+</button>
                          <input onChange={addImageElement} type="file" id="importDiag" accept="image/*" hidden={true} />
                          {type === StoryElementType.Audio &&
-              <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
-                <option value="">please select a background music</option>
-                <option value="romantic">romantic</option>
-                <option value="Scary2">Scary</option>
-                <option value="Sad">Sad</option>
-                <option value="suspense">suspense</option>
-              </select>
-            }
+                             <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
+                                 <option value="">please select a background music</option>
+                                 <option value="romantic">romantic</option>
+                                 <option value="Scary2">Scary</option>
+                                 <option value="Sad">Sad</option>
+                                 <option value="suspense">suspense</option>
+                             </select>
+                         }
                          <select value={type} onChange={(event) => setType(event.target.value as StoryElementType)}>
                             {Object.values(StoryElementType).map((value) => (
                                 value !== StoryElementType.Empty &&
