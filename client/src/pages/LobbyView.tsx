@@ -12,7 +12,7 @@ const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
         } else if (lobby.round > 0) {
             console.log('navigating to game')
             navigate("/game", {replace: true});
-        } else if (lobby.round == -1) {
+        } else if (lobby.round < 0) {
             navigate("/results", {replace: true})
         }
     } else {

@@ -1,10 +1,12 @@
-import { processOp} from "../../shared/sharedTypes";
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import {Server} from 'socket.io';
 import {Pool} from 'pg';
 
+import { setupSocketHandlers } from './socketHandlers/socketService';
+import {inactiveUsersHandler} from "./socketHandlers/inactiveUsersHandler";
+import {resetGames} from "./socketHandlers/gameHandlers/resetGames";
 
 const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
 
@@ -27,8 +29,6 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 
-import { setupSocketHandlers } from './socketHandlers/socketService';
-import {inactiveUsersHandler} from "./socketHandlers/inactiveUsersHandler";
 
 const io = new Server(server, {
     cors: {
@@ -37,15 +37,25 @@ const io = new Server(server, {
     }
 });
 
-setupSocketHandlers(io, pool);
+async function startServer(io: Server, pool: Pool) {
+    await resetGames(io, pool);
 
-server.listen(1234, () => {
-    console.log("Server is running on port 1234");
+    setupSocketHandlers(io, pool);
+
+    server.listen(4000, () => {
+        console.log("Server is running on port 4000");
+    });
+    console.log('Server listening');
+
+    setInterval(async () => {
+        await inactiveUsersHandler(io, pool);
+    },  INACTIVE_USERS_CHECK_MILLISECONDS)
+
+}
+
+startServer(io, pool).then(r =>
+    console.log('Server started')
+).catch(error => {
+    console.error('Error starting server', error);
+    process.exit(1);
 });
-
-setInterval(async () => {
-    await inactiveUsersHandler(io, pool);
-},  INACTIVE_USERS_CHECK_MILLISECONDS)
-
-
-

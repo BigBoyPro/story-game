@@ -2,11 +2,12 @@
 
 import {Server, Socket as BaseSocket} from 'socket.io';
 import {Pool} from 'pg';
-import {Lobby, OpError, StoryElement} from "../../../shared/sharedTypes";
+import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes";
 
 
 import {onCreateLobby, onGetLobby, onJoinLobby, onLeaveLobby} from "./lobbyHandlers";
-import {onEndGame, onGetStory, onNextStory, onStartGame, onStoryElements} from "./gameHandlers";
+import {onEndGame, onGetStory, onNextPart, onStartGame, onStoryElements} from "./gameHandlers";
+import {onGetStoryAtPart} from "./gameHandlers";
 
 interface Socket extends BaseSocket {
     userId?: string;
@@ -33,16 +34,25 @@ export const sendStory = (userId: string, story: any) => {
     send(userId, "story", story);
 }
 
+export const sendStories = (userId: string, stories: Story[]) => {
+    send(userId, 'stories', stories);
+}
+
 export const broadcastUsersSubmitted = (io : Server, lobbyCode: string, usersSubmitted: number) => {
     broadcast(io, lobbyCode, "users submitted", usersSubmitted);
 }
 
-export const broadcastNextStory = (io: Server, lobbyCode: string, story: any) => {
-    broadcast(io, lobbyCode, "next story", story);
-}
 
 export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) => {
     broadcast(io, lobbyCode, "lobby info", lobby);
+}
+
+export const broadcastStoryAtPart = (io: Server, lobbyCode: string, storyAndUser: {story: Story, userIndex: number}) => {
+    broadcast(io, lobbyCode, "story at part", storyAndUser);
+}
+
+export const broadcastPart = (io: Server, lobbyCode: string, userIndex: number) => {
+    broadcast(io, lobbyCode, "part", userIndex);
 }
 
 export const join = (userId: string, room: string) => {
@@ -67,8 +77,6 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
     io.on("connection", (socket :Socket) => {
         console.log("a user connected");
         socket.emit("connected");
-
-
 
         socket.on("get lobby", async (userId: string) => {
             socket.userId = userId;
@@ -110,12 +118,13 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
             await onGetStory(pool, userId, lobbyCode);
         });
 
+        socket.on("get story at part", async (userId: string, lobbyCode: string, index: number) => {
+            await onGetStoryAtPart(io, pool, userId, lobbyCode);
+        });
 
 
-
-        socket.on("next story", async (userId: string, lobbyCode: string, index: number) => {
-            await onNextStory(userId, lobbyCode, index, pool, io);
-
+        socket.on("next part", async (userId: string, lobbyCode: string, index: number) => {
+            await onNextPart(io, pool, userId, lobbyCode);
         });
 
 

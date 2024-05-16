@@ -45,15 +45,21 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
         let {data: lobby, success, error} = await dbSelectLobby(client, lobbyCode, true);
         if (!success || !lobby) return {success, error};
 
-        const otherUser = lobby.users.find(user => user.id !== userId);
+        let activeUser = null;
+        for (const user of lobby.users) {
+            if (user.id !== userId) {
+                activeUser = user;
+                break;
+            }
+        }
         // if user is host change host
         if (lobby.hostUserId === userId) {
-            if (otherUser) {
-                ({success, error} = await dbUpdateLobbyHost(client, lobbyCode, otherUser.id))
+            if (activeUser) {
+                ({success, error} = await dbUpdateLobbyHost(client, lobbyCode, activeUser.id))
                 if (!success) return {success, error};
+                lobby.hostUserId = activeUser.id;
 
-                lobby.hostUserId = otherUser.id;
-                console.log("host changed to " + otherUser.id);
+                console.log("host changed to " + activeUser.id);
             }
         }
 
@@ -64,7 +70,7 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
         console.log("user " + userId + " removed from lobby " + lobbyCode);
         lobby.users = lobby.users.filter(user => user.id !== userId);
 
-        if (!otherUser) {
+        if (!activeUser) {
             // remove lobby if user is the last one
             ({success, error} = await dbDeleteLobby(client, lobbyCode))
             if (!success) return {success, error};

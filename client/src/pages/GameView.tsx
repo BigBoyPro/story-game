@@ -18,15 +18,13 @@ const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {
             navigate("/lobby", {replace: true});
-        } else if(lobby.round == -1){
+        } else if(lobby.round < 0){
             navigate("/results", {replace: true});
         }
     }else{
         navigate("/", {replace: true})
     }
 };
-
-
 
 
 function GameView() {

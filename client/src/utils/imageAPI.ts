@@ -1,5 +1,3 @@
-
-
 export const uploadImage = async (imageFile: File): Promise<string | null> => {
     const formData = new FormData();
     formData.append('file', imageFile);

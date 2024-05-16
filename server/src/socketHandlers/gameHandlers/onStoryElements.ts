@@ -37,7 +37,7 @@ export async function onStoryElements(io: Server, pool: Pool, userId: string, lo
     console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
 
     if (lobby.usersSubmitted >= lobby.users.length) {
-        await onNewRound(io, pool, lobbyCode);
+        await onNewRound(io, pool, lobby);
     }
 }
 
