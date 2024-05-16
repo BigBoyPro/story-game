@@ -9,7 +9,7 @@ const StoryElementComponent = ({ storyElement, setContent , isEditable }: { stor
                 return <textarea value={storyElement.content} readOnly={!isEditable}
                 onChange={(e) => setContent && setContent(e.target.value)}/>;
             case StoryElementType.Image:
-                return <img src={storyElement.content} alt="Story element" />;
+                return <img src={storyElement.content} alt="Story element" width="250"  />;
             case StoryElementType.Audio:
                 return <audio controls src={storyElement.content} />;
             default:

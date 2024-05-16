@@ -1,9 +1,16 @@
-import {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import "./StoryComponent.css"
 import {Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
+import {uploadImage} from "../../utils/imageAPI.ts";
+
+
+
+
+
+
 
 
 function StoryComponent({
@@ -12,7 +19,7 @@ function StoryComponent({
                             onNewStoryElementsChange
                         }: {
     story: Story,
-    onFinish?: (newStoryElements: StoryElement[]) => void,
+    onFinish?: () => void,
     onNewStoryElementsChange?: (newStoryElements: StoryElement[]) => void
 }) {
 
@@ -25,14 +32,30 @@ function StoryComponent({
         if(onNewStoryElementsChange) {
             onNewStoryElementsChange(newStoryElements);
         }
-    }, [newStoryElements]);
+    } ,[newStoryElements]);
 
     const addElement = () => {
         if (lobby && type) {
-            // add new element to the story
-            setNewStoryElements([...newStoryElements, { index: newStoryElements.length, userId: userId, storyId: story.id, round: lobby.round, type, content: "" }]);
+            if (type == StoryElementType.Image){
+                    document.getElementById('importDiag')?.click()
+            }
+            if (type ==StoryElementType.Audio){
+                    addAudioElement();
+
+            }
+             else {
+                // add new element to the story
+                setNewStoryElements([...newStoryElements, {
+                    index: newStoryElements.length,
+                    userId: userId,
+                    storyId: story.id,
+                    round: lobby.round,
+                    type,
+                    content: ""
+                }]);
+            }
         }
-    };
+    }
 
     const onElementContentUpdate = (index: number, content: string) => {
         const updatedNewStoryElements = [...newStoryElements];
@@ -44,16 +67,49 @@ function StoryComponent({
 
     const handleFinish = () => {
         if(!onFinish) return;
-        onFinish(newStoryElements);
+        onFinish();
         setNewStoryElements([]);
     };
 
-    function getStoryElementsForEachUser() {
+    const getStoryElementsForEachUser = () => {
         const storyUserIds = [...new Set(story.elements.map((element) => element.userId))];
-        return storyUserIds.map((userId) =>
-            story.elements.filter((element) => element.userId == userId)
+        return storyUserIds.map((userId) => {
+                return story.elements.filter((element) => element.userId == userId);
+            }
         );
-    }
+    };
+
+    const addImageElement = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!lobby) return;
+        const file = event.target.files ? event.target.files[0] : null;
+        if (file) {
+
+            const fileURL = await uploadImage(file);
+            if (!fileURL) return;
+            setNewStoryElements([...newStoryElements, {
+                index: newStoryElements.length,
+                userId: userId,
+                storyId: story.id,
+                round: lobby.round,
+                type: StoryElementType.Image,
+                content: fileURL
+            }]);
+        }
+    };
+   
+    const [audioName, setAudioType] = useState<string>("");
+    const addAudioElement = () => {
+        if (!lobby || !audioName) return;
+        const audioURL = `/audio/${audioName}.mp3`;
+        setNewStoryElements([...newStoryElements, {
+            index: newStoryElements.length,
+            userId: userId,
+            storyId: story.id,
+            round: lobby.round,
+            type: StoryElementType.Audio,
+            content: audioURL
+        }]);
+    };
 
     return (
         <div className="story-page">
@@ -69,15 +125,26 @@ function StoryComponent({
             }
             {onFinish &&
                 <>
-                    <div className="side-button-container">
+                     <div className="side-button-container">
                         <button onClick={addElement}>+</button>
-                        <select value={type} onChange={(e) => setType(e.target.value as StoryElementType)}>
+                         <input onChange={addImageElement} type="file" id="importDiag" accept="image/*" hidden={true} />
+                         {type === StoryElementType.Audio &&
+              <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
+                <option value="">please select a background music</option>
+                <option value="romantic">romantic</option>
+                <option value="Scary2">Scary</option>
+                <option value="Sad">Sad</option>
+                <option value="suspense">suspense</option>
+              </select>
+            }
+                         <select value={type} onChange={(event) => setType(event.target.value as StoryElementType)}>
                             {Object.values(StoryElementType).map((value) => (
                                 value !== StoryElementType.Empty &&
                                 <option key={value}
                                         value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
                             ))}
                         </select>
+
                     </div>
                     <button onClick={() => handleFinish()}>Finish</button>
                 </>

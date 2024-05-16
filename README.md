@@ -55,7 +55,7 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 - [ ] Rendre l'application responsive (mobile, tablette, desktop)
 - [ ] Ajouter des couleurs, des images
 - [ ] Ajouter des animations
-- [ ] Faire en sorte d'afficher les `story elements` dans l'ordre ou ils ont ete envoyes pour chaque utilisateur
+- [ ] Faire en sorte d'afficher les `story elements` un par un
 
 
 ### Mieux organiser le code:
