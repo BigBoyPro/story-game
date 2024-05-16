@@ -2,17 +2,17 @@ import {Pool, PoolClient} from "pg";
 import {ErrorType, Lobby, LogLevel, OpResult, Story, StoryElement, User} from "../../shared/sharedTypes";
 
 
-export const dbTransaction = async (pool: Pool, callback: (client: PoolClient) => Promise<OpResult<any>>): Promise<OpResult<any>> => {
+export const dbTransaction = async <T>(pool: Pool, callback: (client: PoolClient) => Promise<OpResult<T>>): Promise<OpResult<T>> => {
     const clientRes = await dbBeginTransaction(pool);
-    if (!clientRes.success || !clientRes.data) return clientRes;
+    if (!clientRes.success || !clientRes.data) return {success: false, error: clientRes.error};
     const result = await callback(clientRes.data);
     if (result.success) {
         const commitRes = await dbCommitTransaction(clientRes.data);
-        if(!commitRes.success) return commitRes;
+        if(!commitRes.success) return {success: false, error: commitRes.error};
         return result
     } else {
         const rollbackRes = await dbRollbackTransaction(clientRes.data);
-        if(!rollbackRes.success) return rollbackRes;
+        if(!rollbackRes.success) return {success: false, error: rollbackRes.error};
         return result;
     }
 }
@@ -136,7 +136,7 @@ export const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), storyIndex
     }
 
 };
-const dbSelectUsersForLobby = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<User[]>> => {
+const dbSelectUsersInLobby = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<User[]>> => {
     try {
         const res = await db.query(`SELECT *
                                     FROM users
@@ -156,6 +156,27 @@ const dbSelectUsersForLobby = async (db: (Pool | PoolClient), lobbyCode: string)
         };
     }
 };
+
+export const dbSelectUsersInLobbyCount = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<number>> => {
+    try {
+        const res = await db.query(`SELECT COUNT(*)
+                                    FROM users
+                                    WHERE lobby_code = $1`, [lobbyCode]);
+        const data = res.rows;
+        const count = parseInt(data[0].count);
+        return {success: true, data: count};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_USERS_COUNT,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+
+}
 
 export const dbSelectLobbyCount = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<number>> => {
     try {
@@ -197,7 +218,7 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
                 }
             };
         }
-        const usersRes = await dbSelectUsersForLobby(db, lobbyCode);
+        const usersRes = await dbSelectUsersInLobby(db, lobbyCode);
         if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
         const lobby : Lobby = {
             code: lobbyCode,
@@ -206,7 +227,9 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
             usersSubmitted: data[0].users_submitted,
             roundStartAt: data[0].round_start_at ? new Date(data[0].round_start_at) : null,
             roundEndAt: data[0].round_end_at ? new Date(data[0].round_end_at) : null,
-            users: usersRes.data
+            users: usersRes.data,
+            currentStoryIndex: data[0].current_story_index,
+            currentUserIndex: data[0].current_user_index
         };
         return {success: true, data: lobby};
     } catch (error) {
@@ -221,16 +244,51 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
     }
 }
 
-export const dbSelectLobbiesPlaying = async (db: (Pool | PoolClient)): Promise<OpResult<Lobby[]>> => {
+export const dbSelectLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCode: string, lock = false): Promise<OpResult<{storyIndex: (number | null), userIndex: (number | null)}>> => {
+    try {
+        const res = await db.query(`SELECT current_story_index, current_user_index
+                                    FROM lobbies
+                                    WHERE code = $1
+                                        ${lock ? 'FOR UPDATE' : ''}`, [lobbyCode]);
+        const data = res.rows;
+        if (!data || data.length === 0) {
+            return {
+                success: false,
+                error: {
+                    type: ErrorType.LOBBY_NOT_FOUND,
+                    logLevel: LogLevel.Warning,
+                    error: "Lobby not found"
+                }
+            };
+        }
+        const part = {
+            storyIndex: data[0].current_story_index,
+            userIndex: data[0].current_user_index
+        };
+        return {success: true, data: part};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_LOBBY_CURRENT_PART,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+}
+
+
+export const dbSelectLobbiesActive = async (db: (Pool | PoolClient)): Promise<OpResult<Lobby[]>> => {
     try {
         const res = await db.query(`SELECT *
                                     FROM lobbies
-                                    WHERE round > 0`);
+                                    WHERE round != 0`);
         const data = res.rows;
         // get users for each lobby
         const lobbies : Lobby[] = [];
         for (const lobby of data) {
-            const {data: users, error, success} = await dbSelectUsersForLobby(db, lobby.code);
+            const {data: users, error, success} = await dbSelectUsersInLobby(db, lobby.code);
             if (!success || !users) return {success: false, error: error};
             lobbies.push({
                 code: lobby.code,
@@ -239,7 +297,9 @@ export const dbSelectLobbiesPlaying = async (db: (Pool | PoolClient)): Promise<O
                 usersSubmitted: lobby.users_submitted,
                 roundStartAt: lobby.round_start_at ? new Date(lobby.round_start_at) : null,
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
-                users: users
+                users: users,
+                currentStoryIndex: lobby.current_story_index,
+                currentUserIndex: lobby.current_user_index
             });
         }
         return {success: true, data: lobbies};
@@ -296,7 +356,7 @@ export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: s
         };
     }
 };
-export const dbSelectInactiveUsers = async (db: (Pool | PoolClient), seconds: number): Promise<OpResult<User[]>> => {
+export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: number): Promise<OpResult<User[]>> => {
     try {
         const res = await db.query(`SELECT *
                                     FROM users
@@ -402,6 +462,63 @@ export const dbSelectStoryIdByIndex = async (db: (Pool | PoolClient), lobbyCode:
         };
     }
 };
+
+export const dbSelectLobbies = async (db: (Pool | PoolClient), lobbyCodes: string[]): Promise<OpResult<Lobby[]>> => {
+    try {
+        const res = await db.query(`SELECT *
+                                    FROM lobbies
+                                    WHERE code = ANY($1)`, [lobbyCodes]);
+        const data = res.rows;
+        const lobbies : Lobby[] = [];
+        for (const lobby of data) {
+            const usersRes = await dbSelectUsersInLobby(db, lobby.code);
+            if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
+            lobbies.push({
+                code: lobby.code,
+                hostUserId: lobby.host_user_id,
+                round: lobby.round,
+                usersSubmitted: lobby.users_submitted,
+                roundStartAt: lobby.round_start_at ? new Date(lobby.round_start_at) : null,
+                roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
+                users: usersRes.data,
+                currentStoryIndex: lobby.current_story_index,
+                currentUserIndex: lobby.current_user_index
+            });
+        }
+        return {success: true, data: lobbies};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_LOBBIES,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+}
+
+
+export const dbLockRowLobby = async (db: PoolClient, lobbyCode: string): Promise<OpResult<null>> => {
+    try {
+        await db.query(`SELECT
+                        FROM lobbies
+                        WHERE code = $1
+                        FOR UPDATE`, [lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_LOCK_ROW_LOBBY,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+
+}
+
 export const dbInsertStory = async (db: (Pool | PoolClient), story: Story): Promise<OpResult<null>> => {
     try {
         await db.query(`INSERT INTO stories (index, lobby_code, name)
@@ -418,6 +535,8 @@ export const dbInsertStory = async (db: (Pool | PoolClient), story: Story): Prom
         }
     }
 };
+
+
 export const dbInsertStoryElements = async (db: (Pool | PoolClient), elements: StoryElement[]): Promise<OpResult<null>> => {
     try {
         const query = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
@@ -527,6 +646,8 @@ export const dbUpdateLobbyHost = async (db: (Pool | PoolClient), lobbyCode: stri
         }
     }
 };
+
+
 export const dbUpdateLobbyUsersSubmittedIncrement = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
@@ -581,6 +702,26 @@ export const dbUpdateLobbyRound = async (db: (Pool | PoolClient), lobbyCode: str
         }
     }
 }
+
+export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCode: string, storyIndex: (number | null), userIndex: (number | null)): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET current_story_index = $1,
+                            current_user_index = $2
+                        WHERE code = $3`, [storyIndex, userIndex, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_CURRENT_PART,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
 export const dbDeleteUser = async (db: (Pool | PoolClient), userId: string): Promise<OpResult<null>> => {
     try {
         await db.query(`DELETE
@@ -598,6 +739,26 @@ export const dbDeleteUser = async (db: (Pool | PoolClient), userId: string): Pro
         }
     }
 };
+
+export const dbDeleteUsers = async (db: (Pool | PoolClient), userIds: string[]): Promise<OpResult<null>> => {
+    try {
+        await db.query(`DELETE
+                        FROM users
+                        WHERE id = ANY($1)`, [userIds]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_DELETE_USERS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+
+}
+
 export const dbDeleteLobby = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<null>> => {
     try {
         await db.query(`DELETE
@@ -616,6 +777,25 @@ export const dbDeleteLobby = async (db: (Pool | PoolClient), lobbyCode: string):
     }
 
 }
+
+export const dbDeleteLobbies = async (db: (Pool | PoolClient), lobbyCodes: string[]): Promise<OpResult<null>> => {
+    try {
+        await db.query(`DELETE
+                        FROM lobbies
+                        WHERE code = ANY($1)`, [lobbyCodes]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_DELETE_LOBBIES,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
 export const dbDeleteAllStories = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<null>> => {
     try {
         await db.query(`DELETE

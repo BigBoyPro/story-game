@@ -4,10 +4,11 @@ import {useContext} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 
 
-function StoryUserComponent({elements, isEditable, onElementContentUpdate}: {
+function StoryUserComponent({elements, isEditable, onElementContentUpdate, hidden = false}: {
     elements: StoryElement[],
     isEditable: boolean,
-    onElementContentUpdate?: (index: number, content: string) => void
+    onElementContentUpdate?: (index: number, content: string) => void,
+    hidden?: boolean
 }) {
     const lobby = useContext(LobbyContext);
     const getUserNameFromId = (userId: string) : string => {
@@ -17,16 +18,20 @@ function StoryUserComponent({elements, isEditable, onElementContentUpdate}: {
         return "unknown";
     };
     return (
-        <div className="story-element">
-            { !isEditable && elements.length > 0 &&
-                <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
+        <>
+            { !hidden &&
+                <div className="story-element">
+                    {!isEditable && elements.length > 0 &&
+                        <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
+                    }
+                    {elements.map((element, index) => (
+                        <StoryElementComponent key={index} storyElement={element}
+                                               setContent={(content) => onElementContentUpdate && onElementContentUpdate(index, content)}
+                                               isEditable={isEditable}/>
+                    ))}
+                </div>
             }
-            {elements.map((element, index) => (
-                <StoryElementComponent key={index} storyElement={element}
-                                       setContent={(content) => onElementContentUpdate && onElementContentUpdate(index, content)}
-                                       isEditable={isEditable}/>
-            ))}
-        </div>
+        </>
     );
 }
 

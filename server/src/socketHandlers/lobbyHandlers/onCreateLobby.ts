@@ -42,7 +42,9 @@ export const createLobby = (pool: Pool, userId: string, nickname: string): Promi
             round: 0,
             usersSubmitted: 0,
             roundStartAt: null,
-            roundEndAt: null
+            roundEndAt: null,
+            currentStoryIndex: null,
+            currentUserIndex: null
         };
         ({success, error} = await dbInsertLobby(client, lobby));
         if (!success) return {success, error};

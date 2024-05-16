@@ -5,11 +5,11 @@ import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
 import {
     onEndGame,
-    onNextStory,
+    onStoryAtPart,
     requestEndGame,
-    requestNextStory, offEndGame,
-    offNextStory,
-    userId
+    offEndGame,
+    offStories,
+    userId, requestGetStoryAtPart, requestNextPart, onPart
 } from "../utils/socketService.ts";
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 
@@ -18,7 +18,7 @@ const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     if (lobby && lobby.users.find(user => user.id === userId)) {
         if (lobby.round == 0) {
             navigate("/lobby", {replace: true});
-        } else if(lobby.round != -1){
+        } else if(lobby.round > 0){
             navigate("/game", {replace: true});
         }
     }else{
@@ -30,37 +30,43 @@ function ResultsView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
     const [story, setStory] = useState<Story | null>(null);
-
+    const [userIndex, setUserIndex] = useState<number>(0);
     useEffect(() => {
         redirection(lobby, navigate);
 
-        onNextStory((story) => {
+        onStoryAtPart(({story, userIndex}) => {
             setStory(story);
-            console.log('Story:', story);
+            setUserIndex(userIndex);
+            console.log('Story at part', story, userIndex);
+        });
+
+        onPart((userIndex) => {
+            setUserIndex(userIndex);
+            console.log('Part', userIndex);
         });
 
         onEndGame(() => {
             console.log('Game Ended');
             setStory(null);
             if(lobby) {
-                lobby.usersSubmitted = 0 ;
+                lobby.usersSubmitted = 0;
                 lobby.round = 0;
             }
             redirection(lobby, navigate);
         });
 
-        if(lobby && !story) requestNextStory(lobby.code,0)
+        if(lobby && !story) requestGetStoryAtPart(lobby.code)
 
         return () => {
-            offNextStory()
+            offStories()
             offEndGame()
         }
     }, [lobby, navigate]);
 
 
-    const handleNextStory = () => {
+    const handleNextUser = () => {
         if (!lobby) return;
-        requestNextStory(lobby.code, story? story.index  + 1 : 0)
+        requestNextPart(lobby.code)
     };
 
     const handleEndGame = () => {
@@ -76,10 +82,10 @@ function ResultsView() {
                 <h2>Results</h2>
                 <div className="story-box">
                     <h3>{story.name}</h3>
-                    <StoryComponent key={story.id} story={story}/>
+                    <StoryComponent key={story.id} story={story} userIndex={userIndex}/>
                 </div>
-                {story.index !== lobby?.users.length - 1 ?
-                    <button onClick={handleNextStory} disabled={lobby?.hostUserId !== userId}>Next Story</button>
+                { (story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
+                    <button onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
                     :
                     <button onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>
                 }

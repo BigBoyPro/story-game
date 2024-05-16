@@ -87,14 +87,20 @@ export const offUsersSubmitted = () => {
     socket.off('users submitted');
 }
 
-export const onNextStory = (callback: (story: Story) => void) => {
-    socket.on('next story', story => {
-        callback(story);
+export const onStoryAtPart = (callback: ({story, userIndex} : {story: Story, userIndex: number}) => void) => {
+    socket.on('story at part', ({story, userIndex}) => {
+        callback({story, userIndex});
     });
 }
 
-export const offNextStory = () => {
-    socket.off('next story');
+export const onPart = (callback: (userIndex: number) => void) => {
+    socket.on('part', userIndex => {
+        callback(userIndex);
+    });
+}
+
+export const offStories = () => {
+    socket.off('stories');
 }
 
 export const onEndGame = (callback: () => void) => {
@@ -126,8 +132,12 @@ export const requestStory = (lobbyCode: string) => {
     socket.emit('get story', userId, lobbyCode);
 }
 
-export const requestNextStory = (lobbyCode: string, storyIndex: number) => {
-    socket.emit('next story', userId, lobbyCode, storyIndex);
+export const requestNextPart = (lobbyCode: string) => {
+    socket.emit('next part', userId, lobbyCode);
+}
+
+export const requestGetStoryAtPart = (lobbyCode: string) => {
+    socket.emit('get story at part', userId, lobbyCode);
 }
 
 export const requestEndGame = (lobbyCode: string) => {
