@@ -3,6 +3,7 @@ import {useContext, useEffect} from "react";
 import {requestLeaveLobby, requestStartGame, userId} from "../utils/socketService.ts";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {Lobby} from "../../../shared/sharedTypes.ts";
+import './LobbyView.css';
 
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
@@ -42,32 +43,53 @@ function LobbyView() {
         console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
     };
+    const getColor = (index:number) => {
+        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f'];
+        return colors[index % colors.length];
+    };
 
     // Always block navigation
     return (
         <>
-            <div className={"main-page"}>
+            <div className={"main-page-lobby"}>
+                <video autoPlay loop muted
+                    style={{ position: "absolute", width: "100%", height: "100%", objectFit: "cover",zIndex: 0}}>
+                    <source src="../LobbyView.mp4" type="video/mp4" />
+                </video>
 
-                <div className={"main-box"}>
-                    <div className={"header"}>
-                        <button onClick={handleBack}>Back</button>
+                <div className={"main-box-lobby"}>
+
+                    <div className={"back-button-box"}>
+                        <button className={"button-3d-icon-back"} onClick={handleBack}></button>
                     </div>
-                    <h1>Story Mode</h1>
-                    <p>code : {lobby?.code}</p>
-                    <h2>Players:</h2>
-                    <ul>
-                        {lobby?.users?.map(user => <li
-                            key={user.id}>{(lobby?.hostUserId === user.id) && "Crown: "}{user.nickname}</li>)}
-                    </ul>
-                    <h2>Settings:</h2>
-                    {/*<p>Max Players: {lobby?.maxPlayers}</p>*/}
-                    {/*<p>Round Time: {lobby?.roundTime}</p>*/}
-                    {/*<p>Winning Score: {lobby?.winningScore}</p>*/}
-                    <button onClick={handleStartGame}
-                            disabled={lobby?.hostUserId !== userId}>Start Game
-                    </button>
+
+                    <div className={"info-container"}>
+
+                        <div className="lobby-code-container">
+                            <h2 className={"lobby-code-title"}>Lobby Code</h2>
+                            <p className={"text-lobby-code"}>{lobby?.code}</p>
+                        </div>
+
+                        <div className="player-list-container"> {/* Container for player list */}
+                            <h1>Players:</h1>
+                            <ul className={"player-list"}>
+                                {lobby?.users?.map((user,index) => <li className={"player-item"}
+                                    key={user.id} style={{ backgroundColor: getColor(index) }}>{(lobby?.hostUserId === user.id) && "Crown: "}{user.nickname}</li>)}
+                            </ul>
+                        </div>
+
+                        {/*<h2>Settings:</h2>*/}
+                        {/*<p>Max Players: {lobby?.maxPlayers}</p>*/}
+                        {/*<p>Round Time: {lobby?.roundTime}</p>*/}
+                        {/*<p>Winning Score: {lobby?.winningScore}</p>*/}
+                    </div>
+
+                    <div className={"play-button-box"}>
+                        <button className={"button-play"} onClick={handleStartGame} disabled={lobby?.hostUserId !== userId}>Play</button>
+                    </div>
                 </div>
-            </div>
+             </div>
+
         </>
     );
 }

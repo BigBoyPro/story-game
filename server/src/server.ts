@@ -656,8 +656,8 @@ io.on("connection", (socket :Socket) => {
 
 
 
-server.listen(4000, () => {
-    console.log("Server is running on port 4000");
+server.listen(1234, () => {
+    console.log("Server is running on port 1234");
 });
 
 setInterval(async () => {

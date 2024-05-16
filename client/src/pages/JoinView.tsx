@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import {requestCreateLobby, requestJoinLobby, userId} from "../utils/socketService.ts";
-import StoryLogo from "../assets/story-logo.svg?react";
+import logo from '../assets/logo.svg';
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
 import {Lobby} from "../../../shared/sharedTypes.ts";
@@ -42,22 +42,35 @@ function JoinView() {
             console.log('creating lobby')
         }
     }
+
+    const handleHelpClick = () => {
+        navigate("/how-to-play");
+    };
+
     return (
       <>
-          <div className={"main-page"}>
-              <div className={"main-box"}>
-                  <StoryLogo width={200} height={200}/>
-                  <h1>Story Mode</h1>
-                  <form onSubmit={(event) => handleSubmit(event)}>
-                      <input onChange={(event) => setNickname(event.target.value)}
-                             type="text" placeholder="Nickname"/>
-                      <input onChange={(event) => setLobbyCode(event.target.value)}
-                             type="text" placeholder="Optional Lobby Code"
-                      />
-                      <button type="submit">Play</button>
-                  </form>
+          <button type="button" className={"button-3d-icon-help"} onClick={handleHelpClick}></button>
+
+          <video autoPlay loop muted
+                 style={{ position: "absolute", width: "100%", height: "100%", objectFit: "cover",zIndex: 0}}>
+              <source src="../JoinView.mp4" type="video/mp4" />
+          </video>
+              <div className={"main-page"}>
+                  <div className={"main-box"}>
+                      {<img src={logo} alt="Logo" width={450} height={450} />}
+                      <form onSubmit={(event) => handleSubmit(event)}>
+
+                          <input onChange={(event) => setNickname(event.target.value)}
+                                 type="text" placeholder="Nickname" className="input-placeholder"/>
+
+                          <input onChange={(event) => setLobbyCode(event.target.value)}
+                                 type="text" placeholder="Optional Lobby Code" className="input-placeholder"/>
+
+
+                          <button type="submit" className={"button-3d-icon-play"}></button>
+                      </form>
+                  </div>
               </div>
-          </div>
       </>
   );
 }

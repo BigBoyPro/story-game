@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Error, Lobby, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
-const socket = io('http://localhost:4000');
+const socket = io('http://localhost:1234');
 
 export const userId = localStorage.getItem('userId')
     || (() => {

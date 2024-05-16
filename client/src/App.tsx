@@ -10,6 +10,8 @@ import {Route} from 'react-router-dom';
 
 import LobbyView from "./pages/LobbyView.tsx";
 import JoinView from "./pages/JoinView";
+import HowToPlay from './pages/HowToPlay';
+
 import {LobbyContext} from "./LobbyContext.tsx";
 
 import { createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
@@ -24,6 +26,7 @@ const router = createBrowserRouter(
             <Route path="/lobby" element={<LobbyView/>}/>
             <Route path="/game" element={<GameView/>}/>
             <Route path="/results" element={<ResultsView/>}/>
+            <Route path="/how-to-play" element={<HowToPlay/>}/>
         </>
     )
 );
@@ -33,7 +36,6 @@ function App() {
     const [lobby, setLobby] = useState<Lobby | null>(null);
     useEffect(() => {
         onLobbyInfo(newLobby => {
-
 
             const oldLobbyRound = lobby?.round;
             console.log('Lobby Info:', newLobby);
@@ -78,7 +80,7 @@ function App() {
       <>
           <LobbyContext.Provider value={lobby}>
               <RouterProvider router={router}/>
-              <footer>i'm foot</footer>
+              {/*<footer>i'm foot</footer>*/}
           </LobbyContext.Provider>
       </>
   )
