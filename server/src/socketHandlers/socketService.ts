@@ -35,9 +35,6 @@ export const sendStory = (userId: string, story: any) => {
     send(userId, "story", story);
 }
 
-export const sendStories = (userId: string, stories: Story[]) => {
-    send(userId, 'stories', stories);
-}
 
 export const broadcastUsersSubmitted = (io : Server, lobbyCode: string, usersSubmitted: number) => {
     broadcast(io, lobbyCode, "users submitted", usersSubmitted);
