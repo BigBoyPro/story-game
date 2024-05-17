@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
-const socket = io('http://localhost:4000');
+const socket = io('http://localhost:1234');
 
 export const userId = localStorage.getItem('userId')
     || (() => {
@@ -148,7 +148,11 @@ export const requestLeaveLobby = (lobbyCode: string) => {
     socket.emit('leave lobby', userId, lobbyCode);
 }
 
-export const sendStoryElements = (lobbyCode: string, elements: StoryElement[]) => {
-    socket.emit('story elements', userId, lobbyCode, elements);
+export const submitStoryElements = (lobbyCode: string, elements: StoryElement[]) => {
+    socket.emit('submit story elements', userId, lobbyCode, elements);
+}
+
+export const unsubmitStoryElements = (lobbyCode: string) => {
+    socket.emit('unsubmit story elements', userId, lobbyCode);
 }
 

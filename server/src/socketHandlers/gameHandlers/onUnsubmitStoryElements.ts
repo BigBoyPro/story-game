@@ -2,19 +2,15 @@ import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, Lobby, LogLevel, OpResult, processOp, StoryElement} from "../../../../shared/sharedTypes";
 import {
-    dbInsertStoryElements,
-    dbSelectLobby,
-    dbTransaction,
-    dbUpdateLobbyUsersSubmittedIncrement,
-    dbUpdateUserLastActive
+    dbSelectLobby, dbSelectUserReady,
+    dbTransaction, dbUpdateLobbyUsersSubmittedDecrement,
+    dbUpdateUserLastActive, dbUpdateUserReady
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
 import {broadcastUsersSubmitted, sendError} from "../socketService";
-import {onNewRound} from "./roundHandler";
 
-
-export async function onStoryElements(io: Server, pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]) {
-    console.log("user " + userId + " sent story elements");
+export async function onUnsubmitStoryElements(io: Server, pool: Pool, userId: string, lobbyCode: string) {
+    console.log("user " + userId + " unsubmitted story elements");
 
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
@@ -26,24 +22,19 @@ export async function onStoryElements(io: Server, pool: Pool, userId: string, lo
 
     let lobby;
     ({data: lobby, error, success} = await processOp(() =>
-        submitStoryElements(pool, userId, lobbyCode, elements)
+        unsubmitStoryElements(pool, userId, lobbyCode)
     ));
     if (!success || !lobby) {
         error && sendError(userId, error);
         return;
     }
-
     broadcastUsersSubmitted(io, lobbyCode, lobby.usersSubmitted);
-    console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
+    console.log("story elements unsubmitted by " + userId + " in lobby " + lobbyCode)
 
-    if (lobby.usersSubmitted >= lobby.users.length) {
-        await onNewRound(io, pool, lobby);
-    }
 }
 
-const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]): Promise<OpResult<Lobby>> => {
+const unsubmitStoryElements = (pool: Pool, userId: string, lobbyCode: string): Promise<OpResult<Lobby>> => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
-
         // get lobby
         let {data: lobby, error, success} = await dbSelectLobby(client, lobbyCode, true);
         if (!success || !lobby) return {success, error};
@@ -53,22 +44,19 @@ const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elem
             success: false,
             error: {logLevel: LogLevel.Error, type: ErrorType.USER_NOT_IN_LOBBY, error: "User is not in the lobby"}
         };
+        //check if our user has already submitted
+        let ready;
+        ({data: ready, success, error} = await dbSelectUserReady(client, userId, true));
+        if (!success) return {success, error};
+        if (!ready) return {success: false, error: {logLevel: LogLevel.Error, type: ErrorType.USER_NOT_SUBMITTED, error: "User has not submitted"}};
 
-        // insert story elements to db
-        ({success, error} = await dbInsertStoryElements(client, elements))
+        ({success, error} = await dbUpdateUserReady(client, userId, false));
         if (!success) return {success, error};
 
-
-        // check if all users have submitted their story elements
-        let newLobby: Lobby = lobby;
         // update users submitted
-        ({success, error} = await dbUpdateLobbyUsersSubmittedIncrement(client, lobbyCode))
+        ({success, error} = await dbUpdateLobbyUsersSubmittedDecrement(client, lobbyCode))
         if (!success) return {success, error};
-        newLobby.usersSubmitted++;
-        const allUsersSubmitted = newLobby.usersSubmitted >= newLobby.users.length;
-        if (allUsersSubmitted) {
-            console.log("***round " + lobby.round + " ended***");
-        }
-        return {success: true, data: newLobby};
+        lobby.usersSubmitted--;
+        return {success: true, data: lobby};
     });
 }

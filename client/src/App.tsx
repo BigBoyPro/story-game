@@ -48,7 +48,7 @@ function App() {
         onUsersSubmitted((usersSubmitted : number) => {
             console.log('Users Submitted:', usersSubmitted);
             if(lobby) {
-                lobby.usersSubmitted++;
+                lobby.usersSubmitted = usersSubmitted;
                 setLobby({...lobby});
             }
         });

@@ -5,7 +5,7 @@ import {
     dbInsertStoryElements, dbLockRowLobby,
     dbSelectStoryElementDistinctUserIdsForRound,
     dbSelectStoryIdByIndex,
-    dbTransaction, dbUpdateLobbyRound, dbUpdateLobbyUsersSubmitted
+    dbTransaction, dbUpdateLobbyRound, dbUpdateLobbyUsersSubmitted, dbUpdateUsersReady
 } from "../../db";
 
 import {storyIndexForUser} from "../../utils/utils";
@@ -118,6 +118,11 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         if (!success) return {success, error};
         lobby.usersSubmitted = 0;
         console.log("users submitted reset to 0");
+
+        // unready all players
+        const userIds = lobby.users.map(user => user.id);
+        ({error, success} = await dbUpdateUsersReady(client, userIds, false));
+
 
         ({error, success} = await dbUpdateLobbyRound(client, lobby.code, newLobbyRound, roundStartTime, roundEndTime));
         if (!success) return {success, error};
