@@ -123,12 +123,12 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
             await onGetStory(pool, userId, lobbyCode);
         });
 
-        socket.on("get story at part", async (userId: string, lobbyCode: string, index: number) => {
+        socket.on("get story at part", async (userId: string, lobbyCode: string) => {
             await onGetStoryAtPart(io, pool, userId, lobbyCode);
         });
 
 
-        socket.on("next part", async (userId: string, lobbyCode: string, index: number) => {
+        socket.on("next part", async (userId: string, lobbyCode: string) => {
             await onNextPart(io, pool, userId, lobbyCode);
         });
 
