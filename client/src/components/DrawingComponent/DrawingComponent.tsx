@@ -1,4 +1,3 @@
-import './App.css';
 import React, { useEffect, useLayoutEffect, useRef, useState} from "react";
 import rough from 'roughjs';
 import { Drawable } from "roughjs/bin/core";
@@ -41,7 +40,7 @@ type Element = PencilElement | ShapeElement | TextElement;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function createElement(id: number ,x1: number, y1: number, x2: number, y2: number, type: string, color: string): Element {
+const createElement = (id: number , x1: number, y1: number, x2: number, y2: number, type: string, color: string): Element => {
     switch(type) {
         case "line":
         case "rectangle":
@@ -66,7 +65,7 @@ function createElement(id: number ,x1: number, y1: number, x2: number, y2: numbe
         default:
             throw new Error('Type not recognised');
     }
-}
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -150,13 +149,9 @@ const getElementAtPosition = (x: number, y: number, elements: Element[]) => {
 };
 
 
-function isShapeElement(element: Element) {
-    return (element.type === "rectangle" || element.type === "line" || element.type === "circle") && element;
-}
+const isShapeElement = (element: Element) => (element.type === "rectangle" || element.type === "line" || element.type === "circle") && element;
 
-function isPencilElement(element: Element) {
-    return (element.type === "pencil" || element.type === "eraser") && element;
-}
+const isPencilElement = (element: Element) => (element.type === "pencil" || element.type === "eraser") && element;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -323,7 +318,7 @@ const usePressedKeys = () => {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function App() {
+function DrawingComponent() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -767,4 +762,4 @@ function App() {
     );
 }
 
-export default App;
+export default DrawingComponent;
