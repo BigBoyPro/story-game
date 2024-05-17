@@ -4,6 +4,7 @@ import { Drawable } from "roughjs/bin/core";
 import { RoughCanvas } from "roughjs/bin/canvas";
 import getStroke from "perfect-freehand";
 import {ChromePicker} from "react-color";
+import "./DrawingComponent.css"
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -289,34 +290,6 @@ const adjustmentRequired = (type: string) => ['line', 'rectangle'].includes(type
 
 //----------------------------------------------------------------------------------------------------------------------
 
-const usePressedKeys = () => {
-    const [pressedKeys, setPressedKeys] = useState(new Set());
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            setPressedKeys(prevKeys => new Set(prevKeys).add(event.key));
-        };
-
-        const handleKeyUp = (event: KeyboardEvent) => {
-            setPressedKeys(prevKeys => {
-                const updatedKeys = new Set(prevKeys);
-                updatedKeys.delete(event.key);
-                return updatedKeys;
-            });
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("keyup", handleKeyUp);
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("keyup", handleKeyUp);
-        };
-    }, []);
-
-    return pressedKeys;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
 
 function DrawingComponent() {
 
@@ -332,18 +305,12 @@ function DrawingComponent() {
 
     const [selectedElement, setSelectedElement] = useState<any>(null);
 
-    const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
-
-    const [startPanMousePosition, setStartPanMousePosition] = React.useState({ x: 0, y: 0 });
 
     const textAreaRef = useRef<any>();
-
-    const pressedKeys = usePressedKeys();
 
     const [pencilSize, setPencilSize] = useState<number>(24);
 
     const [eraserSize, setEraserSize] = useState<number>(24);
-
 
     useLayoutEffect( () => {
 
@@ -354,7 +321,6 @@ function DrawingComponent() {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         context.save();
-        context.translate(panOffset.x, panOffset.y);
 
         document.body.style.backgroundColor = 'pink';
 
@@ -365,7 +331,7 @@ function DrawingComponent() {
 
         context.restore();
 
-    }, [elements, color, action, selectedElement, panOffset, pencilSize, eraserSize]);
+    }, [elements, color, action, selectedElement, pencilSize, eraserSize]);
 
 
     useEffect(() => {
@@ -387,18 +353,18 @@ function DrawingComponent() {
     }, [undo, redo]);
 
 
-    useEffect(() => {
-        const panFunction = (event: WheelEvent) => {
-            setPanOffset(prevState => ({
-                x: prevState.x - event.deltaX,
-                y: prevState.y - event.deltaY,
-            }));
-        };
-        document.addEventListener("wheel", panFunction);
-        return () => {
-            document.removeEventListener("wheel", panFunction);
-        };
-    }, []);
+    // useEffect(() => {
+    //     const panFunction = (event: WheelEvent) => {
+    //         setPanOffset(prevState => ({
+    //             x: prevState.x - event.deltaX,
+    //             y: prevState.y - event.deltaY,
+    //         }));
+    //     };
+    //     document.addEventListener("wheel", panFunction);
+    //     return () => {
+    //         document.removeEventListener("wheel", panFunction);
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (textAreaRef.current) {
@@ -456,8 +422,12 @@ function DrawingComponent() {
     };
 
     const getMouseCoordinates = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        const clientX = event.clientX - panOffset.x;
-        const clientY = event.clientY - panOffset.y;
+        const canvas = event.target as HTMLCanvasElement;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const clientX = (event.clientX - rect.left) * scaleX;
+        const clientY = (event.clientY - rect.top) * scaleY;
         return { clientX, clientY };
     };
 
@@ -466,11 +436,11 @@ function DrawingComponent() {
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
         const {clientX, clientY} = getMouseCoordinates(event);
 
-        if (event.button === 1 || pressedKeys.has(" ")) {
-            setAction("panning");
-            setStartPanMousePosition({ x: clientX, y: clientY });
-            return;
-        }
+        // if (event.button === 1 || pressedKeys.has(" ")) {
+        //     setAction("panning");
+        //     setStartPanMousePosition({ x: clientX, y: clientY });
+        //     return;
+        // }
 
         if(tool === "selection") {
             const clickedElement = getElementAtPosition(clientX, clientY, elements);
@@ -510,15 +480,15 @@ function DrawingComponent() {
 
         const {clientX, clientY} = getMouseCoordinates(event);
 
-        if (action === "panning") {
-            const deltaX = clientX - startPanMousePosition.x;
-            const deltaY = clientY - startPanMousePosition.y;
-            setPanOffset({
-                x: panOffset.x + deltaX,
-                y: panOffset.y + deltaY,
-            });
-            return;
-        }
+        // if (action === "panning") {
+        //     const deltaX = clientX - startPanMousePosition.x;
+        //     const deltaY = clientY - startPanMousePosition.y;
+        //     setPanOffset({
+        //         x: panOffset.x + deltaX,
+        //         y: panOffset.y + deltaY,
+        //     });
+        //     return;
+        // }
 
         if (tool === "selection") {
             const clickedElement = getElementAtPosition(clientX, clientY, elements);
@@ -575,10 +545,6 @@ function DrawingComponent() {
             const { x1, y1, x2, y2 } = resizedCoordinates(clientX, clientY, position, coordinates)!;
             updateElement(id, x1, y1, x2, y2, type);
         }
-
-
-
-
     };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -653,7 +619,7 @@ function DrawingComponent() {
 
     return (
         <div>
-            <div style={{position: "fixed", zIndex: 2}}>
+            <div >
                 <input
                     type="radio"
                     id="selection"
@@ -689,7 +655,7 @@ function DrawingComponent() {
                     onChange={() => handleToolChange("pencil")}
                 />
                 <label htmlFor="Pencil">Pencil</label>
-                {tool === "pencil" ? (<input id="pencilSize" type="range" min="1" max="100" value={pencilSize} style={{ position: 'absolute', top: 30, left: 250}}
+                {tool === "pencil" ? (<input id="pencilSize" type="range" min="1" max="100" value={pencilSize}
                                              onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>) : null}
 
                 <input
@@ -700,7 +666,7 @@ function DrawingComponent() {
                 />
                 <label htmlFor="text">Text</label>
 
-                <div style={{position: "fixed", zIndex: 2, bottom: 0, padding: 10}}>
+                <div >
                     <button onClick={undo}>Undo</button>
                     <button onClick={redo}>Redo</button>
                 </div>
@@ -708,21 +674,7 @@ function DrawingComponent() {
                     <textarea
                         ref={textAreaRef}
                         onBlur={handleBlur}
-                        style={{
-                            position: "fixed",
-                            top: 25,
-                            left: 370,
-                            font: "24px sans-serif",
-                            margin: 0,
-                            padding: 0,
-                            border: 0,
-                            outline: 0,
-                            resize: "both",
-                            overflow: "hidden",
-                            whiteSpace: "pre",
-                            background: "transparent",
-                            zIndex: 2,
-                        }}
+
                     />
                 ) : null}
                 <input
@@ -733,7 +685,7 @@ function DrawingComponent() {
                 />
                 <label htmlFor="Eraser">Eraser</label>
 
-                {tool === "eraser" ? (<input id="eraserSize" type="range" min="1" max="100" value={eraserSize} style={{ position: 'absolute', top: 30, right: 1}}
+                {tool === "eraser" ? (<input id="eraserSize" type="range" min="1" max="100" value={eraserSize}
                                              onChange={(event) => setEraserSize(parseInt(event.currentTarget.value))}/>): null}
                 <input
                     type="radio"
@@ -746,17 +698,17 @@ function DrawingComponent() {
                     <ChromePicker color={color} onChange={(event) => {setColor(event.hex);}} />
                 ) : null}
             </div>
-            <canvas
-                ref={canvasRef}
-                id="canvas"
-                width={window.innerWidth}
-                height={window.innerHeight}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-            >
-                Canvas
-            </canvas>
+            <div>
+                <canvas
+                    ref={canvasRef}
+                    id="canvas"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                >
+                    Canvas
+                </canvas>
+            </div>
         </div>
 
     );
