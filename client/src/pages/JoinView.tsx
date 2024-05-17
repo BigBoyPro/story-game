@@ -46,6 +46,7 @@ function JoinView() {
     return (
       <>
           <div className={"main-page"}>
+
               <div className={"main-box"}>
                   <StoryLogo width={200} height={200}/>
                   <h1>Story Mode</h1>
@@ -63,7 +64,7 @@ function JoinView() {
               </div>
           </div>
       </>
-  );
+    );
 }
 
 export default JoinView;
