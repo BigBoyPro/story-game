@@ -1,6 +1,6 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp, StoryElement} from "../../../../shared/sharedTypes";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp} from "../../../../shared/sharedTypes";
 import {
     dbSelectLobby, dbSelectUserReady,
     dbTransaction, dbUpdateLobbyUsersSubmittedDecrement,
