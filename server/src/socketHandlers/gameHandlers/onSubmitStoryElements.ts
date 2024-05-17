@@ -42,17 +42,14 @@ export async function onSubmitStoryElements(io: Server, pool: Pool, userId: stri
 
 const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]): Promise<OpResult<Lobby>> => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
-
         // get lobby
-        let {data: lobby, error, success} = await dbSelectLobby(client, lobbyCode, true);
+        let {data: lobby, success, error} = await dbSelectLobby(client, lobbyCode, true);
         if (!success || !lobby) return {success, error};
-
         // check if user is in lobby
         if (!isUserInLobby(lobby, userId)) return {
             success: false,
             error: {logLevel: LogLevel.Error, type: ErrorType.USER_NOT_IN_LOBBY, error: "User is not in the lobby"}
         };
-
         //check if our user has already submitted
         let ready;
         ({data: ready, success, error} = await dbSelectUserReady(client, userId, true));
