@@ -143,7 +143,7 @@ const dbSelectUsersInLobby = async (db: (Pool | PoolClient), lobbyCode: string):
                                     WHERE lobby_code = $1
                                     ORDER BY created_at`, [lobbyCode]);
         const data = res.rows;
-        const users = data.map(row => ({id: row.id, nickname: row.nickname, lobbyCode: row.lobby_code}));
+        const users = data.map(row => ({id: row.id, nickname: row.nickname, lobbyCode: row.lobby_code, ready: row.ready}));
         return {success: true, data: users};
     } catch (error) {
         return {
@@ -366,7 +366,8 @@ export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: nu
             id: row.id,
             nickname: row.nickname,
             lobbyCode: row.lobby_code,
-            lastActive: row.last_active
+            lastActive: row.last_active,
+            ready: row.ready
         }));
         return {success: true, data: users};
     } catch (error) {
@@ -410,6 +411,38 @@ export const dbSelectUserLobbyCode = async (db: (Pool | PoolClient), userId: str
         };
     }
 };
+
+export const dbSelectUserReady = async (db: (Pool | PoolClient), userId: string, lock = false): Promise<OpResult<boolean>> => {
+    try {
+        const res = await db.query(`SELECT ready
+                                    FROM users
+                                    WHERE id = $1 ${lock ? 'FOR UPDATE' : ''}`, [userId]);
+        const data = res.rows;
+        if (!data || data.length === 0) {
+            return {
+                success: false,
+                error: {
+                    type: ErrorType.USER_NOT_FOUND,
+                    logLevel: LogLevel.Warning,
+                    error: "User not found"
+                }
+            };
+        }
+        const ready = data[0].ready;
+        return {success: true, data: ready};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_USER_READY,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+
+}
+
 export const dbSelectStoryElementDistinctUserIdsForRound = async (db: (Pool | PoolClient), lobbyCode: string, round: number): Promise<OpResult<string[]>> => {
     try {
         const res = await db.query(`SELECT DISTINCT user_id
@@ -432,6 +465,7 @@ export const dbSelectStoryElementDistinctUserIdsForRound = async (db: (Pool | Po
         };
     }
 };
+
 export const dbSelectStoryIdByIndex = async (db: (Pool | PoolClient), lobbyCode: string, index: number): Promise<OpResult<number>> => {
     try {
         const res = await db.query(`SELECT id
@@ -554,6 +588,29 @@ export const dbInsertStoryElements = async (db: (Pool | PoolClient), elements: S
         }
     }
 };
+
+
+export const dbUpsertStoryElements = async (db: (Pool | PoolClient), elements: StoryElement[]): Promise<OpResult<null>> => {
+    try {
+        const query = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
+                       VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ')
+                       + ` ON CONFLICT (index, user_id, story_id)
+                       DO UPDATE SET type = EXCLUDED.type, content = EXCLUDED.content`;
+        await db.query(query, elements.flatMap(element => [element.index, element.userId, element.storyId, element.round, element.type, element.content]));
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPSERT_STORY_ELEMENTS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+
+    }
+
+}
 export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Promise<OpResult<null>> => {
     try {
         await db.query(`INSERT INTO lobbies (code, host_user_id, round, users_submitted, round_start_at, round_end_at)
@@ -573,10 +630,11 @@ export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Prom
 }
 export const dbUpsertUser = async (db: (Pool | PoolClient), user: User): Promise<OpResult<null>> => {
     try {
-        await db.query(`INSERT INTO users (id, nickname, lobby_code)
-                        VALUES ($1, $2, $3)
+        await db.query(`INSERT INTO users (id, nickname, ready, lobby_code)
+                        VALUES ($1, $2, $3, $4)
                         ON CONFLICT (id) DO UPDATE SET nickname    = $2,
-                                                       last_active = NOW()`, [user.id, user.nickname, user.lobbyCode]);
+                                                       ready       = $3,
+                                                       last_active = NOW()`, [user.id, user.nickname, user.ready, user.lobbyCode]);
         return {success: true};
     } catch (error) {
         return {
@@ -629,6 +687,46 @@ export const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), userId: str
         }
     }
 }
+
+export const dbUpdateUserReady = async (db: (Pool | PoolClient), userId: string, ready: boolean): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE users
+                        SET ready = $1
+                        WHERE id = $2`, [ready, userId]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_USER_READY,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+
+}
+
+export const dbUpdateUsersReady = async (db: (Pool | PoolClient), userIds: string[], ready: boolean): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE users
+                        SET ready = $1
+                        WHERE id = ANY($2)`, [ready, userIds]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_USERS_READY,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+
+
+}
+
 export const dbUpdateLobbyHost = async (db: (Pool | PoolClient), lobbyCode: string, hostUserId: string): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
@@ -652,6 +750,26 @@ export const dbUpdateLobbyUsersSubmittedIncrement = async (db: (Pool | PoolClien
     try {
         await db.query(`UPDATE lobbies
                         SET users_submitted = users_submitted + 1
+                        WHERE code = $1`, [lobbyCode]);
+
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+};
+
+
+export const dbUpdateLobbyUsersSubmittedDecrement = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET users_submitted = users_submitted - 1
                         WHERE code = $1`, [lobbyCode]);
 
         return {success: true};
@@ -722,23 +840,6 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
     }
 }
 
-export const dbDeleteUser = async (db: (Pool | PoolClient), userId: string): Promise<OpResult<null>> => {
-    try {
-        await db.query(`DELETE
-                        FROM users
-                        WHERE id = $1`, [userId]);
-        return {success: true};
-    } catch (error) {
-        return {
-            success: false,
-            error: {
-                type: ErrorType.DB_ERROR_DELETE_USER,
-                logLevel: LogLevel.Error,
-                error: error
-            }
-        }
-    }
-};
 
 export const dbDeleteUsers = async (db: (Pool | PoolClient), userIds: string[]): Promise<OpResult<null>> => {
     try {

@@ -3,6 +3,7 @@ export type User = {
     id: string;
     nickname: string;
     lobbyCode: (string | null);
+    ready: boolean;
 };
 
 export type Lobby = {
@@ -99,7 +100,6 @@ export enum ErrorType {
     DB_ERROR_ROLLBACK = "DB_ERROR_ROLLBACK",
     DB_ERROR_SELECT_LOBBY_COUNT = "DB_ERROR_SELECT_LOBBY_COUNT",
     DB_ERROR_SELECT_LOBBIES_PLAYING = "DB_ERROR_SELECT_LOBBIES_PLAYING",
-    DB_ERROR_SELECT_STORIES = "DB_ERROR_SELECT_STORIES",
     DB_ERROR_SELECT_USERS_COUNT = "DB_ERROR_SELECT_USERS_COUNT",
     DB_ERROR_SELECT_LOBBY_CURRENT_PART = "DB_ERROR_SELECT_LOBBY_CURRENT_PART",
     DB_ERROR_UPDATE_LOBBY_CURRENT_PART = "DB_ERROR_UPDATE_LOBBY_CURRENT_PART",
@@ -108,6 +108,12 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBIES = "DB_ERROR_SELECT_LOBBIES",
     DB_ERROR_DELETE_LOBBIES = "DB_ERROR_DELETE_LOBBIES",
     DB_ERROR_DELETE_USERS = "DB_ERROR_DELETE_USERS",
+    DB_ERROR_SELECT_USER_READY = "DB_ERROR_SELECT_USER_READY",
+    USER_ALREADY_SUBMITTED = "USER_ALREADY_SUBMITTED",
+    DB_ERROR_UPDATE_USER_READY = "DB_ERROR_UPDATE_USER_READY",
+    USER_NOT_SUBMITTED = "USER_NOT_SUBMITTED",
+    DB_ERROR_UPSERT_STORY_ELEMENTS = "DB_ERROR_UPSERT_STORY_ELEMENTS",
+    DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -115,13 +121,13 @@ export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promi
     if (res.error) {
         switch (res.error.logLevel) {
             case LogLevel.Information:
-                console.info(res.error.error);
+                console.info(res.error.type, res.error.error);
                 break
             case LogLevel.Warning:
-                console.warn(res.error.error);
+                console.warn(res.error.type, res.error.error);
                 break;
             case LogLevel.Error:
-                console.error(res.error.error);
+                console.error(res.error.type, res.error.error);
                 break;
         }
     }

@@ -24,7 +24,7 @@ export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nick
 export const createLobby = (pool: Pool, userId: string, nickname: string): Promise<OpResult<Lobby>> => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
         // upsert user
-        const user: User = {id: userId, nickname: nickname, lobbyCode: null};
+        const user: User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
 
         let {success, error} = await dbUpsertUser(client, user);
         if (!success) return {success, error};
