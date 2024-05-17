@@ -5,13 +5,7 @@ import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 import {uploadImage} from "../../utils/imageAPI.ts";
-
-
-
-
-
-
-
+import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 
 function StoryComponent({
                             story,
@@ -30,24 +24,27 @@ function StoryComponent({
     const lobby = useContext(LobbyContext);
     const [newStoryElements, setNewStoryElements] = useState<StoryElement[]>(story.elements.filter((element) => element.userId === userId));
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
-    const [submitted, setSubmitted] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isDrawing, setIsDrawing] = useState<boolean>(false);
 
     useEffect(() => {
-        if(onNewStoryElementsChange) {
+        if (onNewStoryElementsChange) {
             onNewStoryElementsChange(newStoryElements);
         }
-    } ,[newStoryElements]);
+    }, [newStoryElements]);
 
     const addElement = () => {
         if (lobby && type) {
-            if (type == StoryElementType.Image){
-                    document.getElementById('importDiag')?.click()
+            if (type == StoryElementType.Image) {
+                document.getElementById('importDiag')?.click()
             }
-            if (type ==StoryElementType.Audio){
-                    addAudioElement();
-
+            if (type == StoryElementType.Audio) {
+                addAudioElement();
             }
-             else {
+            if (type == StoryElementType.Drawing) {
+                setIsDrawing(true);
+            }
+            if (type == StoryElementType.Text) {
                 // add new element to the story
                 setNewStoryElements([...newStoryElements, {
                     index: newStoryElements.length,
@@ -68,10 +65,9 @@ function StoryComponent({
     };
 
 
-
     const handleFinish = () => {
-        setSubmitted(true);
-        if(!onFinish) return;
+        setIsSubmitted(true);
+        if (!onFinish) return;
         onFinish();
     };
 
@@ -100,7 +96,7 @@ function StoryComponent({
             }]);
         }
     };
-   
+
     const [audioName, setAudioType] = useState<string>("");
     const addAudioElement = () => {
         if (!lobby || !audioName) return;
@@ -116,56 +112,64 @@ function StoryComponent({
     };
 
     const handleCancel = () => {
-        setSubmitted(false);
-        if(!onCancel) return;
+        setIsSubmitted(false);
+        if (!onCancel) return;
         onCancel();
     };
 
     return (
         <div className="story-page">
-            {
-                getStoryElementsForEachUser().map((elements, index) =>
-                    ((elements[0].userId !== userId || !onFinish )&&
-                        <StoryUserComponent key={index} elements={elements} isEditable={false}
-                                            hidden={userIndexToShow !== undefined ? (index > userIndexToShow) : false}/>
-                    ))
-            }
-            {/* new element for the current user*/}
-            {onFinish &&
-                <StoryUserComponent elements={newStoryElements}
-                                    isEditable={!submitted} onElementContentUpdate={onElementContentUpdate} />
-            }
-            {onFinish &&
+            {!isDrawing ?
                 <>
-                     <div className="side-button-container">
-                        <button onClick={addElement}>+</button>
-                         <input onChange={addImageElement} type="file" id="importDiag" accept="image/*" hidden={true} />
-                         {type === StoryElementType.Audio &&
-                             <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
-                                 <option value="">please select a background music</option>
-                                 <option value="romantic">romantic</option>
-                                 <option value="Scary2">Scary</option>
-                                 <option value="Sad">Sad</option>
-                                 <option value="suspense">suspense</option>
-                             </select>
-                         }
-                         <select value={type} onChange={(event) => setType(event.target.value as StoryElementType)}>
-                            {Object.values(StoryElementType).map((value) => (
-                                value !== StoryElementType.Empty &&
-                                <option key={value}
-                                        value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
-                            ))}
-                        </select>
-
-                    </div>
-                    {!submitted ?
-                        <button disabled={newStoryElements.length === 0} onClick={() => handleFinish()}>Finish</button>
-                        :
-                        <button onClick={() => handleCancel()}>Cancel</button>
+                    {getStoryElementsForEachUser().map((elements, index) =>
+                        ((elements[0].userId !== userId || !onFinish) &&
+                            <StoryUserComponent key={index} elements={elements} isEditable={false}
+                                                hidden={userIndexToShow !== undefined ? (index > userIndexToShow) : false}/>
+                        ))
                     }
-                    </>
-            }
+                    {/* new element for the current user*/}
+                    {onFinish &&
+                        <StoryUserComponent elements={newStoryElements}
+                                            isEditable={!isSubmitted} onElementContentUpdate={onElementContentUpdate}/>
+                    }
+                    {onFinish &&
+                        <>
+                            <div className="side-button-container">
+                                <button onClick={addElement}>+</button>
+                                <input onChange={addImageElement} type="file" id="importDiag" accept="image/*"
+                                       hidden={true}/>
+                                {type === StoryElementType.Audio &&
+                                    <select value={audioName} onChange={(event) => setAudioType(event.target.value)}>
+                                        <option value="">please select a background music</option>
+                                        <option value="romantic">romantic</option>
+                                        <option value="Scary2">Scary</option>
+                                        <option value="Sad">Sad</option>
+                                        <option value="suspense">suspense</option>
+                                    </select>
+                                }
+                                <select value={type}
+                                        onChange={(event) => setType(event.target.value as StoryElementType)}>
+                                    {Object.values(StoryElementType).map((value) => (
+                                        value !== StoryElementType.Empty &&
+                                        <option key={value}
+                                                value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
+                                    ))}
+                                </select>
 
+                            </div>
+                            {!isSubmitted ?
+                                <button disabled={newStoryElements.length === 0}
+                                        onClick={() => handleFinish()}>Finish</button>
+                                :
+                                <button onClick={() => handleCancel()}>Cancel</button>
+                            }
+                        </>
+                    }
+
+                </>
+                :
+                <DrawingComponent/>
+            }
         </div>
     )
 }

@@ -4,7 +4,6 @@ import StoryLogo from "../assets/story-logo.svg?react";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
 import {Lobby} from "../../../shared/sharedTypes.ts";
-import DrawingComponent from "../components/DrawingComponent/DrawingComponent.tsx";
 
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
@@ -58,9 +57,7 @@ function JoinView() {
                       />
                       <button type="submit">Play</button>
                   </form>
-                  <div>
-                      <DrawingComponent></DrawingComponent>
-                  </div>
+
               </div>
           </div>
       </>

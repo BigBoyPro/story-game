@@ -9,9 +9,22 @@ import "./DrawingComponent.css"
 //----------------------------------------------------------------------------------------------------------------------
 
 const generator = rough.generator();
+// const drawingActions: DrawingAction[] = [];
 
 type Coordinates = {x1: number, y1: number, x2: number, y2: number};
 type Points = {x: number, y: number}[];
+
+// type DrawingAction = {
+//     type: "line" | "rectangle" | "circle" | "pencil" | "eraser" | "text";
+//     color: string;
+//     size?: number; // for pencil and eraser
+//     coordinates?: Coordinates; // for line, rectangle, circle
+//     points?: Points; // for pencil and eraser
+//     text?: string; // for text
+//     newCoordinates?: Coordinates; // for resized or moved elements
+//     newSize?: number; // for resized elements
+// };
+
 
 type ShapeElement = {
     id: number;
@@ -41,7 +54,10 @@ type Element = PencilElement | ShapeElement | TextElement;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-const createElement = (id: number , x1: number, y1: number, x2: number, y2: number, type: string, color: string): Element => {
+const createElement = (id: number , x1: number, y1: number, x2: number, y2: number, type: string, color: string, pencilSize?: number): Element => {
+    let element : Element;
+
+
     switch(type) {
         case "line":
         case "rectangle":
@@ -55,17 +71,30 @@ const createElement = (id: number , x1: number, y1: number, x2: number, y2: numb
             }else {
                 roughElement = generator.circle(x1,y1,Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), {stroke: color});
             }
-            return {id, coordinates, type, roughElement, color};
+            element = {id, coordinates, type, roughElement, color};
+            // drawingAction = {type, color, coordinates};
+
+            break;
         case "pencil":
-            return {id, type, points: [{x: x1, y: y1}], color, size:24};
+            element = {id, type, points: [{x: x1, y: y1}], color, size:pencilSize?? 24};
+            // drawingAction = {type, color, points: [{x: x1, y: y1}], size: pencilSize?? 24};
+            break;
         case "eraser":
-            return {id, type, points: [{x: x1, y: y1}], color: document.body.style.backgroundColor, size: 24};
+            element = {id, type, points: [{x: x1, y: y1}], color: document.body.style.backgroundColor, size: pencilSize?? 24};
+            break;
         case "text":
             const textCoordinates = {x1, y1, x2, y2};
-            return { id, type, textCoordinates, text: "", color};
+            element = { id, type, textCoordinates, text: "", color};
+            break;
         default:
             throw new Error('Type not recognised');
     }
+
+
+    // drawingActions.push(drawingAction);
+
+
+    return element;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -312,17 +341,20 @@ function DrawingComponent() {
 
     const [eraserSize, setEraserSize] = useState<number>(24);
 
-    useLayoutEffect( () => {
-
+    useLayoutEffect(() => {
         const canvas = canvasRef.current!;
         const context = canvas.getContext('2d')!;
         const roughCanvas = rough.canvas(canvas);
+
+        // Set the size of the drawing surface to match the size of the element
+        canvas.width = canvas.getBoundingClientRect().width;
+        canvas.height = canvas.getBoundingClientRect().height;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         context.save();
 
-        document.body.style.backgroundColor = 'pink';
+        document.body.style.backgroundColor = 'white';
 
         elements.forEach(element => {
             if (action === "writing" && selectedElement.id === element.id) return;
@@ -332,6 +364,17 @@ function DrawingComponent() {
         context.restore();
 
     }, [elements, color, action, selectedElement, pencilSize, eraserSize]);
+
+    useEffect(() => {
+        // Add the event listener when the component mounts
+        window.addEventListener('mouseup', handleMouseUp);
+
+        // Clean up the event listener when the component unmounts
+        return () => {
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []); // Empty dependency array means this effect runs once on mount and clean up on unmount
+
 
 
     useEffect(() => {
@@ -430,17 +473,20 @@ function DrawingComponent() {
         const clientY = (event.clientY - rect.top) * scaleY;
         return { clientX, clientY };
     };
+    const getMouseCoordinatesFromScreen = (event: MouseEvent, canvas: HTMLCanvasElement) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const clientX = (event.clientX - rect.left) * scaleX;
+        const clientY = (event.clientY - rect.top) * scaleY;
+        return { clientX, clientY };
+    };
 
 //--------------------------------------------------------------------------------------------------------------------
 
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
         const {clientX, clientY} = getMouseCoordinates(event);
 
-        // if (event.button === 1 || pressedKeys.has(" ")) {
-        //     setAction("panning");
-        //     setStartPanMousePosition({ x: clientX, y: clientY });
-        //     return;
-        // }
 
         if(tool === "selection") {
             const clickedElement = getElementAtPosition(clientX, clientY, elements);
@@ -467,7 +513,10 @@ function DrawingComponent() {
             }
         }else {
             const id = elements.length;
-            const element = createElement(id, clientX, clientY, clientX, clientY, tool, color);
+            let size;
+            if(tool === "pencil") size = pencilSize;
+            if(tool === "eraser") size = eraserSize;
+            const element = createElement(id, clientX, clientY, clientX, clientY, tool, color, size);
             setElements((prevState) => ([...prevState, element]));
             setSelectedElement(element);
             setAction(tool === "text" ? "writing" : "drawing");
@@ -480,15 +529,7 @@ function DrawingComponent() {
 
         const {clientX, clientY} = getMouseCoordinates(event);
 
-        // if (action === "panning") {
-        //     const deltaX = clientX - startPanMousePosition.x;
-        //     const deltaY = clientY - startPanMousePosition.y;
-        //     setPanOffset({
-        //         x: panOffset.x + deltaX,
-        //         y: panOffset.y + deltaY,
-        //     });
-        //     return;
-        // }
+
 
         if (tool === "selection") {
             const clickedElement = getElementAtPosition(clientX, clientY, elements);
@@ -549,8 +590,9 @@ function DrawingComponent() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        const { clientX, clientY } = getMouseCoordinates(event);
+    const handleMouseUp = (event: MouseEvent) => {
+        if (!canvasRef.current) return;
+        const { clientX, clientY } = getMouseCoordinatesFromScreen(event, canvasRef.current);
         if(selectedElement) {
             if (
                 selectedElement.type === "text" &&
@@ -618,8 +660,8 @@ function DrawingComponent() {
 //----------------------------------------------------------------------------------------------------------------------
 
     return (
-        <div>
-            <div >
+        <div className={"drawing-page"}>
+            <div className={"tools-container"}>
                 <input
                     type="radio"
                     id="selection"
@@ -698,13 +740,12 @@ function DrawingComponent() {
                     <ChromePicker color={color} onChange={(event) => {setColor(event.hex);}} />
                 ) : null}
             </div>
-            <div>
+            <div className={"canvas-container"}>
                 <canvas
                     ref={canvasRef}
                     id="canvas"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
                 >
                     Canvas
                 </canvas>
