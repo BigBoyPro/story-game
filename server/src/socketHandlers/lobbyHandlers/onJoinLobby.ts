@@ -1,6 +1,6 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {Lobby, OpResult, processOp} from "../../../../shared/sharedTypes";
+import {Lobby, OpResult, processOp, User} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateUserLobbyCode, dbUpsertUser} from "../../db";
 
@@ -25,7 +25,7 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
         let {data: lobby, success, error} = await dbSelectLobby(client, lobbyCode);
         if (!success || !lobby) return {success, error};
         // upsert user
-        const user = {id: userId, nickname: nickname, lobbyCode: null};
+        const user : User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
         ({success, error} = await dbUpsertUser(client, user))
         if (!success) return {success, error};
 

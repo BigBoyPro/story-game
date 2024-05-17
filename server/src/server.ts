@@ -4,7 +4,7 @@ import cors from 'cors';
 import {Server} from 'socket.io';
 import {Pool} from 'pg';
 
-import { setupSocketHandlers } from './socketHandlers/socketService';
+import {setupSocketHandlers} from './socketHandlers/socketService';
 import {inactiveUsersHandler} from "./socketHandlers/inactiveUsersHandler";
 import {resetGames} from "./socketHandlers/gameHandlers/resetGames";
 
@@ -29,7 +29,6 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 
-
 const io = new Server(server, {
     cors: {
         origin: "*", // replace with your client's origin
@@ -42,18 +41,18 @@ async function startServer(io: Server, pool: Pool) {
 
     setupSocketHandlers(io, pool);
 
-    server.listen(4000, () => {
-        console.log("Server is running on port 4000");
+    server.listen(1234, () => {
+        console.log("Server is running on port 1234");
     });
     console.log('Server listening');
 
     setInterval(async () => {
         await inactiveUsersHandler(io, pool);
     },  INACTIVE_USERS_CHECK_MILLISECONDS)
-
 }
 
-startServer(io, pool).then(r =>
+
+startServer(io, pool).then(() =>
     console.log('Server started')
 ).catch(error => {
     console.error('Error starting server', error);

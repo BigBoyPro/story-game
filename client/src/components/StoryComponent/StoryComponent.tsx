@@ -16,19 +16,21 @@ import {uploadImage} from "../../utils/imageAPI.ts";
 function StoryComponent({
                             story,
                             onFinish,
+                            onCancel,
                             onNewStoryElementsChange,
-                            userIndex
+                            userIndexToShow
                         }: {
     story: Story,
     onFinish?: () => void,
+    onCancel?: () => void,
     onNewStoryElementsChange?: (newStoryElements: StoryElement[]) => void,
-    userIndex?: number
+    userIndexToShow?: number
 }) {
 
     const lobby = useContext(LobbyContext);
-    const [newStoryElements, setNewStoryElements] = useState<StoryElement[]>([]);
+    const [newStoryElements, setNewStoryElements] = useState<StoryElement[]>(story.elements.filter((element) => element.userId === userId));
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
-
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         if(onNewStoryElementsChange) {
@@ -68,13 +70,13 @@ function StoryComponent({
 
 
     const handleFinish = () => {
+        setSubmitted(true);
         if(!onFinish) return;
         onFinish();
-        setNewStoryElements([]);
     };
 
     const getStoryElementsForEachUser = () => {
-        const storyUserIds = [...new Set(story.elements.map((element) => element.userId))];
+        const storyUserIds = [...new Set(story.elements.map((element) => element.userId).filter(elementUserId => elementUserId !== userId || !onFinish))];
         return storyUserIds.map((userId) => {
                 return story.elements.filter((element) => element.userId == userId);
             }
@@ -113,23 +115,25 @@ function StoryComponent({
         }]);
     };
 
+    const handleCancel = () => {
+        setSubmitted(false);
+        if(!onCancel) return;
+        onCancel();
+    };
+
     return (
         <div className="story-page">
             {
-                getStoryElementsForEachUser().map((elements, index) => {
-                    console.log('User Index:', userIndex);
-                    console.log('Index:', index);
-                    console.log('hidden:', userIndex !== undefined ? (index >= userIndex) : false);
-                    return (
+                getStoryElementsForEachUser().map((elements, index) =>
+                    ((elements[0].userId !== userId || !onFinish )&&
                         <StoryUserComponent key={index} elements={elements} isEditable={false}
-                                            hidden={userIndex !== undefined ? (index > userIndex) : false}/>
-                    );
-                })
+                                            hidden={userIndexToShow !== undefined ? (index > userIndexToShow) : false}/>
+                    ))
             }
             {/* new element for the current user*/}
             {onFinish &&
-                <StoryUserComponent key={newStoryElements.length} elements={newStoryElements}
-                                    isEditable={true} onElementContentUpdate={onElementContentUpdate} />
+                <StoryUserComponent elements={newStoryElements}
+                                    isEditable={!submitted} onElementContentUpdate={onElementContentUpdate} />
             }
             {onFinish &&
                 <>
@@ -154,8 +158,12 @@ function StoryComponent({
                         </select>
 
                     </div>
-                    <button onClick={() => handleFinish()}>Finish</button>
-                </>
+                    {!submitted ?
+                        <button disabled={newStoryElements.length === 0} onClick={() => handleFinish()}>Finish</button>
+                        :
+                        <button onClick={() => handleCancel()}>Cancel</button>
+                    }
+                    </>
             }
 
         </div>
