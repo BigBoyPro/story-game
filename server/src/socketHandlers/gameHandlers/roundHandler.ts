@@ -5,7 +5,7 @@ import {
     dbInsertStoryElements, dbLockRowLobby,
     dbSelectStoryElementDistinctUserIdsForRound,
     dbSelectStoryIdByIndex,
-    dbTransaction, dbUpdateLobbyRound, dbUpdateLobbyUsersSubmitted
+    dbTransaction, dbUpdateLobbyRound, dbUpdateLobbyUsersSubmitted, dbUpdateUsersReady
 } from "../../db";
 
 import {storyIndexForUser} from "../../utils/utils";
@@ -16,7 +16,7 @@ const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
 export const onNewRound = async (io : Server, pool: Pool, lobby: Lobby) => {
-    const {data: newLobby, error, success} = await processOp(() =>
+    const {data: newLobby, success} = await processOp(() =>
         newRound(pool, lobby)
     )
     if (!success || !newLobby) {
@@ -119,6 +119,11 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         lobby.usersSubmitted = 0;
         console.log("users submitted reset to 0");
 
+        // unready all players
+        const userIds = lobby.users.map(user => user.id);
+        ({error, success} = await dbUpdateUsersReady(client, userIds, false));
+
+
         ({error, success} = await dbUpdateLobbyRound(client, lobby.code, newLobbyRound, roundStartTime, roundEndTime));
         if (!success) return {success, error};
 
@@ -131,7 +136,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
 };
 
 export const onRestartRound = async (io: Server, pool: Pool, lobby: Lobby) => {
-    const {data: newLobby, error, success} = await processOp(() =>
+    const {data: newLobby, success} = await processOp(() =>
         restartRound(pool, lobby)
     )
     if (!success || !newLobby) {

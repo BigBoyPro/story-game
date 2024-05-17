@@ -1,4 +1,4 @@
-import {Lobby, Story, StoryElement, StoryElementType} from "../../../shared/sharedTypes.ts";
+import {Lobby, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
@@ -7,10 +7,10 @@ import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 import {
     onStory,
     onGetStoryElements,
-    sendStoryElements,
+    submitStoryElements,
     offStory,
     userId,
-    offGetStoryElements
+    offGetStoryElements, unsubmitStoryElements
 } from "../utils/socketService.ts";
 import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 
@@ -37,12 +37,7 @@ function GameView() {
         redirection(lobby, navigate);
 
         onStory((story) => {
-            const showStory = story.elements.length == 0 || story.elements[story.elements.length - 1].userId != userId;
-            console.log('Story received:', story, showStory);
-            // don't set story if the last story element is from the current user
-            if (showStory) {
-                setStory(story);
-            }
+            setStory(story);
         });
 
         onGetStoryElements(() => {
@@ -70,29 +65,25 @@ function GameView() {
         console.log('lobby and story exist');
         if(newStoryElementsRef.current.length > 0){
             console.log("sending story elements", newStoryElementsRef.current);
-            sendStoryElements(lobby.code, newStoryElementsRef.current);
-        } else {
-            const storyElement: StoryElement = {
-                index: newStoryElementsRef.current.length,
-                userId: userId,
-                storyId: story.id,
-                round: lobby.round,
-                type: StoryElementType.Empty,
-                content: ""
-            }
-            console.log("sending empty story element");
-            sendStoryElements(lobby.code, [storyElement]);
+            submitStoryElements(lobby.code, newStoryElementsRef.current);
         }
-        setStory(null);
     }
 
+    const onCancel = () => {
+        console.log('onCancel');
+        if(!lobby) {
+            console.log('lobby does not exist',lobby);
+            return;
+        }
+        unsubmitStoryElements(lobby.code);
+    }
   return(
-      <div className="game-page" >
+      <div className="game-page">
           <div className="game-box">
               <h2>Write your own story!             Round : {lobby?.round}/{lobby?.users.length}</h2>
               {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
               {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
-              { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
+              { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onCancel={onCancel} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
           </div>
           <div className="side-bar">
               {lobby?.users && lobby.users.map(user =>

@@ -82,7 +82,7 @@ function ResultsView() {
                 <h2>Results</h2>
                 <div className="story-box">
                     <h3>{story.name}</h3>
-                    <StoryComponent key={story.id} story={story} userIndex={userIndex}/>
+                    <StoryComponent key={story.id} story={story} userIndexToShow={userIndex}/>
                 </div>
                 { (story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
                     <button onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
