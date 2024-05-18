@@ -121,6 +121,15 @@ function StoryComponent({
         onCancel();
     };
 
+    function handleDeleteStoryElement(index: number): void {
+        const updatedNewStoryElements = [...newStoryElements];
+        updatedNewStoryElements.splice(index, 1);
+        for (let i = index; i < updatedNewStoryElements.length; i++) {
+            updatedNewStoryElements[i].index--;
+        }
+        setNewStoryElements(updatedNewStoryElements);
+    }
+
     return (
         <div className="story-page">
             {
@@ -133,7 +142,7 @@ function StoryComponent({
             {/* new element for the current user*/}
             {onFinish &&
                 <StoryUserComponent elements={newStoryElements}
-                                    isEditable={!submitted} onElementContentUpdate={onElementContentUpdate} />
+                                    isEditable={!submitted} onElementContentUpdate={onElementContentUpdate} onDeleteStoryElement={handleDeleteStoryElement} />
             }
             {onFinish &&
                 <>
