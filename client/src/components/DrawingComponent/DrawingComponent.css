@@ -10,6 +10,9 @@
     flex: 1;
     display: flex;
     border: 1px solid black;
+/*    aspect ratio of 16:9   */
+    width: 100%;
+    aspect-ratio: 16/9;
 }
 
 canvas{

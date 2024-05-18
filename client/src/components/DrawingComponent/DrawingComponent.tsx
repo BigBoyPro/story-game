@@ -37,6 +37,7 @@ type PencilElement = {
     size: number;
 };
 
+
 type Element = PencilElement | ShapeElement | TextElement;
 
 type DrawingElement = {
@@ -54,10 +55,11 @@ enum ActionType {
 
 type Action = {
     index: number,
-    elementId?: number,
     type: ActionType,
+    elementId?: number,
     result?: DrawingElement | Coordinates | Points
 }
+
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -381,6 +383,11 @@ function DrawingComponent() {
     }, [elements, color, action, selectedElement, pencilSize, eraserSize]);
 
     useEffect(() => {
+
+        const canvas = canvasRef.current!;
+        // Set the size of the drawing surface to match the size of the element
+        canvas.width = 800;
+        canvas.height = 420;
         // Add the event listener when the component mounts
         window.addEventListener('mouseup', handleMouseUp);
 
