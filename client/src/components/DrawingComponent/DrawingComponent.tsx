@@ -331,7 +331,7 @@ const adjustmentRequired = (type: string) => ['line', 'rectangle'].includes(type
 //----------------------------------------------------------------------------------------------------------------------
 
 
-function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAction: (action: Action) => void}) {
+function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAction?: (action: Action) => void}) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -355,6 +355,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
     let oldElement: Element | null = null;
 
     let nextId: number = 0;
+
 
     useLayoutEffect(() => {
         const canvas = canvasRef.current!;
@@ -424,7 +425,48 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
         }
     }, [action, selectedElement]);
 
+    const drawActions = (actions: Action[]) => {
+        for (let i = 0; i < actions.length; i++) {
+            const action = actions[i];
+            switch (action.type) {
+                case ActionType.DRAW:
+                    if (action.result && 'id' in action.result) {
+                        const element = action.result;
+                        let newElement;
+                        if (Array.isArray(element.coordinates)) {
+                            newElement = createElement(element.id, element.coordinates[0].x, element.coordinates[0].y, 0, 0, element.type, element.color, element.size);
+                        } else {
+                            newElement = createElement(element.id, element.coordinates.x1, element.coordinates.y1, element.coordinates.x2, element.coordinates.y2, element.type, element.color, element.size);
+                        }
+                        setElements((prevState) => ([...prevState, newElement]));
+                    }
+                    break;
+                case ActionType.UPDATE:
+                    if (action.result && action.elementId && !('id' in action.result)) {
+                        const coordinates = action.result;
+                        const oldElement = elements[action.elementId];
+                        if (Array.isArray(coordinates) && (oldElement.type === "pencil" || oldElement.type === "eraser")) {
+                            coordinates.forEach((point, index) => {
+                                if (index !== 0) {
+                                    updateElement(oldElement.id, 0, 0, oldElement.points[index].x + point.x, oldElement.points[index].y + point.y, oldElement.type)
+                                }
+                            })
+                        } else {
+                            if (!(Array.isArray(coordinates)) && (oldElement.type === "rectangle" || oldElement.type === "line" || oldElement.type === "circle")) {
+                                updateElement(oldElement.id, oldElement.coordinates.x1 + coordinates.x1, oldElement.coordinates.y1 + coordinates.y1, oldElement.coordinates.x2 + coordinates.x2, oldElement.coordinates.y2 + coordinates.y2, oldElement.type)
+                            }
+                        }
+                    }
+                    break;
+                case ActionType.UNDO:
+                    undo()
+                    break;
+            }
+        }
+    }
 
+
+    drawActions(actions);
 
 //--------------------------------------------------------------------------------------------------------------------
 
@@ -515,7 +557,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
                 }
             }
         } else {
-            const id = nextId;
+            const id = elements.length;
             nextId++;
             let size;
             if (tool === "pencil") size = pencilSize;
@@ -545,9 +587,9 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
         }
 
         if (action === "drawing") {
-            const index = nextId - 1;
+            const index = elements.length - 1;
             const element = elements[index];
-
+            console.log(elements[index].type);
             if (isShapeElement(element)) {
                 const shapeElement = element as ShapeElement;
                 const {x1, y1} = shapeElement.coordinates;
@@ -593,6 +635,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
 //----------------------------------------------------------------------------------------------------------------------
 
     const handleUndo = () => {
+        onAddAction &&
         onAddAction({
             index: actions.length,
             type: ActionType.UNDO
@@ -669,6 +712,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
                     }
 
                     if (drawingElement) {
+                        onAddAction &&
                         onAddAction({
                             index: actions.length,
                             elementId: element.id,
@@ -688,7 +732,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
                         x2: newShapeElement.coordinates.x2 - oldShapeElement.coordinates.x2,
                         y2: newShapeElement.coordinates.y2 - oldShapeElement.coordinates.y2
                     };
-                    if (delta) onAddAction({
+                    if (delta) onAddAction && onAddAction({
                         index: actions.length,
                         elementId: element.id,
                         type: ActionType.UPDATE,
@@ -711,7 +755,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
                             x2: newShapeElement.coordinates.x2 - oldShapeElement.coordinates.x2,
                             y2: newShapeElement.coordinates.y2 - oldShapeElement.coordinates.y2
                         };
-                        if (delta) onAddAction({
+                        if (delta) onAddAction && onAddAction({
                             index: actions.length,
                             elementId: element.id,
                             type: ActionType.UPDATE,
@@ -728,7 +772,7 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
                                 y: point.y - oldPencilElement.points[index].y
                             }
                         });
-                        if (points) onAddAction({
+                        if (points) onAddAction && onAddAction({
                             index: actions.length,
                             elementId: element.id,
                             type: ActionType.UPDATE,
@@ -787,49 +831,9 @@ function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAct
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    /*const drawActions = (actions: Action[]) => {
-        for (let i = 0; i < actions.length; i++) {
-            const action = actions[i];
-            switch (action.type) {
-                case ActionType.DRAW:
-                    if (action.result && 'id' in action.result) {
-                        const element = action.result;
-                        let newElement;
-                        if (Array.isArray(element.coordinates)) {
-                            newElement = createElement(element.id, element.coordinates[0].x, element.coordinates[0].y, 0, 0, element.type, element.color, element.size);
-                        } else {
-                            newElement = createElement(element.id, element.coordinates.x1, element.coordinates.y1, element.coordinates.x2, element.coordinates.y2, element.type, element.color, element.size);
-                        }
-                        setElements((prevState) => ([...prevState, newElement]));
-                    }
-                    break;
-                case ActionType.UPDATE:
-                    if (action.result && action.elementId && !('id' in action.result)) {
-                        const coordinates = action.result;
-                        const oldElement = elements[action.elementId];
-                        if (Array.isArray(coordinates) && (oldElement.type === "pencil" || oldElement.type === "eraser")) {
-                            coordinates.forEach((point, index) => {
-                                if (index !== 0) {
-                                    updateElement(oldElement.id, 0, 0, oldElement.points[index].x + point.x, oldElement.points[index].y + point.y, oldElement.type)
-                                }
-                            })
-                        } else {
-                            if (!(Array.isArray(coordinates)) && (oldElement.type === "rectangle" || oldElement.type === "line" || oldElement.type === "circle")) {
-                                updateElement(oldElement.id, oldElement.coordinates.x1 + coordinates.x1, oldElement.coordinates.y1 + coordinates.y1, oldElement.coordinates.x2 + coordinates.x2, oldElement.coordinates.y2 + coordinates.y2, oldElement.type)
-                            }
-                        }
-                    }
-                    break;
-                case ActionType.UNDO:
-                    undo()
-                    break;
-            }
-        }
-    }*/
+
 
 //----------------------------------------------------------------------------------------------------------------------
-
-
 
 // ---------------------------------------------------------------------------------------------------------------------
     return (
