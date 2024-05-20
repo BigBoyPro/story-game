@@ -119,6 +119,7 @@ function StoryComponent({
     };
 
     const handleAddAction = (action: Action) => {
+        console.log("action", action)
         setActions([...actions, action]);
     }
 
