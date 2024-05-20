@@ -125,6 +125,7 @@ function StoryComponent({
 
     const handleSaveDrawing = () => {
         if (!lobby) return;
+        setIsDrawing(false);
         setNewStoryElements([...newStoryElements, {
             index: newStoryElements.length,
             userId: userId,

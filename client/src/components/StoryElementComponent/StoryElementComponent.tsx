@@ -1,4 +1,5 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
+import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 
 const StoryElementComponent = ({ storyElement, setContent , isEditable }: { storyElement : StoryElement, setContent?: (content: string) => void , isEditable : boolean}) => {
     const renderContent = () => {
@@ -11,7 +12,8 @@ const StoryElementComponent = ({ storyElement, setContent , isEditable }: { stor
             case StoryElementType.Image:
                 return <img src={storyElement.content} alt="Story element" width="250"  />;
             case StoryElementType.Drawing:
-                return <img src={storyElement.content} alt="Story element" width="250" />;
+                const actions = JSON.parse(storyElement.content)
+                return <DrawingComponent actions={actions}></DrawingComponent>;
             case StoryElementType.Audio:
                 return <audio controls src={storyElement.content} />;
             default:
