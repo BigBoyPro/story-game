@@ -37,7 +37,6 @@ type PencilElement = {
     size: number;
 };
 
-
 type Element = PencilElement | ShapeElement | TextElement;
 
 type DrawingElement = {
@@ -53,13 +52,12 @@ enum ActionType {
     DRAW, UNDO, UPDATE
 }
 
-type Action = {
+export type Action = {
     index: number,
     type: ActionType,
     elementId?: number,
     result?: DrawingElement | Coordinates | Points
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -332,7 +330,7 @@ const adjustmentRequired = (type: string) => ['line', 'rectangle'].includes(type
 //----------------------------------------------------------------------------------------------------------------------
 
 
-function DrawingComponent() {
+function DrawingComponent({actions, onAddAction}: { actions: Action[],  onAddAction: (action: Action) => void}) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -352,7 +350,6 @@ function DrawingComponent() {
 
     const [eraserSize, setEraserSize] = useState<number>(24);
 
-    const actions: Action[] = [];
 
     let oldElement: Element | null = null;
 
@@ -383,6 +380,8 @@ function DrawingComponent() {
     }, [elements, color, action, selectedElement, pencilSize, eraserSize]);
 
     useEffect(() => {
+        // drawActions(actions);
+
 
         const canvas = canvasRef.current!;
         // Set the size of the drawing surface to match the size of the element
@@ -395,6 +394,7 @@ function DrawingComponent() {
         return () => {
             window.removeEventListener('mouseup', handleMouseUp);
         };
+
     }, []); // Empty dependency array means this effect runs once on mount and clean up on unmount
 
 
@@ -596,7 +596,7 @@ function DrawingComponent() {
 //----------------------------------------------------------------------------------------------------------------------
 
     const handleUndo = () => {
-        actions.push({
+        onAddAction({
             index: actions.length,
             type: ActionType.UNDO
         });
@@ -672,7 +672,7 @@ function DrawingComponent() {
                     }
 
                     if (drawingElement) {
-                        actions.push({
+                        onAddAction({
                             index: actions.length,
                             elementId: element.id,
                             type: ActionType.DRAW,
@@ -691,7 +691,7 @@ function DrawingComponent() {
                         x2: newShapeElement.coordinates.x2 - oldShapeElement.coordinates.x2,
                         y2: newShapeElement.coordinates.y2 - oldShapeElement.coordinates.y2
                     };
-                    if (delta) actions.push({
+                    if (delta) onAddAction({
                         index: actions.length,
                         elementId: element.id,
                         type: ActionType.UPDATE,
@@ -714,7 +714,7 @@ function DrawingComponent() {
                             x2: newShapeElement.coordinates.x2 - oldShapeElement.coordinates.x2,
                             y2: newShapeElement.coordinates.y2 - oldShapeElement.coordinates.y2
                         };
-                        if (delta) actions.push({
+                        if (delta) onAddAction({
                             index: actions.length,
                             elementId: element.id,
                             type: ActionType.UPDATE,
@@ -731,7 +731,7 @@ function DrawingComponent() {
                                 y: point.y - oldPencilElement.points[index].y
                             }
                         });
-                        if (points) actions.push({
+                        if (points) onAddAction({
                             index: actions.length,
                             elementId: element.id,
                             type: ActionType.UPDATE,
@@ -790,7 +790,7 @@ function DrawingComponent() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    const drawActions = (actions: Action[]) => {
+    /*const drawActions = (actions: Action[]) => {
         for (let i = 0; i < actions.length; i++) {
             const action = actions[i];
             switch (action.type) {
@@ -828,7 +828,11 @@ function DrawingComponent() {
                     break;
             }
         }
-    }
+    }*/
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
 
 // ---------------------------------------------------------------------------------------------------------------------
     return (

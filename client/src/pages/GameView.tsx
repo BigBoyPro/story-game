@@ -33,6 +33,7 @@ function GameView() {
     const [story, setStory] = useState<Story | null>(null);
     // const [remainingTime, setRemainingTime] = useState<number | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
+
     useEffect(() => {
         redirection(lobby, navigate);
 

@@ -5,7 +5,7 @@ import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 import {uploadImage} from "../../utils/imageAPI.ts";
-import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
+import DrawingComponent, {Action} from "../DrawingComponent/DrawingComponent.tsx";
 
 function StoryComponent({
                             story,
@@ -18,7 +18,7 @@ function StoryComponent({
     onFinish?: () => void,
     onCancel?: () => void,
     onNewStoryElementsChange?: (newStoryElements: StoryElement[]) => void,
-    userIndexToShow?: number
+    userIndexToShow?: number,
 }) {
 
     const lobby = useContext(LobbyContext);
@@ -26,6 +26,7 @@ function StoryComponent({
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
+    const [actions, setActions] = useState<Action[]>([]);
 
     useEffect(() => {
         if (onNewStoryElementsChange) {
@@ -38,13 +39,13 @@ function StoryComponent({
             if (type == StoryElementType.Image) {
                 document.getElementById('importDiag')?.click()
             }
-            if (type == StoryElementType.Audio) {
+            else if (type == StoryElementType.Audio) {
                 addAudioElement();
             }
-            if (type == StoryElementType.Drawing) {
+            else if (type == StoryElementType.Drawing) {
                 setIsDrawing(true);
             }
-            if (type == StoryElementType.Text) {
+            else if (type == StoryElementType.Text) {
                 // add new element to the story
                 setNewStoryElements([...newStoryElements, {
                     index: newStoryElements.length,
@@ -117,6 +118,23 @@ function StoryComponent({
         onCancel();
     };
 
+    const handleAddAction = (action: Action) => {
+        setActions([...actions, action]);
+    }
+
+
+    const handleSaveDrawing = () => {
+        if (!lobby) return;
+        setNewStoryElements([...newStoryElements, {
+            index: newStoryElements.length,
+            userId: userId,
+            storyId: story.id,
+            round: lobby.round,
+            type,
+            content: JSON.stringify(actions)
+        }]);
+    };
+
     return (
         <div className="story-page">
             {!isDrawing ?
@@ -168,7 +186,10 @@ function StoryComponent({
 
                 </>
                 :
-                <DrawingComponent/>
+                <>
+                <DrawingComponent actions={actions} onAddAction={handleAddAction}/>
+                <button onClick={handleSaveDrawing}>Save Drawing</button>
+                </>
             }
         </div>
     )
