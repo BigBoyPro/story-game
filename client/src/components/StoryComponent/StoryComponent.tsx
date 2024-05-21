@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useRef, useState} from "react";
 import "./StoryComponent.css"
 import {Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import {LobbyContext} from "../../LobbyContext.tsx";
@@ -6,6 +6,12 @@ import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 import {uploadImage} from "../../utils/imageAPI.ts";
 import DrawingComponent, {DrawingAction} from "../DrawingComponent/DrawingComponent.tsx";
+
+import forestImg from '../../assets/Places/forest.png';
+import beachImg from '../../assets/Places/beach.png';
+import scaryAlleyImg from '../../assets/Places/scary_alley.png';
+import streetImg from '../../assets/Places/street.png';
+
 
 const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = true) => {
     let storyUserIdArray = elements.map((element) => element.userId)
@@ -48,7 +54,10 @@ function StoryComponent({
     const [drawingActions, setDrawingActions] = useState<DrawingAction[]>([]);
 
     const inputRef = React.createRef<HTMLInputElement>();
+
     const audioNameRef = React.createRef<HTMLSelectElement>();
+
+    const [placeImage, setPlaceImage] = useState(beachImg);
 
 
     const addNewElement = (type: StoryElementType, content: string) => {
@@ -75,6 +84,10 @@ function StoryComponent({
                 // add new element to the story
                 addNewElement(StoryElementType.Text, "")
             }
+            else if (type == StoryElementType.Place) {
+                addPlace();
+            }
+
         }
     }
 
@@ -109,6 +122,8 @@ function StoryComponent({
 
     };
 
+
+
     const handleCancel = () => {
         setHasSubmitted(false);
         onCancel();
@@ -138,12 +153,47 @@ function StoryComponent({
         setStoryElements(updatedStoryElements);
     }
 
+    const addPlace = () => {
+        if (!lobby || !placeImage) return;
+        addNewElement(StoryElementType.Place, placeImage)
+        
+    };
+    const getPlaceImage = (place:string) :string=> {
+        switch (place) {
+            case 'forest':
+                return forestImg;
+                break;
+            case 'beach':
+                return beachImg;
+                break;
+            case 'scary_alley':
+                return scaryAlleyImg;
+                break;
+            case 'street':
+                return streetImg;
+                break;
+            default:
+                return beachImg;
+        }
+    };
+
     return (
-        <div className="story-page">
+        
+        <div className="story-page" style={{ backgroundImage: `url(${placeImage})` }}>
             {!isDrawing ?
                 <>
+                <div >
+                    {storyElementsState &&
+                    <select onChange={(event)=>setPlaceImage(getPlaceImage(event.target.value))}>       
+                       <option value="beach">Beach</option>
+                       <option value="forest">Forest</option>
+                       <option value="scary_alley">Scary Alley</option>
+                       <option value="street">Street</option>
+                </select>}
+                {/* Rest of your component */}
+                </div>
                     {getStoryElementsForEachUser(story.elements, !storyElementsState).map((elements, index) =>
-                        <StoryUserComponent key={index} elements={elements} isEditable={false}
+                         <StoryUserComponent key={index} elements={elements} isEditable={false}
                                             hidden={userIndexToShow !== undefined ? (index > userIndexToShow) : false}/>
                     )}
                     {/* new element for the current user*/}

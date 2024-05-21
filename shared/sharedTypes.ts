@@ -40,7 +40,8 @@ export enum StoryElementType{
     Text = 'text',
     Image = 'image',
     Drawing = 'drawing',
-    Audio = 'audio'
+    Audio = 'audio',
+    Place = "place"
 }
 
 
