@@ -130,12 +130,12 @@ function StoryComponent({
     };
 
     function handleDeleteStoryElement(index: number): void {
-        const updatedNewStoryElements = [...newStoryElements];
-        updatedNewStoryElements.splice(index, 1);
-        for (let i = index; i < updatedNewStoryElements.length; i++) {
-            updatedNewStoryElements[i].index--;
+        const updatedStoryElements = [...storyElements];
+        updatedStoryElements.splice(index, 1);
+        for (let i = index; i < updatedStoryElements.length; i++) {
+            updatedStoryElements[i].index--;
         }
-        setNewStoryElements(updatedNewStoryElements);
+        setStoryElements(updatedStoryElements);
     }
 
     return (
@@ -151,7 +151,9 @@ function StoryComponent({
                         <>
                             <StoryUserComponent elements={storyElements}
                                                 isEditable={!hasSubmitted}
-                                                onElementContentChange={handleElementContentChange}/>
+                                                onElementContentChange={handleElementContentChange}
+                                                onDeleteStoryElement={handleDeleteStoryElement}
+                            />
 
                             <div className="side-button-container">
                                 <button onClick={handleAddElement}>+</button>
