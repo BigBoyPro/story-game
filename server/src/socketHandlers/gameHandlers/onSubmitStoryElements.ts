@@ -5,7 +5,7 @@ import {
     dbSelectLobby, dbSelectUserReady,
     dbTransaction,
     dbUpdateLobbyUsersSubmittedIncrement,
-    dbUpdateUserLastActive, dbUpdateUserReady, dbUpsertStoryElements
+    dbUpdateUserLastActive, dbUpdateUserReady, dbUpsertleteStoryElements
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
 import {broadcastUsersSubmitted, sendError} from "../socketService";
@@ -66,7 +66,7 @@ const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elem
         }
 
         // upsert story elements to db
-        ({success, error} = await dbUpsertStoryElements(client, elements))
+        ({success, error} = await dbUpsertleteStoryElements(client, elements))
         if (!success) return {success, error};
 
 

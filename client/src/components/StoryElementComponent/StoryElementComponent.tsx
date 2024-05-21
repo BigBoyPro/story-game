@@ -1,7 +1,7 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 
-const StoryElementComponent = ({ storyElement, setContent , isEditable }: { storyElement : StoryElement, setContent?: (content: string) => void , isEditable : boolean}) => {
+const StoryElementComponent = ({ storyElement, setContent , isEditable, onDeleteStoryElement }: { storyElement : StoryElement, setContent?: (content: string) => void , isEditable : boolean,onDeleteStoryElement?:(index:number)=>void}) => {
     const renderContent = () => {
         switch (storyElement.type) {
             case StoryElementType.Empty:
@@ -21,9 +21,12 @@ const StoryElementComponent = ({ storyElement, setContent , isEditable }: { stor
         }
     };
 
+
     return (
         <div className="story-element">
-            {renderContent()}
+            {renderContent()} 
+            {onDeleteStoryElement && isEditable && 
+            <button onClick={()=>onDeleteStoryElement(storyElement.index)}>delete</button>}
         </div>
     );
 };

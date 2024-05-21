@@ -590,24 +590,30 @@ export const dbInsertStoryElements = async (db: (Pool | PoolClient), elements: S
 };
 
 
-export const dbUpsertStoryElements = async (db: (Pool | PoolClient), elements: StoryElement[]): Promise<OpResult<null>> => {
+export const dbUpsertleteStoryElements = async (db: (Pool | PoolClient), elements: StoryElement[]): Promise<OpResult<null>> => {
     try {
-        const query = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
+        if(elements.length === 0) return {success: false, error: {type: ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE, logLevel: LogLevel.Warning, error: "No elements to upsert"}};
+        // Delete query
+        const deleteQuery = `DELETE FROM story_elements WHERE index >= $1 AND story_id = $2 AND user_id = $3`;
+        await db.query(deleteQuery, [elements.length, elements[0].storyId, elements[0].userId]);
+
+        // Existing insert query
+        const insertQuery = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
                        VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ')
                        + ` ON CONFLICT (index, user_id, story_id)
                        DO UPDATE SET type = EXCLUDED.type, content = EXCLUDED.content`;
-        await db.query(query, elements.flatMap(element => [element.index, element.userId, element.storyId, element.round, element.type, element.content]));
+        await db.query(insertQuery, elements.flatMap(element => [element.index, element.userId, element.storyId, element.round, element.type, element.content]));
+
         return {success: true};
     } catch (error) {
         return {
             success: false,
             error: {
-                type: ErrorType.DB_ERROR_UPSERT_STORY_ELEMENTS,
+                type: ErrorType.DB_ERROR_UPSERTLETE_STORY_ELEMENTS,
                 logLevel: LogLevel.Error,
                 error: error
             }
         }
-
     }
 
 }

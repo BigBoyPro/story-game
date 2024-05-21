@@ -4,10 +4,11 @@ import {useContext} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 
 
-function StoryUserComponent({elements, isEditable, onElementContentChange, hidden = false}: {
+function StoryUserComponent({elements, isEditable, onElementContentUpdate, onDeleteStoryElement, hidden = false}: {
     elements: StoryElement[],
     isEditable: boolean,
-    onElementContentChange?: (index: number, content: string) => void,
+    onElementContentUpdate?: (index: number, content: string) => void,
+    onDeleteStoryElement?:(index:number)=>void,
     hidden?: boolean
 }) {
     const lobby = useContext(LobbyContext);
@@ -26,8 +27,9 @@ function StoryUserComponent({elements, isEditable, onElementContentChange, hidde
                     }
                     {elements.map((element, index) => (
                         <StoryElementComponent key={index} storyElement={element}
-                                               setContent={(content) => onElementContentChange && onElementContentChange(index, content)}
-                                               isEditable={isEditable}/>
+                                               setContent={(content) => onElementContentUpdate && onElementContentUpdate(index, content)}
+                                               isEditable={isEditable}
+                                               onDeleteStoryElement={onDeleteStoryElement}/>
                     ))}
                 </div>
             }
