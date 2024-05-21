@@ -373,7 +373,11 @@ const drawActions = (actions: DrawingAction[]): Element[][] => {
             case ActionType.DRAW:
                 if (action.element) {
                     const element = action.element;
-                    const index = elements.length;
+                    let index = 0;
+                    if(elements)
+                    {
+                        index = elements.length;
+                    }
                     let newElement: Element | undefined;
                     if (element.points) {
                         newElement = createElement(index, element.id, element.points[0].x, element.points[0].y, 0, 0, element.type, element.color, element.size) as PencilElement;
@@ -418,6 +422,7 @@ const drawActions = (actions: DrawingAction[]): Element[][] => {
             case ActionType.UNDO:
                 history.pop()
                 elements = history[history.length - 1]
+                if(!elements) elements = []
                 break;
         }
     }
