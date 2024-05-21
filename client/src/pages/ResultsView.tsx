@@ -1,5 +1,5 @@
-import {Lobby, Story} from "../../../shared/sharedTypes.ts";
-import {NavigateFunction, useNavigate} from "react-router-dom";
+import {Story} from "../../../shared/sharedTypes.ts";
+import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
@@ -12,19 +12,9 @@ import {
     userId, requestGetStoryAtPart, requestNextPart, onPart
 } from "../utils/socketService.ts";
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
+import {Page, redirection} from "../App.tsx";
 
 
-const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
-            navigate("/lobby", {replace: true});
-        } else if(lobby.round > 0){
-            navigate("/game", {replace: true});
-        }
-    }else{
-        navigate("/", {replace: true})
-    }
-};
 
 function ResultsView() {
     const lobby = useContext(LobbyContext);
@@ -32,7 +22,7 @@ function ResultsView() {
     const [story, setStory] = useState<Story | null>(null);
     const [userIndex, setUserIndex] = useState<number>(0);
     useEffect(() => {
-        redirection(lobby, navigate);
+        redirection(lobby, navigate, Page.Results);
 
         onStoryAtPart(({story, userIndex}) => {
             setStory(story);
@@ -52,7 +42,7 @@ function ResultsView() {
                 lobby.usersSubmitted = 0;
                 lobby.round = 0;
             }
-            redirection(lobby, navigate);
+            redirection(lobby, navigate, Page.Lobby);
         });
 
         if(lobby && !story) requestGetStoryAtPart(lobby.code)

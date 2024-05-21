@@ -45,6 +45,13 @@ export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) 
     broadcast(io, lobbyCode, "lobby info", lobby);
 }
 
+export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: string, lobby: Lobby) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit("lobby info", lobby);
+    }
+}
+
 export const broadcastStoryAtPart = (io: Server, lobbyCode: string, storyAndUser: {story: Story, userIndex: number}) => {
     broadcast(io, lobbyCode, "story at part", storyAndUser);
 }
