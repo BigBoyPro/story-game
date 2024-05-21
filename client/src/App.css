@@ -6,6 +6,7 @@
     justify-content: center;
     align-items: center;
     text-align: center;
+    background-color: transparent;
 }
 
 .main-box {
@@ -33,7 +34,7 @@
     border: none;
     align-items: center;
     justify-content: center;
-
+    background-color: transparent;
 }
 
 .main-box input {
@@ -44,6 +45,7 @@
     text-align: center;
 }
 .input-placeholder::placeholder {
+    background-color: rgba(133, 123, 123, 0.2);
     color: white;
 }
 button {
@@ -189,4 +191,54 @@ button:hover {
 .button-3d-icon-help:focus {
     transform: scale(0.8);
     transition: transform 0.2s ease;
+}
+
+html {
+    font-size: 2vw;
+}
+
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.element {
+    width: 50%;
+    height: 20vh;
+    padding: 2vw;
+}
+
+@media (max-width: 600px) {
+    .element {
+        width: 100%;
+    }
+    html {
+        font-size: 5vw; /* Increase base text size for better readability on small screens */
+    }
+}
+
+
+.video-background {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.video-background video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: cover; /* Couvre l'espace disponible sans perdre le ratio */
 }

@@ -50,9 +50,9 @@ function JoinView() {
     return (
       <>
           <button type="button" className={"button-3d-icon-help"} onClick={handleHelpClick}></button>
-
+          {/*style={{ position: "absolute", width: "100%", height: "100%", objectFit: "cover",zIndex: 0}}*/}
           <video autoPlay loop muted
-                 style={{ position: "absolute", width: "100%", height: "100%", objectFit: "cover",zIndex: 0}}>
+                 className={"video-background"}>
               <source src="../JoinView.mp4" type="video/mp4" />
           </video>
               <div className={"main-page"}>
