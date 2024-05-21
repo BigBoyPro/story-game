@@ -13,7 +13,7 @@ const StoryElementComponent = ({ storyElement, setContent , isEditable, onDelete
                 return <img src={storyElement.content} alt="Story element" width="250"  />;
             case StoryElementType.Drawing:
                 const actions = JSON.parse(storyElement.content)
-                return <DrawingComponent initialActions={actions}></DrawingComponent>;
+                return <DrawingComponent initialActions={actions}/>;
             case StoryElementType.Audio:
                 return <audio controls src={storyElement.content} />;
             default:
