@@ -55,7 +55,7 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 - [ ] Rendre l'application responsive (mobile, tablette, desktop)
 - [ ] Ajouter des couleurs, des images
 - [ ] Ajouter des animations
-- [ ] Faire en sorte d'afficher les `story elements` un par un
+- [x] ~~Faire en sorte d'afficher les `story elements` un par un~~
 
 
 ### Mieux organiser le code:
@@ -66,8 +66,8 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 ### Ajouter des fonctionnalités:
 - [ ] Securiser le server
 - [ ] Ajouter un moment avant chaque `round` pour que les utilisateurs puissent voir les `story elements` des joueurs precedents
-- [ ] Ajouter la logique et l'ui pour les images et l'audio `RADIA`
-- [ ] Ajouter la fonction de dessiner des images pour les `story elements` `DARYL`
+- [x] ~~Ajouter la logique et l'ui pour les images et l'audio `RADIA`~~
+- [x] ~~Ajouter la fonction de dessiner des images pour les `story elements` `DARYL`~~
 - [ ] Ajouter les parametres du lobby: 
   - [ ] Voir toute l'histoire d'avant ou ne voir que le dernier `story element` ou les `story elements` du dernier utilisateur
   - [ ] Choisir le nombre de `story elements` par `story` le nombre de texte, d'images et d'audio
