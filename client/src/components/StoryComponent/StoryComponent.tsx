@@ -12,9 +12,8 @@ const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = 
     if (!getCurrentUser) storyUserIdArray = storyUserIdArray.filter(elementUserId => elementUserId !== userId);
     const storyUserIds = [...new Set(storyUserIdArray)];
     return storyUserIds.map((userId) => {
-            return elements.filter((element) => element.userId == userId);
-        }
-    );
+        return elements.filter((element) => element.userId == userId);
+    });
 };
 
 function StoryComponent({
@@ -35,9 +34,13 @@ function StoryComponent({
     const [storyElements, setStoryElements, onSave, onCancel] = storyElementsState ??
     (() => {
         const state = useState<StoryElement[]>([]);
-        return [state[0], state[1], () => {
-        }, () => {
-        }];
+        return [
+            state[0], state[1],
+            () => {
+            },
+            () => {
+            }
+        ];
     })();
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -50,17 +53,6 @@ function StoryComponent({
     const inputRef = React.createRef<HTMLInputElement>();
     const audioNameRef = React.createRef<HTMLSelectElement>();
 
-
-    const addNewElement = (type: StoryElementType, content: string) => {
-        lobby && setStoryElements([...storyElements, {
-            index: storyElements.length,
-            userId: userId,
-            storyId: story.id,
-            round: lobby.round,
-            type,
-            content
-        }]);
-    }
 
     const handleAddElement = () => {
         if (lobby && type) {
@@ -78,18 +70,16 @@ function StoryComponent({
         }
     }
 
-    const handleElementContentChange = (index: number, content: string) => {
-        const updatedStoryElements = [...storyElements];
-        updatedStoryElements[index].content = content;
-        setStoryElements(updatedStoryElements);
-    };
-
-
-    const handleFinish = () => {
-        setHasSubmitted(true);
-        onSave();
-    };
-
+    const addNewElement = (type: StoryElementType, content: string) => {
+        lobby && setStoryElements([...storyElements, {
+            index: storyElements.length,
+            userId: userId,
+            storyId: story.id,
+            round: lobby.round,
+            type,
+            content
+        }]);
+    }
 
     const addImageElement = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!lobby) return;
@@ -106,14 +96,22 @@ function StoryComponent({
         if (!lobby || !audioNameRef.current) return;
         const audioURL = `/audio/${audioNameRef.current.value}.mp3`;
         addNewElement(StoryElementType.Audio, audioURL)
-
     };
 
-    const handleCancel = () => {
-        setHasSubmitted(false);
-        onCancel();
+    const handleElementContentChange = (index: number, content: string) => {
+        const updatedStoryElements = [...storyElements];
+        updatedStoryElements[index].content = content;
+        setStoryElements(updatedStoryElements);
     };
 
+    const handleDeleteStoryElement = (index: number): void => {
+        const updatedStoryElements = [...storyElements];
+        updatedStoryElements.splice(index, 1);
+        for (let i = index; i < updatedStoryElements.length; i++) {
+            updatedStoryElements[i].index--;
+        }
+        setStoryElements(updatedStoryElements);
+    };
 
     const handleSaveDrawing = () => {
         if (!lobby) return;
@@ -129,17 +127,19 @@ function StoryComponent({
         setDrawingActions([]);
     };
 
-    function handleDeleteStoryElement(index: number): void {
-        const updatedStoryElements = [...storyElements];
-        updatedStoryElements.splice(index, 1);
-        for (let i = index; i < updatedStoryElements.length; i++) {
-            updatedStoryElements[i].index--;
-        }
-        setStoryElements(updatedStoryElements);
-    }
+    const handleFinish = () => {
+        setHasSubmitted(true);
+        onSave();
+    };
+
+    const handleCancel = () => {
+        setHasSubmitted(false);
+        onCancel();
+    };
+
 
     return (
-        <div className="story-page">
+        <div className="story-page" >
             {!isDrawing ?
                 <>
                     {getStoryElementsForEachUser(story.elements, !storyElementsState).map((elements, index) =>

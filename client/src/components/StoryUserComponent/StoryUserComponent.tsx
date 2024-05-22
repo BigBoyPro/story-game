@@ -27,7 +27,7 @@ function StoryUserComponent({elements, isEditable, onElementContentChange, onDel
                     }
                     {elements.map((element, index) => (
                         <StoryElementComponent key={index} storyElement={element}
-                                               setContent={(content) => onElementContentChange && onElementContentChange(index, content)}
+                                               onContentChange={(content) => onElementContentChange && onElementContentChange(index, content)}
                                                isEditable={isEditable}
                                                onDeleteStoryElement={onDeleteStoryElement}/>
                     ))}
