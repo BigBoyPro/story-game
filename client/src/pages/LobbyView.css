@@ -54,15 +54,6 @@
     flex-direction: column;
 }
 
-.text-over-video {
-    position: absolute;
-    top: 20%;
-    left: 10%;
-    font-size: 2vw;
-    color: white;
-}
-
-
 .info-container {
     display: flex;
     justify-content: space-between;
@@ -116,7 +107,6 @@
     padding: 0;
 
 }
-
 .player-list {
     list-style-type: none;
     padding-left: 0;
@@ -130,8 +120,9 @@
 .play-button-box {
     z-index: 1;
 }
+
 .button-play {
-    background-color: #3498db;
+    background-color: #1c6458;
     color: white;
     padding: 1vw 2vw;
     border: none;
@@ -144,24 +135,9 @@
 }
 
 .button-play:hover {
-    background-color: #2980b9;
+    background-color: #1c6458;
     transform: translateY(-0.3vw);
 }
-
-/*.lobby-container {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    align-items: center;*/
-/*    background-color: #f0f8ff;*/
-/*    padding: 20px;*/
-/*    border-radius: 20px;*/
-/*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
-/*}*/
-
-/*.lobby-details {*/
-/*    margin-top: 20px;*/
-/*    text-align: center;*/
-/*}*/
 
 .button-back{
 background-color: #1c6458;
@@ -179,6 +155,14 @@ position: relative;
     background-color: #1c6458;
     transform: translateY(-0.3vw);
 }
+
+.crown-icon-small {
+    width: 2vw;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 2vw;
+}
+
 
 /*.button-3d-icon-back {*/
 /*    z-index: 2;*/
@@ -211,9 +195,3 @@ position: relative;
 /*    transition: transform 0.2s ease;*/
 /*}*/
 
-.crown-icon-small {
-    width: 2vw;
-    height: auto;
-    vertical-align: middle;
-    margin-right: 2vw;
-}

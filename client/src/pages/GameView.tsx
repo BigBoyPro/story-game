@@ -88,18 +88,26 @@ function GameView() {
 
   return(
       <div className="game-page" >
-          <div className="game-box">
-              <h2>Write your own story!             Round : {lobby?.round}/{lobby?.users.length}</h2>
-              {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
-              {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
-              { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
-          </div>
-          <div className="side-bar">
-              {lobby?.users && lobby.users.map(user =>
-                  <div key={user.id} className="user-box">
-                      {user.nickname}
-                  </div>
-              )}
+          <div className={"video-background-container"}>
+
+              <video autoPlay loop muted className={"video-background"}>
+                  <source src="../GameVideo.mp4" type="video/mp4" />
+              </video>
+
+              <div className="game-box">
+                  <h2>Write your own story!             Round : {lobby?.round}/{lobby?.users.length}</h2>
+                  {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
+                  {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
+                  { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
+              </div>
+              <div className="side-bar">
+                  {lobby?.users && lobby.users.map(user =>
+                      <div key={user.id} className="user-box">
+                          {user.nickname}
+                      </div>
+                  )}
+              </div>
+
           </div>
       </div>
   );
