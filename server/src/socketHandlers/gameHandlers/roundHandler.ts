@@ -10,7 +10,7 @@ import {
 
 import {storyIndexForUser} from "../../utils/utils";
 
-const ROUND_MILLISECONDS = 5 * 60 * 1000;
+const ROUND_MILLISECONDS = 15 * 60 * 1000;
 const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
