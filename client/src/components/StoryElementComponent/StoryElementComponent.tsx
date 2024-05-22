@@ -1,21 +1,34 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 
-const StoryElementComponent = ({ storyElement, isEditable, onContentChange , onDeleteStoryElement}: { storyElement : StoryElement, isEditable : boolean, onContentChange?: (content: string) => void , onDeleteStoryElement?:(index:number) => void}) => {
+const StoryElementComponent = ({element, isEditable, onElementChange, onElementDelete}: {
+    element: StoryElement,
+    isEditable: boolean,
+    onElementChange?: (newElement: StoryElement) => void,
+    onElementDelete?: () => void,
+}) => {
+
+    const handleContentChange = (content: string) => {
+        if (isEditable && onElementChange) {
+            onElementChange({...element, content: content});
+        }
+    }
+
     const renderContent = () => {
-        switch (storyElement.type) {
+        switch (element.type) {
             case StoryElementType.Empty:
                 return <div/>;
             case StoryElementType.Text:
-                return <textarea value={storyElement.content} readOnly={!isEditable}
-                onChange={(e) => onContentChange && onContentChange(e.target.value)}/>;
+                return <textarea value={element.content} readOnly={!isEditable}
+                                 onChange={(e) => handleContentChange(e.target.value)}/>;
             case StoryElementType.Image:
-                return <img src={storyElement.content} alt="Story element" width="250"  />;
+                return <img src={element.content} alt="Story element" width="250"/>;
             case StoryElementType.Drawing:
-                const actions = JSON.parse(storyElement.content)
-                return <DrawingComponent initialActions={actions}/>;
+                const actions = JSON.parse(element.content)
+                return <DrawingComponent initialActions={actions} isEditable={isEditable}
+                                         onActionsChange={(newActions) => handleContentChange(JSON.stringify(newActions))}/>;
             case StoryElementType.Audio:
-                return <audio controls src={storyElement.content} />;
+                return <audio controls src={element.content}/>;
             default:
                 return null;
         }
@@ -24,9 +37,9 @@ const StoryElementComponent = ({ storyElement, isEditable, onContentChange , onD
 
     return (
         <div className="story-element">
-            {renderContent()} 
-            {onDeleteStoryElement && isEditable && 
-            <button onClick={()=>onDeleteStoryElement(storyElement.index)}>delete</button>}
+            {renderContent()}
+            {isEditable && onElementDelete &&
+                <button onClick={() => onElementDelete()}>delete</button>}
         </div>
     );
 };

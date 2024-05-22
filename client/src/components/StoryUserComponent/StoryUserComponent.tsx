@@ -4,14 +4,17 @@ import {useContext} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 
 
-function StoryUserComponent({elements, isEditable, onElementContentChange, onDeleteStoryElement, hidden = false}: {
+function StoryUserComponent({elements, isEditable, isHidden = false, onElementChange, onElementDelete}: {
     elements: StoryElement[],
-    isEditable: boolean,
-    onElementContentChange?: (index: number, content: string) => void,
-    onDeleteStoryElement?:(index:number)=>void,
-    hidden?: boolean
+    isEditable : boolean,
+    onElementChange?: (index: number, newElement: StoryElement) => void,
+    onElementDelete?: (index: number) => void,
+    isHidden?: boolean
 }) {
     const lobby = useContext(LobbyContext);
+
+
+
     const getUserNameFromId = (userId: string) : string => {
         const nickname = lobby?.users.find(user => user.id === userId)?.nickname;
         if(nickname)
@@ -20,16 +23,17 @@ function StoryUserComponent({elements, isEditable, onElementContentChange, onDel
     };
     return (
         <>
-            { !hidden &&
+            { !isHidden &&
                 <div className="story-element">
                     {!isEditable && elements.length > 0 &&
                         <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
                     }
                     {elements.map((element, index) => (
-                        <StoryElementComponent key={index} storyElement={element}
-                                               onContentChange={(content) => onElementContentChange && onElementContentChange(index, content)}
+                        <StoryElementComponent key={index}
+                                               element={element}
                                                isEditable={isEditable}
-                                               onDeleteStoryElement={onDeleteStoryElement}/>
+                                               onElementChange={onElementChange ? (newElement) => onElementChange(index, newElement) : undefined}
+                                               onElementDelete={onElementDelete ? () => onElementDelete(index) : undefined}/>
                     ))}
                 </div>
             }

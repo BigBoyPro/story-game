@@ -1,6 +1,6 @@
-import React, {useContext, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import "./StoryComponent.css"
-import {Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
+import {AudioName, Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
@@ -18,52 +18,63 @@ const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = 
 
 function StoryComponent({
                             story,
-                            storyElementsState,
-                            userIndexToShow
+                            initialNewStoryElements = [],
+                            isEditable,
+                            onNewStoryElementsChange,
+                            onSave,
+                            onCancel,
+                            shownUserIndex
                         }: {
     story: Story,
-    storyElementsState?: [
-        StoryElement[],
-        (newStoryElements: StoryElement[]) => void,
-        () => void,
-        () => void,
-    ],
-    userIndexToShow?: number,
+    initialNewStoryElements?: StoryElement[],
+    isEditable: boolean,
+    onNewStoryElementsChange?: (newNewStoryElements: StoryElement[]) => void,
+    onSave?: () => void,
+    onCancel?: () => void,
+    shownUserIndex?: number,
 }) {
     const lobby = useContext(LobbyContext);
-    const [storyElements, setStoryElements, onSave, onCancel] = storyElementsState ??
-    (() => {
-        const state = useState<StoryElement[]>([]);
-        return [
-            state[0], state[1],
-            () => {
-            },
-            () => {
-            }
-        ];
-    })();
+    const [storyElements, setStoryElements] = useState<StoryElement[]>(initialNewStoryElements);
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
-
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
-    const [drawingActions, setDrawingActions] = useState<DrawingAction[]>([]);
 
-    const inputRef = React.createRef<HTMLInputElement>();
-    const audioNameRef = React.createRef<HTMLSelectElement>();
+    const drawingActionsRef = useRef<DrawingAction[]>([])
+    const typeRef = useRef<StoryElementType>();
+    const audioRef = useRef<AudioName>();
+
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    onNewStoryElementsChange && useEffect(() => {
+        onNewStoryElementsChange(storyElements);
+    }, [storyElements]);
 
 
-    const handleAddElement = () => {
-        if (lobby && type) {
-            if (type == StoryElementType.Image) {
+    const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
+        drawingActionsRef.current = newActions;
+    };
+
+    const handleTypeChange = (newType: StoryElementType) => {
+        typeRef.current = newType;
+    };
+
+    const handleAudioChange = (newAudio: AudioName) => {
+        audioRef.current = newAudio;
+    };
+
+    const handleElementAdd = () => {
+        if (lobby) {
+            if (typeRef.current == StoryElementType.Image) {
                 inputRef.current?.click();
-            } else if (type == StoryElementType.Audio) {
-                addAudioElement();
-            } else if (type == StoryElementType.Drawing) {
-                setDrawingActions([]);
+            } else if (typeRef.current == StoryElementType.Audio) {
+                if (!audioRef.current) return;
+                const audioURL = `/audio/${audioRef.current}.mp3`;
+                addNewElement(StoryElementType.Audio, audioURL)
+            } else if (typeRef.current == StoryElementType.Drawing) {
+                drawingActionsRef.current = [];
                 setIsDrawing(true);
-            } else if (type == StoryElementType.Text) {
+            } else if (typeRef.current == StoryElementType.Text) {
                 // add new element to the story
                 addNewElement(StoryElementType.Text, "")
             }
@@ -79,32 +90,29 @@ function StoryComponent({
             type,
             content
         }]);
-    }
+    };
 
-    const addImageElement = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const addImageElement = async (file: File) => {
+        if (!lobby || !file) return;
+        const fileURL = await uploadImage(file);
+        if (!fileURL) return;
+        addNewElement(StoryElementType.Image, fileURL)
+    };
+
+    const AddDrawingElement = () => {
         if (!lobby) return;
-        const file = event.target.files ? event.target.files[0] : null;
-        if (file) {
-
-            const fileURL = await uploadImage(file);
-            if (!fileURL) return;
-            addNewElement(StoryElementType.Image, fileURL)
-        }
+        setIsDrawing(false);
+        addNewElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+        drawingActionsRef.current = [];
     };
 
-    const addAudioElement = () => {
-        if (!lobby || !audioNameRef.current) return;
-        const audioURL = `/audio/${audioNameRef.current.value}.mp3`;
-        addNewElement(StoryElementType.Audio, audioURL)
-    };
-
-    const handleElementContentChange = (index: number, content: string) => {
+    const handleElementChange = (index: number, content: StoryElement) => {
         const updatedStoryElements = [...storyElements];
-        updatedStoryElements[index].content = content;
+        updatedStoryElements[index] = content;
         setStoryElements(updatedStoryElements);
     };
 
-    const handleDeleteStoryElement = (index: number): void => {
+    const handleElementDelete = (index: number): void => {
         const updatedStoryElements = [...storyElements];
         updatedStoryElements.splice(index, 1);
         for (let i = index; i < updatedStoryElements.length; i++) {
@@ -113,75 +121,74 @@ function StoryComponent({
         setStoryElements(updatedStoryElements);
     };
 
-    const handleSaveDrawing = () => {
-        if (!lobby) return;
-        setIsDrawing(false);
-        setStoryElements([...storyElements, {
-            index: storyElements.length,
-            userId: userId,
-            storyId: story.id,
-            round: lobby.round,
-            type,
-            content: JSON.stringify(drawingActions)
-        }]);
-        setDrawingActions([]);
-    };
-
     const handleFinish = () => {
         setHasSubmitted(true);
-        onSave();
+        if (onSave) onSave();
     };
 
     const handleCancel = () => {
         setHasSubmitted(false);
-        onCancel();
+        if (onCancel) onCancel();
     };
 
 
     return (
-        <div className="story-page" >
-            {!isDrawing ?
+        <div className="story-page">
+            {!isEditable || hasSubmitted || !isDrawing ?
                 <>
-                    {getStoryElementsForEachUser(story.elements, !storyElementsState).map((elements, index) =>
+                    {getStoryElementsForEachUser(story.elements, !isEditable).map((elements, index) =>
                         <StoryUserComponent key={index} elements={elements} isEditable={false}
-                                            hidden={userIndexToShow !== undefined ? (index > userIndexToShow) : false}/>
+                                            isHidden={shownUserIndex !== undefined ? (index > shownUserIndex) : false}/>
                     )}
                     {/* new element for the current user*/}
-                    {storyElementsState &&
+                    {isEditable &&
                         <>
                             <StoryUserComponent elements={storyElements}
                                                 isEditable={!hasSubmitted}
-                                                onElementContentChange={handleElementContentChange}
-                                                onDeleteStoryElement={handleDeleteStoryElement}
+                                                onElementChange={handleElementChange}
+                                                onElementDelete={handleElementDelete}
                             />
 
-                            <div className="side-button-container">
-                                <button onClick={handleAddElement}>+</button>
-                                <input onChange={addImageElement} type="file" ref={inputRef}
-                                       accept="image/*"
-                                       hidden={true}/>
-                                {type === StoryElementType.Audio &&
-                                    <select ref={audioNameRef}>
-                                        <option value="">please select a background music</option>
-                                        <option value="romantic">romantic</option>
-                                        <option value="Scary2">Scary</option>
-                                        <option value="Sad">Sad</option>
-                                        <option value="suspense">suspense</option>
-                                    </select>
-                                }
-                                <select value={type}
-                                        onChange={(event) => setType(event.target.value as StoryElementType)}>
-                                    {Object.values(StoryElementType).map((value) => (
-                                        value !== StoryElementType.Empty &&
-                                        <option key={value}
-                                                value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
-                                    ))}
-                                </select>
-
-                            </div>
                             {!hasSubmitted ?
-                                <button disabled={storyElements.length === 0}
-                                        onClick={() => handleFinish()}>Finish</button>
+                                <>
+                                    <div className="side-button-container">
+                                        <button onClick={handleElementAdd}>+</button>
+                                        <input type="file" ref={inputRef} accept="image/*" hidden={true}
+                                               onChange={
+                                                   async event => {
+                                                       const file = event.target.files ? event.target.files[0] : undefined;
+                                                       if (file) await addImageElement(file)
+                                                   }
+                                               }/>
+
+                                        <select onChange={event => {
+                                            handleTypeChange(event.target.value as StoryElementType)
+                                        }}>
+                                            {Object.values(StoryElementType).map((value) => (
+                                                value !== StoryElementType.Empty &&
+                                                <option key={value}
+                                                        value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
+                                            ))}
+                                        </select>
+
+                                        {typeRef.current === StoryElementType.Audio &&
+                                            <select onChange={event => {
+                                                handleAudioChange(event.target.value as AudioName)
+                                            }}>
+                                                {Object.values(AudioName).map((value) => (
+                                                    <option key={value}
+                                                            value={value}>{value}</option>
+                                                ))}
+                                            </select>
+                                        }
+
+
+                                    </div>
+
+                                    <button disabled={storyElements.length === 0} onClick={handleFinish}>
+                                        Finish
+                                    </button>
+                                </>
                                 :
                                 <button onClick={() => handleCancel()}>Cancel</button>
                             }
@@ -190,7 +197,8 @@ function StoryComponent({
 
                 </>
                 :
-                <DrawingComponent actionsState={[drawingActions, setDrawingActions, handleSaveDrawing]}/>
+                <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
+                                  onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}/>
             }
         </div>
     )

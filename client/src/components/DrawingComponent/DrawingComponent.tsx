@@ -11,7 +11,7 @@ import "./DrawingComponent.css"
 const generator = rough.generator();
 
 type Coordinates = { x1: number, y1: number, x2: number, y2: number };
-type Points = { x: number, y: number }[];
+type Point = { x: number, y: number };
 
 type ShapeElement = {
     index: number;
@@ -34,7 +34,7 @@ type TextElement = {
 type PencilElement = {
     index: number;
     id: number;
-    points: Points;
+    points: Point[];
     type: "pencil" | "eraser";
     color: string;
     size: number;
@@ -47,7 +47,7 @@ type DrawingElement = {
     type: "rectangle" | "line" | "circle" | "text" | "pencil" | "eraser";
     color: string;
     coordinates?: Coordinates,
-    points?: Points,
+    points?: Point[],
     size?: number;
     text?: string;
 }
@@ -62,7 +62,7 @@ export type DrawingAction = {
     elementId?: number,
     element?: DrawingElement,
     coordinates?: Coordinates,
-    points?: Points
+    points?: Point[]
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -430,22 +430,14 @@ const drawActions = (actions: DrawingAction[]): Element[][] => {
 }
 
 
-function DrawingComponent({initialActions = [], actionsState}: {
+function DrawingComponent({initialActions = [], isEditable, onActionsChange, onSave}: {
     initialActions?: DrawingAction[],
-    actionsState?: [
-        DrawingAction[],
-        (newDrawingActions: DrawingAction[]) => void,
-        () => void
-    ]
+    isEditable: boolean,
+    onActionsChange?: (newActions: DrawingAction[]) => void,
+    onSave?: () => void
 }) {
 
-    const [actions, setActions, onSave] = actionsState ??
-    (() => {
-        const state = useState<DrawingAction[]>(initialActions);
-        return [state[0], state[1], () => {
-        }, () => {
-        }];
-    })()
+    const [actions, setActions] = useState<DrawingAction[]>(initialActions);
 
     const [elements, setElements, undo, redo] = useHistory(drawActions(initialActions));
 
@@ -457,14 +449,19 @@ function DrawingComponent({initialActions = [], actionsState}: {
 
     const [selectedElement, setSelectedElement] = useState<any>(null);
 
-    const textAreaRef = useRef<any>();
 
     const [pencilSize, setPencilSize] = useState<number>(24);
 
     const [eraserSize, setEraserSize] = useState<number>(24);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const textAreaRef = useRef<any>();
     const nextIdRef = useRef(0);
+
+    isEditable && onActionsChange && useEffect(() => {
+        onActionsChange(actions);
+    }, [actions]);
+
 
     useLayoutEffect(() => {
         if (!elements) return;
@@ -541,7 +538,7 @@ function DrawingComponent({initialActions = [], actionsState}: {
     ]); // Empty dependency array means this effect runs once on mount and clean up on unmount
 
 
-    useEffect(() => {
+    isEditable && useEffect(() => {
         const undoRedoFunction = (event: KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key === "z") {
                 if (event.shiftKey) {
@@ -596,7 +593,7 @@ function DrawingComponent({initialActions = [], actionsState}: {
 //--------------------------------------------------------------------------------------------------------------------
 
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if(!actionsState) return;
+        if(!isEditable) return;
         const {clientX, clientY} = getMouseCoordinates(event);
         if (tool === "selection") {
             const clickedElement = getElementAtPosition(clientX, clientY, elements);
@@ -643,7 +640,7 @@ function DrawingComponent({initialActions = [], actionsState}: {
 //--------------------------------------------------------------------------------------------------------------------
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if(!actionsState) return;
+        if(!isEditable) return;
 
         const {clientX, clientY} = getMouseCoordinates(event);
         if (tool === "selection") {
@@ -737,7 +734,7 @@ function DrawingComponent({initialActions = [], actionsState}: {
 //----------------------------------------------------------------------------------------------------------------------
 
     const handleMouseUp = (event: MouseEvent) => {
-        if(!actionsState) return;
+        if(!isEditable) return;
 
         if (!canvasRef.current) return;
         const {clientX, clientY} = getMouseCoordinatesFromScreen(event, canvasRef.current);
@@ -932,7 +929,7 @@ function DrawingComponent({initialActions = [], actionsState}: {
 // ---------------------------------------------------------------------------------------------------------------------
     return (
         <div className={"drawing-page"}>
-            {actionsState &&
+            {isEditable &&
                 <div className={"tools-container"}>
                     <input type="radio"
                            id="selection"
@@ -1012,7 +1009,7 @@ function DrawingComponent({initialActions = [], actionsState}: {
                     Canvas
                 </canvas>
             </div>
-            {actionsState && <button onClick={onSave}>Save Drawing</button>}
+            {isEditable && <button onClick={onSave}>Save Drawing</button>}
         </div>
 
     );

@@ -1,4 +1,11 @@
 
+export enum AudioName {
+    Scary = "Scary",
+    Romantic = "Romantic",
+    Sad = "Sad",
+    Suspense = "Suspense"
+}
+
 export type User = {
     id: string;
     nickname: string;
