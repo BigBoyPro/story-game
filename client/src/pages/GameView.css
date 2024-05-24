@@ -1,38 +1,40 @@
 .game-page {
+    z-index: 1;
     flex: 1;
     display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
 }
 
 .game-box {
+    position: relative;
+    top: -40px;
     z-index: 1;
+    padding: 5rem;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    margin: 2rem;
-    padding: 2rem 3rem;
-    background-color: transparent;
-    box-shadow: #282c3455 0 0 1rem 0.1rem;
+    align-items: center;
+    background-color: rgba(31, 79, 140, 0.6);
+    width: auto;
+    height: auto;
     border-radius: 0.8rem;
 }
-
 .side-bar {
     z-index: 1;
     display: flex;
     flex-direction: column;
     padding: 1rem;
     gap: 1rem;
-    background-color: #282c34;
-    width: 20rem;
-    box-shadow: #282c3455 0 0 1rem 0.1rem;
+    background-color: transparent;
+    width: max-content;
+    /*box-shadow: #282c3455 0 0 1rem 0.1rem;*/
+    position: absolute;
+    top: 0;
+    right: 0;
 }
-.user-box{
-    z-index: 1;
-    background-color: white;
-    padding: 1rem;
-    font-weight: bold;
-    border-radius: 0.8rem;
-}
-
 
 .video-background {
     position: fixed;
@@ -46,11 +48,57 @@
     z-index: 0;
 }
 .video-background-container {
-    z-index: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
     width: 100vw;
     height: 100vh;
+}
+
+.user-box{
+    z-index: 1;
+    background-color: white;
+    padding: 1rem;
+    font-weight: bold;
+    border-radius: 0.8rem;
+    width: 10rem;
+}
+.crown-icon-small {
+    display: inline-block;
+    width: 2vw;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 0.5vw;
+}
+
+.user-name {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10.8%;
+    height: 10%;
+    font-weight: bold;
+    font-color: white;
+    background-color: rgba(19, 99, 129, 0.84);
+}
+.current-user-bar{
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    background-color: transparent;
+    width: max-content;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.current-user{
+    z-index: 1;
+    background-color: #fdfdfd;
+    padding: 1rem;
+    font-weight: bold;
+    border-radius: 0.8rem;
+    width: 10rem;
 }

@@ -157,10 +157,11 @@ position: relative;
 }
 
 .crown-icon-small {
+    display: inline-block;
     width: 2vw;
     height: auto;
     vertical-align: middle;
-    margin-right: 2vw;
+    margin-right: 0.5vw;
 }
 
 

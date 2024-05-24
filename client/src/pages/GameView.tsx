@@ -3,7 +3,9 @@ import {NavigateFunction, useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
+import CrownIcon from '../pages/assets/theCrown.png';
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
+import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 import {
     onStory,
     onGetStoryElements,
@@ -12,7 +14,7 @@ import {
     userId,
     offGetStoryElements
 } from "../utils/socketService.ts";
-import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
+
 
 const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
     if (lobby && lobby.users.find(user => user.id === userId)) {
@@ -30,6 +32,7 @@ const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
 function GameView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    const user = lobby?.users.find(user => user.id === userId);
     const [story, setStory] = useState<Story | null>(null);
     // const [remainingTime, setRemainingTime] = useState<number | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
@@ -90,24 +93,34 @@ function GameView() {
       <div className="game-page" >
           <div className={"video-background-container"}>
 
+
               <video autoPlay loop muted className={"video-background"}>
                   <source src="../GameVideo.mp4" type="video/mp4" />
               </video>
 
+              <div className="current-user-bar">
+                  <h2>Current user</h2>
+                  <div className={"current-user"}>
+                      {user?.nickname}
+                  </div>
+              </div>
+
               <div className="game-box">
-                  <h2>Write your own story!             Round : {lobby?.round}/{lobby?.users.length}</h2>
+                  <h2>Round : {lobby?.round}/{lobby?.users.length}</h2>
                   {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                   {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
                   { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
               </div>
+
               <div className="side-bar">
+                  <h2>Players</h2>
                   {lobby?.users && lobby.users.map(user =>
                       <div key={user.id} className="user-box">
+                          {(lobby?.hostUserId === user.id) && <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small" />}
                           {user.nickname}
                       </div>
                   )}
               </div>
-
           </div>
       </div>
   );
