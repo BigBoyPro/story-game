@@ -6,6 +6,8 @@ const StoryElementComponent = ({ storyElement, setContent , isEditable, onDelete
         switch (storyElement.type) {
             case StoryElementType.Empty:
                 return <div/>;
+            case StoryElementType.Place: 
+                return <div/>                 
             case StoryElementType.Text:
                 return <textarea value={storyElement.content} readOnly={!isEditable}
                 onChange={(e) => setContent && setContent(e.target.value)}/>;
@@ -15,7 +17,7 @@ const StoryElementComponent = ({ storyElement, setContent , isEditable, onDelete
                 const actions = JSON.parse(storyElement.content)
                 return <DrawingComponent initialActions={actions}/>;
             case StoryElementType.Audio:
-                return <audio controls src={storyElement.content} />;
+                return <audio controls src={storyElement.content} autoPlay loop />;
             default:
                 return null;
         }

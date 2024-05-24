@@ -11,6 +11,9 @@ import forestImg from '../../assets/Places/forest.png';
 import beachImg from '../../assets/Places/beach.png';
 import scaryAlleyImg from '../../assets/Places/scary_alley.png';
 import streetImg from '../../assets/Places/street.png';
+import bedroomImg from '../../assets/Places/bedroom.png';
+import hauntedHouseImg from '../../assets/Places/haunted-house.png';
+import romanticImg from '../../assets/Places/romantic-outdoor.png';
 
 
 const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = true) => {
@@ -58,6 +61,7 @@ function StoryComponent({
     const audioNameRef = React.createRef<HTMLSelectElement>();
 
     const [placeImage, setPlaceImage] = useState(beachImg);
+    
 
 
     const addNewElement = (type: StoryElementType, content: string) => {
@@ -172,6 +176,15 @@ function StoryComponent({
             case 'street':
                 return streetImg;
                 break;
+            case 'bedroom':
+                return bedroomImg;
+                break;
+            case 'hauntedHouse':
+                return hauntedHouseImg;
+                break; 
+            case 'romantic':
+                return romanticImg;
+                break;       
             default:
                 return beachImg;
         }
@@ -179,7 +192,10 @@ function StoryComponent({
 
     return (
         
-        <div className="story-page" style={{ backgroundImage: `url(${placeImage})` }}>
+        <div className="story-page" style={{ backgroundImage: `url(${placeImage})`,
+        backgroundSize: 'cover', 
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat' }}>
             {!isDrawing ?
                 <>
                 <div >
@@ -189,6 +205,10 @@ function StoryComponent({
                        <option value="forest">Forest</option>
                        <option value="scary_alley">Scary Alley</option>
                        <option value="street">Street</option>
+                       <option value="bedroom">Bedroom</option>
+                       <option value="hauntedHouse">Haunted House</option>
+                       <option value="romantic">Romantic outdoor setting</option>
+
                 </select>}
                 {/* Rest of your component */}
                 </div>
@@ -211,7 +231,7 @@ function StoryComponent({
                                        accept="image/*"
                                        hidden={true}/>
                                 {type === StoryElementType.Audio &&
-                                    <select ref={audioNameRef}>
+                                    <select ref={audioNameRef} >
                                         <option value="">please select a background music</option>
                                         <option value="romantic">romantic</option>
                                         <option value="Scary2">Scary</option>
@@ -222,7 +242,7 @@ function StoryComponent({
                                 <select value={type}
                                         onChange={(event) => setType(event.target.value as StoryElementType)}>
                                     {Object.values(StoryElementType).map((value) => (
-                                        value !== StoryElementType.Empty &&
+                                        value !== StoryElementType.Empty && value !== StoryElementType.Place &&
                                         <option key={value}
                                                 value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
                                     ))}
