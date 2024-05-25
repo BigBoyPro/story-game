@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {Lobby, LobbySettings, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
 const socket = io('http://localhost:1234');
@@ -75,6 +75,16 @@ export const onGetStoryElements = (callback: () => void) => {
 
 export const offGetStoryElements = () => {
     socket.off('get story elements');
+}
+
+export const onLobbySettings = (callback: (lobbySettings: LobbySettings) => void) => {
+    socket.on('lobby settings', (lobbySettings) => {
+        callback(lobbySettings);
+    });
+}
+
+export const offLobbySettings = () => {
+    socket.off('lobby settings');
 }
 
 export const onUsersSubmitted = (callback: (usersSubmitted: number) => void) => {
@@ -156,3 +166,6 @@ export const unsubmitStoryElements = (lobbyCode: string) => {
     socket.emit('unsubmit story elements', userId, lobbyCode);
 }
 
+export const submitLobbySettings = (lobbyCode: string, lobbySettings: LobbySettings) => {
+    socket.emit('submit lobby settings', userId, lobbyCode, lobbySettings);
+}

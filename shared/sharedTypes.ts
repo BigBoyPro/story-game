@@ -6,6 +6,18 @@ export type User = {
     ready: boolean;
 };
 
+export enum TimerSetting {
+    DYNAMIC, NORMAL
+}
+
+export type LobbySettings = {
+    nbOfPlayers: number;
+    seePrevStory: boolean; // display mod
+    nbOfElements: (number | null); // number of input
+    dynamicTimer: TimerSetting; // dynamic or not
+    roundTime: number; // config of the timer
+}
+
 export type Lobby = {
     code: string;
     hostUserId: string;
@@ -16,6 +28,8 @@ export type Lobby = {
     roundEndAt: (Date | null);
     currentStoryIndex: (number | null);
     currentUserIndex: (number | null);
+    // Lobby parameters
+    lobbySettings: LobbySettings;
 };
 
 export type Story = {
@@ -92,6 +106,7 @@ export enum ErrorType {
     DB_ERROR_UPDATE_LOBBY_HOST = "DB_ERROR_UPDATE_LOBBY_HOST",
     DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED = "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED",
     DB_ERROR_UPDATE_LOBBY_ROUND = "DB_ERROR_UPDATE_LOBBY_ROUND",
+    DB_ERROR_UPDATE_LOBBY_SETTINGS = "DB_ERROR_UPDATE_LOBBY_SETTINGS",
 
     DB_ERROR_DELETE_LOBBY = "DB_ERROR_DELETE_LOBBY",
     DB_ERROR_DELETE_STORIES = "DB_ERROR_DELETE_STORIES",

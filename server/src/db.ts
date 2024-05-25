@@ -1,5 +1,5 @@
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, Story, StoryElement, User} from "../../shared/sharedTypes";
+import {ErrorType, Lobby, LobbySettings, LogLevel, OpResult, Story, StoryElement, User} from "../../shared/sharedTypes";
 
 
 export const dbTransaction = async <T>(pool: Pool, callback: (client: PoolClient) => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -229,7 +229,14 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
             roundEndAt: data[0].round_end_at ? new Date(data[0].round_end_at) : null,
             users: usersRes.data,
             currentStoryIndex: data[0].current_story_index,
-            currentUserIndex: data[0].current_user_index
+            currentUserIndex: data[0].current_user_index,
+            lobbySettings: {
+                nbOfPlayers: data[0].nb_Of_Players,
+                seePrevStory: data[0].see_prev_story,
+                nbOfElements: data[0].nb_of_Elements,
+                dynamicTimer: data[0].dynamic_timer,
+                roundTime: data[0].round_time
+            }
         };
         return {success: true, data: lobby};
     } catch (error) {
@@ -299,7 +306,14 @@ export const dbSelectLobbiesActive = async (db: (Pool | PoolClient)): Promise<Op
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: users,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: {
+                    nbOfPlayers: data[0].nb_Of_Players,
+                    seePrevStory: data[0].see_prev_story,
+                    nbOfElements: data[0].nb_of_Elements,
+                    dynamicTimer: data[0].dynamic_timer,
+                    roundTime: data[0].round_time
+                }
             });
         }
         return {success: true, data: lobbies};
@@ -516,7 +530,8 @@ export const dbSelectLobbies = async (db: (Pool | PoolClient), lobbyCodes: strin
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: usersRes.data,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: lobby.lobbySettings
             });
         }
         return {success: true, data: lobbies};
@@ -846,6 +861,24 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
     }
 }
 
+export const dbUpdateLobbySettings = async (db: (Pool | PoolClient), lobbyCode: string, lobbySettings: LobbySettings): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET lobbySettings = $1,
+                        WHERE code = $2, [lobbySettings, lobbyCode]`);
+        return {success: true}
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_SETTINGS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
 
 export const dbDeleteUsers = async (db: (Pool | PoolClient), userIds: string[]): Promise<OpResult<null>> => {
     try {
@@ -921,3 +954,4 @@ export const dbDeleteAllStories = async (db: (Pool | PoolClient), lobbyCode: str
         }
     }
 };
+

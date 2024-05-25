@@ -2,13 +2,14 @@
 
 import {Server, Socket as BaseSocket} from 'socket.io';
 import {Pool} from 'pg';
-import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes";
+import {Lobby, LobbySettings, OpError, Story, StoryElement} from "../../../shared/sharedTypes";
 
 
 import {onCreateLobby, onGetLobby, onJoinLobby, onLeaveLobby} from "./lobbyHandlers";
 import {onEndGame, onGetStory, onNextPart, onStartGame, onSubmitStoryElements} from "./gameHandlers";
 import {onGetStoryAtPart} from "./gameHandlers";
 import {onUnsubmitStoryElements} from "./gameHandlers/onUnsubmitStoryElements";
+import {onSubmitLobbySettings} from "./lobbyHandlers/onSubmitLobbySettings";
 
 interface Socket extends BaseSocket {
     userId?: string;
@@ -43,6 +44,10 @@ export const broadcastUsersSubmitted = (io : Server, lobbyCode: string, usersSub
 
 export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) => {
     broadcast(io, lobbyCode, "lobby info", lobby);
+}
+
+export const broadcastLobbySettings = (io: Server, lobbyCode: string, lobbySettings: LobbySettings) => {
+    broadcast(io, lobbyCode, "lobby settings", lobbySettings);
 }
 
 export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: string, lobby: Lobby) => {
@@ -104,6 +109,9 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
             await onLeaveLobby(io, pool, userId, lobbyCode);
         });
 
+        socket.on("submit lobby settings", async (userId: string, lobbyCode: string, lobbySettings: LobbySettings)=> {
+            await onSubmitLobbySettings(io, pool, userId, lobbyCode, lobbySettings);
+        });
 
         socket.on("start game", async (userId: string, lobbyCode: string) => {
             await onStartGame(io, pool, userId, lobbyCode);

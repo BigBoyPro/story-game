@@ -1,14 +1,19 @@
 import {LobbyContext} from "../LobbyContext.tsx";
-import {useContext, useEffect} from "react";
-import {requestLeaveLobby, requestStartGame, userId} from "../utils/socketService.ts";
+import {useContext, useEffect, useState} from "react";
+import {onLobbySettings, requestLeaveLobby, requestStartGame, userId} from "../utils/socketService.ts";
 import {useNavigate} from "react-router-dom";
 import {Page, redirection} from "../App.tsx";
-
-
 
 function LobbyView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    // Lobby Settings
+    const [nbOfPlayers, setNbOfPlayers] = useState(lobby?.lobbySettings.nbOfPlayers);
+    const [seePrevStory,setSeePrevStory] =  useState(lobby?.lobbySettings.seePrevStory);
+    const [nbOfElements, setNbOfElements] = useState(lobby?.lobbySettings.nbOfElements);
+    const [dynamicTimer, setDynamicTimer] = useState(lobby?.lobbySettings.dynamicTimer)
+    const [roundTime, setRoundTimer] = useState(lobby?.lobbySettings.roundTime);
+
     useEffect(() => {
         redirection(lobby, navigate, Page.Lobby);
     }, [navigate, lobby]);
@@ -25,6 +30,17 @@ function LobbyView() {
         console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
     };
+
+    useEffect(() => {
+        onLobbySettings(lobbySettings => {
+            setNbOfPlayers(lobbySettings.nbOfPlayers)
+            setSeePrevStory(lobbySettings.seePrevStory)
+            setNbOfElements(lobbySettings.nbOfElements)
+            setDynamicTimer(lobbySettings.dynamicTimer)
+            setRoundTimer(lobbySettings.roundTime)
+        })
+    }, []);
+
 
     // Always block navigation
     return (
@@ -43,9 +59,24 @@ function LobbyView() {
                             key={user.id}>{(lobby?.hostUserId === user.id) && "Crown: "}{user.nickname}</li>)}
                     </ul>
                     <h2>Settings:</h2>
-                    {/*<p>Max Players: {lobby?.maxPlayers}</p>*/}
-                    {/*<p>Round Time: {lobby?.roundTime}</p>*/}
-                    {/*<p>Winning Score: {lobby?.winningScore}</p>*/}
+                    <label id="nbOfPlayers">Max number of Players in the Party</label>
+                    <input type="number" id="nbOfPlayers"/>
+
+                    <label id="seePrevStory">See All The previous Content of The Story</label>
+                    <input type="checkbox" id="myCheckbox"/>
+
+                    <label id="nbOfElements">Max number of Elements added per Round</label>
+                    <input type="number" id="nbOfElements"/>
+
+                    <label id="dynamicTimer">Timer Settings</label>
+                    <select id="selectDynamicTimer" multiple>
+                        <option value="dynamic">Dynamic</option>
+                        <option value="normal">Normal</option>
+                    </select>
+
+                    <label htmlFor="incrementNumber">Select Timer:</label>
+                    <input type="number" id="roundTimer" step="1" value="5"/>
+
                     <button onClick={handleStartGame}
                             disabled={lobby?.hostUserId !== userId}>Start Game
                     </button>
