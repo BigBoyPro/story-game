@@ -58,7 +58,7 @@ type Point = { x: number, y: number };
 type DrawingElement = {
     index: number;
     id: number;
-    type: "rectangle" | "line" | "circle" | "text" | "pencil" | "eraser";
+    type: ElementType;
     color: string;
     coordinates?: Coordinates,
     points?: Point[],
@@ -80,83 +80,118 @@ export type DrawingAction = {
     points?: Point[]
 }
 
+
+enum ElementType {
+    Rectangle,
+    Line,
+    Circle,
+    Text,
+    Pencil,
+    Eraser
+}
+
+enum AltTool {
+    Selection,
+    ColorPicker
+}
+
+type Tool = ElementType | AltTool;
+
+enum State {
+    None,
+    Drawing,
+    Writing,
+    Moving,
+    Resizing
+}
+
+enum Position {
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+    Inside,
+    Start,
+    End,
+    Arc
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 
-
 //----------------------------------------------------------------------------------------------------------------------
 
-const nearPoint = (x: number, y: number, x1: number, y1: number, name: string) => {
-    return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : "";
+const nearPoint = (x: number, y: number, x1: number, y1: number, position: Position): Position | null => {
+    return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? position : null;
 };
 
-const onLine = (x1: number, y1: number, x2: number, y2: number, x: number, y: number, maxDistance = 1) => {
+const onLine = (x1: number, y1: number, x2: number, y2: number, x: number, y: number, maxDistance = 1): Position | null => {
     const a = {x: x1, y: y1};
     const b = {x: x2, y: y2};
     const c = {x, y};
     const offset = distance(a, b) - (distance(a, c) + distance(b, c));
-    return Math.abs(offset) < maxDistance ? "inside" : null;
+    return Math.abs(offset) < maxDistance ? Position.Inside : null;
 };
 
-const positionWithinElement = (x: number, y: number, element: DrawingElement) => {
+const positionWithinElement = (x: number, y: number, element: DrawingElement): Position | null => {
     let x1, y1, x2, y2;
 
     switch (element.type) {
-        case "line":
-            if (!element.coordinates) return;
+        case ElementType.Line:
+            if (!element.coordinates) return null;
             ({x1, y1, x2, y2} = element.coordinates);
             const on = onLine(x1, y1, x2, y2, x, y);
-            const start = nearPoint(x, y, x1, y1, "start");
-            const end = nearPoint(x, y, x2, y2, "end");
+            const start = nearPoint(x, y, x1, y1, Position.Start);
+            const end = nearPoint(x, y, x2, y2, Position.End);
             return start || end || on;
-        case "rectangle":
-            if (!element.coordinates) return;
+        case ElementType.Rectangle:
+            if (!element.coordinates) return null;
             ({x1, y1, x2, y2} = element.coordinates);
-            const topLeft = nearPoint(x, y, x1, y1, "tl");
-            const topRight = nearPoint(x, y, x2, y1, "tr");
-            const bottomLeft = nearPoint(x, y, x1, y2, "bl");
-            const bottomRight = nearPoint(x, y, x2, y2, "br");
-            const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
+            const topLeft = nearPoint(x, y, x1, y1, Position.TopLeft);
+            const topRight = nearPoint(x, y, x2, y1, Position.TopRight);
+            const bottomLeft = nearPoint(x, y, x1, y2, Position.BottomLeft);
+            const bottomRight = nearPoint(x, y, x2, y2, Position.BottomRight);
+            const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? Position.Inside : null;
             return topLeft || topRight || bottomLeft || bottomRight || inside;
-        case "circle":
-            if (!element.coordinates) return;
+        case ElementType.Circle:
+            if (!element.coordinates) return null;
             const {x1: centerX, y1: centerY} = element.coordinates;
             const radius = Math.sqrt(Math.pow(element.coordinates.x2 - element.coordinates.x1, 2) + Math.pow(element.coordinates.y2 - element.coordinates.y1, 2));
             const distanceToCenter = Math.sqrt(Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2));
 
             if (distanceToCenter <= radius) {
-                return "inside";
+                return Position.Inside;
             } else if (distanceToCenter <= radius + 5) {
                 const angle = Math.atan2(y - centerY, x - centerX);
                 const degrees = angle * (180 / Math.PI);
 
                 if (degrees >= -45 && degrees < 45) {
-                    return "tr";
+                    return Position.TopRight;
                 } else if (degrees >= 45 && degrees < 135) {
-                    return "tl";
+                    return Position.TopLeft;
                 } else if (degrees >= -135 && degrees < -45) {
-                    return "bl";
+                    return Position.BottomLeft;
                 } else {
-                    return "br";
+                    return Position.BottomRight;
                 }
             } else {
                 return null;
             }
-        case "pencil":
-        case "eraser":
-            if (!element.points) return;
+        case ElementType.Pencil:
+        case ElementType.Eraser:
+            if (!element.points) return null;
             const betweenAnyPoint = element.points.some((point, index) => {
                 if (!element.points) return;
                 const nextPoint = element.points[index + 1];
                 if (!nextPoint) return false;
                 return onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 5) != null;
             });
-            return betweenAnyPoint ? "inside" : null;
-        case "text":
-            if (!element.coordinates) return;
+            return betweenAnyPoint ? Position.Inside : null;
+        case ElementType.Text:
+            if (!element.coordinates) return null;
             ({x1, y1, x2, y2} = element.coordinates);
-            return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
+            return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? Position.Inside : null;
         default:
-            throw new Error(`Type not recognised:`);
+            return null
     }
 };
 
@@ -167,16 +202,12 @@ const distance = (a: { x: number, y: number }, b: {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-const getElementAtPosition = (x: number, y: number, elements: DrawingElement[]) => {
+const getElementAtPosition = (x: number, y: number, elements: DrawingElement[]):
+    { element: DrawingElement, position: Position | null } | undefined => {
     return elements
         .map(element => ({element, position: positionWithinElement(x, y, element)}))
         .find(({position}) => position !== null);
 };
-
-
-const isShapeElement = (element: DrawingElement) => (element.type === "rectangle" || element.type === "line" || element.type === "circle") && element;
-
-const isPencilElement = (element: DrawingElement) => (element.type === "pencil" || element.type === "eraser") && element;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -185,7 +216,7 @@ const adjustShapeElementCoordinates = (element: DrawingElement): Coordinates => 
     if (!coordinates) return {x1: 0, y1: 0, x2: 0, y2: 0};
     const {x1, y1, x2, y2} = coordinates;
 
-    if (type === "rectangle") {
+    if (type === ElementType.Rectangle) {
         const minX = Math.min(x1, x2);
         const maxX = Math.max(x1, x2);
         const minY = Math.min(y1, y2);
@@ -200,35 +231,35 @@ const adjustShapeElementCoordinates = (element: DrawingElement): Coordinates => 
     }
 };
 
-const cursorForPosition = (position: string) => {
+const cursorForPosition = (position: Position) => {
     switch (position) {
-        case "tl":
-        case "br":
-        case "start":
-        case "end":
-        case "arc":
+        case Position.TopLeft:
+        case Position.BottomRight:
+        case Position.Start:
+        case Position.End:
+        case Position.Arc:
             return "nwse-resize";
-        case "tr":
-        case "bl":
+        case Position.TopRight:
+        case Position.BottomLeft:
             return "nesw-resize";
         default:
             return "move";
     }
 };
 
-const resizedCoordinates = (clientX: number, clientY: number, position: string, coordinates: Coordinates) => {
+const resizedCoordinates = (clientX: number, clientY: number, position: Position, coordinates: Coordinates) => {
     const {x1, y1, x2, y2} = coordinates;
     switch (position) {
-        case "tl":
-        case "start":
-        case "arc":
+        case Position.TopLeft:
+        case Position.Start:
+        case Position.Arc:
             return {x1: clientX, y1: clientY, x2, y2};
-        case "tr":
+        case Position.TopRight:
             return {x1, y1: clientY, x2: clientX, y2};
-        case "bl":
+        case Position.BottomLeft:
             return {x1: clientX, y1, x2, y2: clientY};
-        case "br":
-        case "end":
+        case Position.BottomRight:
+        case Position.End:
             return {x1, y1, x2: clientX, y2: clientY};
         default:
             return null;
@@ -271,7 +302,7 @@ const handleUndoAction = (elements: DrawingElement[], actions: DrawingAction[]) 
         case ActionType.UPDATE:
             const oldElement = elements.find(element => element.id === actionToUndo.elementId);
             if (!oldElement) return elements;
-            if (actionToUndo.points && (oldElement.type === "pencil" || oldElement.type === "eraser")) {
+            if (actionToUndo.points && (oldElement.type === ElementType.Pencil || oldElement.type === ElementType.Eraser)) {
                 actionToUndo.points.forEach((point, index) => {
                     if (!oldElement.points || !oldElement.points[index]) return;
                     oldElement.points[index].x -= point.x;
@@ -279,7 +310,8 @@ const handleUndoAction = (elements: DrawingElement[], actions: DrawingAction[]) 
                 })
                 newElements = elements.map((el) => el.id === oldElement.id ? oldElement : el);
 
-            } else if (actionToUndo.coordinates && oldElement.coordinates && (oldElement.type === "rectangle" || oldElement.type === "line" || oldElement.type === "circle")) {
+            } else if (actionToUndo.coordinates && oldElement.coordinates &&
+                (oldElement.type === ElementType.Rectangle || oldElement.type === ElementType.Line || oldElement.type === ElementType.Circle)) {
                 const c = actionToUndo.coordinates;
                 const updatedElement = updateShapeElement(
                     oldElement,
@@ -326,7 +358,7 @@ const handleAction = (action: DrawingAction, elements: DrawingElement[], current
                         type: element.type,
                         color: element.color,
                         coordinates: element.coordinates,
-                        roughElement: element.type === "text" ? undefined : generateRoughElement(element),
+                        roughElement: element.type === ElementType.Text ? undefined : generateRoughElement(element),
                         text: element.text
                     };
                 }
@@ -338,7 +370,7 @@ const handleAction = (action: DrawingAction, elements: DrawingElement[], current
         case ActionType.UPDATE:
             const oldElement = elements.find(element => element.id === action.elementId);
             if (!oldElement) return elements;
-            if (action.points && (oldElement.type === "pencil" || oldElement.type === "eraser")) {
+            if (action.points && (oldElement.type === ElementType.Pencil || oldElement.type === ElementType.Eraser)) {
 
                 action.points.forEach((point, index) => {
                     if (!oldElement.points || !oldElement.points[index]) return;
@@ -347,7 +379,8 @@ const handleAction = (action: DrawingAction, elements: DrawingElement[], current
                 })
                 newElements = elements.map((el) => el.id === oldElement.id ? oldElement : el);
 
-            } else if (action.coordinates && oldElement.coordinates && (oldElement.type === "rectangle" || oldElement.type === "line" || oldElement.type === "circle")) {
+            } else if (action.coordinates && oldElement.coordinates &&
+                (oldElement.type === ElementType.Rectangle || oldElement.type === ElementType.Line || oldElement.type === ElementType.Circle)) {
                 const c = action.coordinates;
                 const updatedElement = updateShapeElement(
                     oldElement,
@@ -379,8 +412,7 @@ const useActions = (initialActions: DrawingAction[], onActionsChange: (newAction
     const [actions, setActions] = useState<DrawingAction[]>([]);
 
     const pushAction = (action: DrawingAction, overwrite = false) => {
-        let newElements;
-        newElements = handleAction(action, elements, actions);
+        const newElements = handleAction(action, elements, actions);
         console.log("Updated Elements", newElements)
         setElements(newElements);
         if (!overwrite) {
@@ -442,10 +474,10 @@ const useActions = (initialActions: DrawingAction[], onActionsChange: (newAction
 //     let element: DrawingElement;
 //
 //     switch (type) {
-//         case "pencil":
+//         case ElementType.Pencil:
 //             element = {index, id, type, points: [{x: x1, y: y1}], color, size: pencilSize ?? 24};
 //             break;
-//         case "eraser":
+//         case ElementType.Eraser:
 //             element = {
 //                 index,
 //                 id,
@@ -468,11 +500,11 @@ const useActions = (initialActions: DrawingAction[], onActionsChange: (newAction
 const generateRoughElement = (element: DrawingElement) => {
     if (!element.coordinates) return;
     const {type, color, coordinates: {x1, x2, y1, y2}} = element
-    if (type === "line") {
+    if (type === ElementType.Line) {
         return generator.line(x1, y1, x2, y2, {stroke: color});
-    } else if (type === "rectangle") {
+    } else if (type === ElementType.Rectangle) {
         return generator.rectangle(x1, y1, x2 - x1, y2 - y1, {stroke: color});
-    } else if (type === "circle") {
+    } else if (type === ElementType.Circle) {
         return generator.circle(x1, y1, Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), {stroke: color});
     }
 };
@@ -499,14 +531,14 @@ const updatePencilElement = (element: DrawingElement, points: Point[]): DrawingE
 
 const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D, element: DrawingElement) => {
     switch (element.type) {
-        case "line":
-        case "rectangle":
-        case "circle" :
+        case ElementType.Line:
+        case ElementType.Rectangle:
+        case ElementType.Circle :
             if (element.roughElement)
                 roughCanvas.draw(element.roughElement);
             break;
-        case "pencil":
-        case "eraser":
+        case ElementType.Pencil:
+        case ElementType.Eraser:
             if (!element.points) return;
             const stroke = getSvgPathFromStroke(getStroke(element.points, {
                 size: element.size
@@ -514,7 +546,7 @@ const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D
             context.fillStyle = element.color;
             context.fill(new Path2D(stroke));
             break;
-        case "text":
+        case ElementType.Text:
             context.textBaseline = "top";
             context.font = "24px sans-serif";
             context.fillStyle = element.color;
@@ -525,9 +557,6 @@ const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D
             throw new Error(`Type not recognised`);
     }
 };
-
-
-const adjustmentRequired = (type: string) => ['line', 'rectangle'].includes(type);
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -547,11 +576,16 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     const [color, setColor] = useState<string>('#000');
 
-    const [state, setState] = useState("none");
+    const [state, setState] = useState(State.None);
 
-    const [tool, setTool] = useState("pencil");
+    const [tool, setTool] = useState<Tool>(ElementType.Pencil);
 
-    const [selectedElement, setSelectedElement] = useState<any>(null);
+    const [selection, setSelection] = useState<{
+        element: DrawingElement,
+        offsetPoints?: Point[],
+        offsetPoint?: Point,
+        position?: Position
+    } | null>(null);
 
 
     const [pencilSize, setPencilSize] = useState<number>(24);
@@ -559,7 +593,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
     const [eraserSize, setEraserSize] = useState<number>(24);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const textAreaRef = useRef<HTMLTextAreaElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const nextIdRef = useRef(0);
 
 
@@ -578,13 +612,13 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         document.body.style.backgroundColor = 'white';
 
         drawnElements.forEach(element => {
-            if (state === "writing" && selectedElement.id === element.id) return;
+            if (state === State.Writing && selection?.element.id === element.id) return;
             drawElement(roughCanvas, context, element)
         })
 
         context.restore();
 
-    }, [drawnElements, color, state, selectedElement, pencilSize, eraserSize]);
+    }, [drawnElements, color, state, selection, pencilSize, eraserSize]);
 
 
 // Always keep the ref updated with the latest state
@@ -614,7 +648,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         document.body.style.backgroundColor = 'white';
 
         drawnElements.forEach(element => {
-            if (state === "writing" && selectedElement.id === element.id) return;
+            if (state === State.Writing && selection?.element.id === element.id) return;
             drawElement(roughCanvas, context, element)
         })
 
@@ -632,7 +666,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     }, [
         drawnElements,
-        selectedElement,
+        selection,
         state,
         tool,
         color,
@@ -660,165 +694,155 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
     }, [undo, redo]);
 
     useEffect(() => {
-        if (textAreaRef.current) {
-            const textArea = textAreaRef.current;
-            if (state === "writing") {
-                setTimeout(() => {
-                    textArea.focus();
-                    textArea.value = selectedElement.text ?? "";
-                }, 0);
+        if (inputRef.current) {
+            const input = inputRef.current;
+            if (state === State.Writing) {
+                input.focus();
             }
         }
-    }, [state, selectedElement]);
+    }, [state, selection]);
 
 
 //--------------------------------------------------------------------------------------------------------------------
 
 
-    const getMouseCoordinates = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        const canvas = event.target as HTMLCanvasElement;
+    const getCanvasMouseCoordinates = (canvas: HTMLCanvasElement, mouse: Point) => {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        const clientX = (event.clientX - rect.left) * scaleX;
-        const clientY = (event.clientY - rect.top) * scaleY;
-        return {clientX, clientY};
-    };
-    const getMouseCoordinatesFromScreen = (event: MouseEvent, canvas: HTMLCanvasElement) => {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const clientX = (event.clientX - rect.left) * scaleX;
-        const clientY = (event.clientY - rect.top) * scaleY;
+        const clientX = (mouse.x - rect.left) * scaleX;
+        const clientY = (mouse.y - rect.top) * scaleY;
         return {clientX, clientY};
     };
 
 //--------------------------------------------------------------------------------------------------------------------
+    const isElementType = (tool: Tool): tool is ElementType => tool in ElementType;
 
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isEditable) return;
-        const {clientX, clientY} = getMouseCoordinates(event);
-        if (tool === "selection") {
+        if (!isEditable || !canvasRef.current) return;
+        const {clientX, clientY} = getCanvasMouseCoordinates(canvasRef.current, {x: event.clientX, y: event.clientY});
+        if (tool === AltTool.Selection) {
             const clickedElement = getElementAtPosition(clientX, clientY, drawnElements);
-            if (clickedElement?.element && clickedElement.position && clickedElement.element.type !== "eraser") {
+            if (clickedElement?.element && clickedElement.position && clickedElement.element.type !== ElementType.Eraser) {
                 const {element, position} = clickedElement;
-
-                if (element.coordinates) {
-                    const offsetX = clientX - element.coordinates.x1;
-                    const offsetY = clientY - element.coordinates.y1;
-                    setSelectedElement({...element, offsetX, offsetY, position: position});
-                } else if (element.points) {
-                    const xOffsets = element.points.map(point => clientX - point.x);
-                    const yOffsets = element.points.map(point => clientY - point.y);
-                    setSelectedElement({...element, xOffsets, yOffsets});
-                }
-
                 // setElements(prevState => prevState ?? prevState);
 
-                if (clickedElement.position === "inside") {
-                    setState("moving");
-
+                if (position === Position.Inside) {
+                    if (element.coordinates) {
+                        const offsetPoint: Point = {
+                            x: clientX - element.coordinates.x1,
+                            y: clientY - element.coordinates.y1
+                        }
+                        setSelection({element, offsetPoint});
+                    } else if (element.points) {
+                        const offsetPoints: Point[] = element.points.map(point => ({
+                            x: clientX - point.x,
+                            y: clientY - point.y
+                        }));
+                        setSelection({element, offsetPoints});
+                    }
+                    setState(State.Moving);
                 } else {
-                    setState("resizing");
+                    setSelection({element, position});
+                    setState(State.Resizing);
                 }
             }
-        } else {
+        } else if (isElementType(tool)) {
             const id = nextIdRef.current;
             nextIdRef.current++;
             const index = drawnElements.length;
             let size;
-            if (tool === "pencil") size = pencilSize;
-            if (tool === "eraser") size = eraserSize;
-            let element: DrawingElement = {
-                index,
-                id,
-                type: tool as "rectangle" | "line" | "circle" | "text" | "pencil" | "eraser",
-                color,
-                size,
-            };
-            if (tool === "rectangle" || tool === "line" || tool === "circle") {
+            if (tool === ElementType.Pencil) size = pencilSize;
+            if (tool === ElementType.Eraser) size = eraserSize;
+
+            let element: DrawingElement = {index, id, type: tool, color, size};
+
+            if (tool === ElementType.Rectangle || tool === ElementType.Line || tool === ElementType.Circle) {
                 element = updateShapeElement(element, {x1: clientX, y1: clientY, x2: clientX, y2: clientY});
-            } else if (tool === "text") {
-                element = updateTextElement(element, {x: clientX, y: clientY});
-            } else if (tool === "pencil" || tool === "eraser") {
+            } else if (tool === ElementType.Text) {
+                element = updateTextElement(element, {x: event.clientX, y: event.clientY}, "");
+            } else if (tool === ElementType.Pencil || tool === ElementType.Eraser) {
                 element = updatePencilElement(element, [{x: clientX, y: clientY}]);
             }
 
             setDrawnElements([...drawnElements, element]);
-            setSelectedElement(element);
-            // oldElement = {...element};
-            let newState = tool === "text" ? "writing" : "drawing";
+            setSelection({element});
+            const newState = tool === ElementType.Text ? State.Writing : State.Drawing;
+            console.log("New State", newState)
             setState(newState);
-            // actionRef = newAction;
-
         }
     };
 
 //--------------------------------------------------------------------------------------------------------------------
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isEditable || state === "none") return;
-        const {clientX, clientY} = getMouseCoordinates(event);
-        if (tool === "selection") {
+        if (!isEditable || !canvasRef.current || state === State.None) return;
+        console.log("state", state)
+        const {clientX, clientY} = getCanvasMouseCoordinates(canvasRef.current, {x: event.clientX, y: event.clientY});
+        if (tool === AltTool.Selection) {
             const clickedElement = getElementAtPosition(clientX, clientY, drawnElements);
             const target = event.target as HTMLElement;
-            if (clickedElement?.element.type !== "eraser") {
-                target.style.cursor = clickedElement
-                    ? cursorForPosition(clickedElement.position!)
-                    : "default";
+            if (clickedElement?.element.type !== ElementType.Eraser) {
+                target.style.cursor = clickedElement && clickedElement.position ?
+                    cursorForPosition(clickedElement.position) : "default";
             }
         }
 
-        let updatedElement;
-        const index = selectedElement.index;
+        if (selection) {
+            let updatedElement;
+            const index = selection?.element.index;
+            const element = drawnElements[index]
+            const selectedElement = selection.element;
 
-        if (state === "drawing") {
-            const element = drawnElements[index]
-            if (isShapeElement(element) && element.coordinates) {
-                const {x1, y1} = element.coordinates;
-                updatedElement = updateShapeElement(element, {x1, y1, x2: clientX, y2: clientY});
-            } else if (isPencilElement(element) && element.points) {
-                updatedElement = updatePencilElement(element, [...(element.points), {
-                    x: clientX,
-                    y: clientY
-                }]);
-            }
-        } else if (state === "writing") {
-            const element = drawnElements[index]
-            const updatedElement = updateTextElement(element, {
-                x: clientX,
-                y: clientY
-            }, textAreaRef.current?.value ?? "");
-            setDrawnElements([...drawnElements, updatedElement]);
-        } else if (state === "moving") {
-            if (selectedElement.type === "pencil" || selectedElement.type === "eraser") {
-                const newPoints: Point[] = selectedElement.points.map((_: number, index: number) => ({
-                    x: clientX - selectedElement.xOffsets[index],
-                    y: clientY - selectedElement.yOffsets[index],
-                }));
-                updatedElement = updatePencilElement(selectedElement, newPoints);
+            if (state === State.Drawing) {
+                if (element.coordinates) {
+                    const {x1, y1} = element.coordinates;
+                    updatedElement = updateShapeElement(element, {x1, y1, x2: clientX, y2: clientY});
+                } else if (element.points) {
+                    updatedElement = updatePencilElement(element, [...(element.points), {
+                        x: clientX,
+                        y: clientY
+                    }]);
+                }
+            } else if (state === State.Writing) {
+                updatedElement = updateTextElement(selectedElement, {x: event.clientX, y: event.clientY});
+
             } else {
-                const {coordinates, offsetX, offsetY} = selectedElement;
-                const width = coordinates.x2 - coordinates.x1;
-                const height = coordinates.y2 - coordinates.y1;
-                const newX1 = clientX - offsetX;
-                const newY1 = clientY - offsetY;
-                const newCoordinates = {x1: newX1, y1: newY1, x2: newX1 + width, y2: newY1 + height};
-                if (selectedElement.type == "text") {
-                    updatedElement = updateTextElement(selectedElement, {x: newX1, y: newY1});
-                } else {
+                if (state === State.Moving) {
+                    if ((selectedElement.type === ElementType.Pencil || selectedElement.type === ElementType.Eraser)
+                        && selection.offsetPoints && selectedElement.points) {
+                        const newPoints: Point[] = selectedElement.points.map((point, index: number) => {
+                            if (!selection.offsetPoints) return point;
+                            return ({
+                                x: clientX - selection.offsetPoints[index].x,
+                                y: clientY - selection.offsetPoints[index].y,
+                            });
+                        });
+                        updatedElement = updatePencilElement(selection.element, newPoints);
+                    } else if (selection.offsetPoint && selectedElement.coordinates) {
+
+                        const width = selectedElement.coordinates.x2 - selectedElement.coordinates.x1;
+                        const height = selectedElement.coordinates.y2 - selectedElement.coordinates.y1;
+                        const newX1 = clientX - selection.offsetPoint.x;
+                        const newY1 = clientY - selection.offsetPoint.y;
+                        const newCoordinates: Coordinates = {
+                            x1: newX1,
+                            y1: newY1,
+                            x2: newX1 + width,
+                            y2: newY1 + height
+                        };
+                        updatedElement = updateShapeElement(element, newCoordinates);
+                    }
+                } else if (state === State.Resizing && selectedElement.coordinates && selection.position) {
+                    const newCoordinates = resizedCoordinates(clientX, clientY, selection.position, selectedElement.coordinates)!;
                     updatedElement = updateShapeElement(selectedElement, newCoordinates);
                 }
             }
-        } else if (state === "resizing") {
-            const {position, coordinates} = selectedElement;
-            const newCoordinates = resizedCoordinates(clientX, clientY, position, coordinates)!;
-            updatedElement = updateShapeElement(selectedElement, newCoordinates);
-        }
-        if (updatedElement) {
-            const updatedElements = [...drawnElements]
-            updatedElements[index] = updatedElement;
-            setDrawnElements(updatedElements);
+            if (updatedElement) {
+                const updatedElements = [...drawnElements]
+                updatedElements[index] = updatedElement;
+                setDrawnElements(updatedElements);
+            }
         }
     }
 
@@ -827,50 +851,27 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    const handleMouseUp = (event: MouseEvent) => {
-        if (!isEditable) return;
+    const handleMouseUp = () => {
+        if (!isEditable || !canvasRef.current) return;
 
         if (!canvasRef.current) return;
-        const {clientX, clientY} = getMouseCoordinatesFromScreen(event, canvasRef.current);
-
-        if (selectedElement) {
-
-            const index = selectedElement.index;
+        if (selection) {
+            const index = selection.element.index;
             const element = drawnElements[index];
 
-            if (element.type === "text" &&
-                clientX - selectedElement.offsetX === selectedElement.x1 &&
-                clientY - selectedElement.offsetY === selectedElement.y1) {
-                let drawingElement: DrawingElement;
-                // actionRef = "writing";
-                drawingElement = {
-                    index: element.index,
-                    id: element.id,
-                    coordinates: element.coordinates,
-                    type: element.type,
-                    text: element.text,
-                    color: element.color
-                }
-                pushAction({
-                    elementId: element.id,
-                    type: ActionType.DRAW,
-                    element: drawingElement
-                })
-                return;
-            }
 
-            if ((state === "drawing" || state === "resizing") && adjustmentRequired(element.type)) {
+            if ((state === State.Drawing || state === State.Resizing) && (element.type === ElementType.Line || element.type == ElementType.Rectangle)) {
                 const newCoordinates = adjustShapeElementCoordinates(element);
                 const updatedElement = updateShapeElement(element, newCoordinates);
                 const updatedElements = [...drawnElements];
                 updatedElements[index] = updatedElement;
             }
-            if (state === "drawing") {
+            if (state === State.Drawing) {
                 let drawingElement: DrawingElement | undefined;
                 switch (element.type) {
-                    case "rectangle":
-                    case "line":
-                    case "circle":
+                    case ElementType.Rectangle:
+                    case ElementType.Line:
+                    case ElementType.Circle:
                         drawingElement = {
                             index: element.index,
                             id: element.id,
@@ -879,8 +880,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                             color: element.color,
                         }
                         break;
-                    case "pencil":
-                    case "eraser":
+                    case ElementType.Pencil:
+                    case ElementType.Eraser:
                         drawingElement = {
                             index: element.index,
                             id: element.id,
@@ -900,12 +901,12 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                     });
                 }
 
-            } else if (state === "resizing" || state === "moving") {
+            } else if (state === State.Resizing || state === State.Moving) {
                 const oldElement = elements[index]
                 switch (element.type) {
-                    case "rectangle":
-                    case "line":
-                    case "circle":
+                    case ElementType.Rectangle:
+                    case ElementType.Line:
+                    case ElementType.Circle:
                         if (!element.coordinates || !oldElement.coordinates) return;
                         const deltaCoordinates = {
                             x1: element.coordinates.x1 - oldElement.coordinates.x1,
@@ -919,8 +920,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                             coordinates: deltaCoordinates
                         })
                         break;
-                    case "pencil":
-                    case "eraser":
+                    case ElementType.Pencil:
+                    case ElementType.Eraser:
                         if (!element.points || !oldElement.points) return;
                         const deltaPoints: Point[] = element.points.map((point, index) => {
                             if (!oldElement.points) return point;
@@ -936,45 +937,38 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         })
                         break;
                 }
-            } else if (state === "writing") {
-                const updatedElement = updateTextElement(element, {x: clientX, y: clientY}, textAreaRef.current?.value);
-                pushAction({
-                    elementId: element.id,
-                    type: ActionType.DRAW,
-                    element: updatedElement
-                })
+            } else if (state === State.Writing) {
+                inputRef.current?.focus();
+                inputRef.current?.addEventListener("blur", handleWritingEnd);
             }
         }
 
-        if (state !== "writing") {
-            setState("none");
-            // actionRef = "none"
-            setSelectedElement(null);
-            // oldElement = null
+        if (state !== State.Writing) {
+            setState(State.None);
+            setSelection(null);
         }
     }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    const handleToolChange = (newTool: string) => {
+    const handleToolChange = (newTool: Tool) => {
         setTool(newTool);
-
         const canvas = canvasRef.current;
         if (canvas) {
             switch (newTool) {
-                case "selection":
+                case AltTool.Selection:
                     canvas.style.cursor = "grabbing";
                     break;
-                case "line":
-                case "rectangle":
-                case "circle" :
-                case "pencil":
+                case ElementType.Line:
+                case ElementType.Rectangle:
+                case ElementType.Circle :
+                case ElementType.Pencil:
                     canvas.style.cursor = "crosshair";
                     break;
-                case "eraser":
+                case ElementType.Eraser:
                     canvas.style.cursor = 'grabbing';
                     break;
-                case "text":
+                case ElementType.Text:
                     canvas.style.cursor = 'text';
                     break;
                 default:
@@ -990,6 +984,31 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 //----------------------------------------------------------------------------------------------------------------------
 
 
+    const handleWritingEnd = () => {
+        console.log("Writing End")
+        inputRef.current?.removeEventListener("blur", handleWritingEnd)
+
+        if (canvasRef.current && selection && selection.element.type === ElementType.Text && selection.element.coordinates) {
+            const {clientX, clientY} = getCanvasMouseCoordinates(canvasRef.current, {
+                x: selection.element.coordinates.x1,
+                y: selection.element.coordinates.y1
+            })
+            const updatedElement = updateTextElement(selection.element, {
+                x: clientX,
+                y: clientY
+            }, inputRef.current?.value);
+            const drawingElement: DrawingElement = {...updatedElement};
+            pushAction({
+                elementId: selection.element.id,
+                type: ActionType.DRAW,
+                element: drawingElement
+            })
+        }
+        setState(State.None);
+        setSelection(null);
+    };
+
+
 // ---------------------------------------------------------------------------------------------------------------------
     return (
         <div className={"drawing-page"}>
@@ -997,68 +1016,82 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                 <div className={"tools-container"}>
                     <input type="radio"
                            id="selection"
-                           checked={tool === "selection"}
-                           onChange={() => handleToolChange("selection")}/>
+                           checked={tool === AltTool.Selection}
+                           onChange={() => handleToolChange(AltTool.Selection)}/>
                     <label htmlFor="Slection">Selection</label>
                     <input type="radio"
                            id="line"
-                           checked={tool === "line"}
-                           onChange={() => handleToolChange("line")}/>
+                           checked={tool === ElementType.Line}
+                           onChange={() => handleToolChange(ElementType.Line)}/>
                     <label htmlFor="Line">Line</label>
                     <input type="radio"
                            id="rectangle"
-                           checked={tool === "rectangle"}
-                           onChange={() => handleToolChange("rectangle")}/>
+                           checked={tool === ElementType.Rectangle}
+                           onChange={() => handleToolChange(ElementType.Rectangle)}/>
                     <label htmlFor="Rectangle">Rectangle</label>
                     <input type="radio"
                            id="circle"
-                           checked={tool === "circle"}
-                           onChange={() => handleToolChange("circle")}/>
+                           checked={tool === ElementType.Circle}
+                           onChange={() => handleToolChange(ElementType.Circle)}/>
                     <label htmlFor="Circle">Circle</label>
                     <input type="radio"
                            id="pencil"
-                           checked={tool === "pencil"}
-                           onChange={() => handleToolChange("pencil")}/>
+                           checked={tool === ElementType.Pencil}
+                           onChange={() => handleToolChange(ElementType.Pencil)}/>
                     <label htmlFor="Pencil">Pencil</label>
-                    {tool === "pencil" &&
+                    {tool === ElementType.Pencil &&
                         <input id="pencilSize" type="range" min="1" max="100" value={pencilSize}
                                onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>
                     }
 
                     <input type="radio"
                            id="text"
-                           checked={tool === "text"}
-                           onChange={() => handleToolChange("text")}/>
+                           checked={tool === ElementType.Text}
+                           onChange={() => handleToolChange(ElementType.Text)}/>
                     <label htmlFor="text">Text</label>
 
                     <div>
                         <button onClick={undo}>Undo</button>
                         <button onClick={redo}>Redo</button>
                     </div>
-                    {tool === "text" ? (
-                        <textarea
-                            ref={textAreaRef}
-
+                    {tool === ElementType.Text && state == State.Writing && selection && selection.element.coordinates &&
+                        <input
+                            ref={inputRef}
+                            autoFocus={true}
+                            style={{
+                                position: 'fixed',
+                                left: `${selection.element.coordinates.x1}px`,
+                                top: `${selection.element.coordinates.y1}px`,
+                                fontSize: '24px'
+                            }}
+                            defaultValue={selection.element.text}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleWritingEnd();
+                                }
+                            }}
                         />
-                    ) : null}
+                    }
                     <input
                         type="radio"
                         id="eraser"
-                        checked={tool === "eraser"}
-                        onChange={() => handleToolChange("eraser")}
+                        checked={tool === ElementType.Eraser}
+                        onChange={() => handleToolChange(ElementType.Eraser)}
                     />
                     <label htmlFor="Eraser">Eraser</label>
 
-                    {tool === "eraser" ? (<input id="eraserSize" type="range" min="1" max="100" value={eraserSize}
-                                                 onChange={(event) => setEraserSize(parseInt(event.currentTarget.value))}/>) : null}
+                    {tool === ElementType.Eraser ? (
+                        <input id="eraserSize" type="range" min="1" max="100" value={eraserSize}
+                               onChange={(event) => setEraserSize(parseInt(event.currentTarget.value))}/>) : null}
                     <input
                         type="radio"
                         id="colorPicker"
-                        checked={tool === "colorPicker"}
-                        onChange={() => setTool("colorPicker")}
+                        checked={tool === AltTool.ColorPicker}
+                        onChange={() => setTool(AltTool.ColorPicker)}
                     />
                     <label htmlFor="ColorPicker">Colors</label>
-                    {tool === "colorPicker" &&
+                    {tool === AltTool.ColorPicker &&
                         <ChromePicker color={color} onChange={(event) => {
                             setColor(event.hex);
                         }}/>
