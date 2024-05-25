@@ -41,9 +41,9 @@ function StoryComponent({
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
 
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
-    const [audio, setAudio] = useState<AudioName>(AudioName.Romantic);
-    const  [drawingActions, setDrawingActions] = useState<DrawingAction[]>([]);
+    const [audio, setAudio] = useState<AudioName>(AudioName.Scary);
 
+    const drawingActionsRef = useRef<DrawingAction[]>([]);
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +53,7 @@ function StoryComponent({
 
 
     const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
-        setDrawingActions(newActions);
+        drawingActionsRef.current = newActions;
     };
 
     const handleTypeChange = (newType: StoryElementType) => {
@@ -74,7 +74,7 @@ function StoryComponent({
                 const audioURL = `/audio/${audio}.mp3`;
                 addNewElement(StoryElementType.Audio, audioURL)
             } else if (type == StoryElementType.Drawing) {
-                setDrawingActions([]);
+                drawingActionsRef.current = [];
                 setIsDrawing(true);
             } else if (type == StoryElementType.Text) {
                 // add new element to the story
@@ -105,8 +105,8 @@ function StoryComponent({
     const AddDrawingElement = () => {
         if (!lobby) return;
         setIsDrawing(false);
-        addNewElement(StoryElementType.Drawing, JSON.stringify(drawingActions));
-        setDrawingActions([]);
+        addNewElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+        drawingActionsRef.current = [];
     };
 
     const handleElementChange = (index: number, content: StoryElement) => {
@@ -202,7 +202,7 @@ function StoryComponent({
 
                 </>
                 :
-                <DrawingComponent initialActions={drawingActions} isEditable={!hasSubmitted}
+                <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
                                   onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}/>
             }
         </div>
