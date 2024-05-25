@@ -82,17 +82,17 @@ export type DrawingAction = {
 
 
 enum ElementType {
-    Rectangle,
-    Line,
-    Circle,
-    Text,
-    Pencil,
-    Eraser
+    Rectangle = 0,
+    Line = 1,
+    Circle = 2,
+    Text = 3,
+    Pencil = 4,
+    Eraser = 5
 }
 
 enum AltTool {
-    Selection,
-    ColorPicker
+    Selection = 6,
+    ColorPicker = 7
 }
 
 type Tool = ElementType | AltTool;
@@ -284,13 +284,14 @@ const getSvgPathFromStroke = (stroke: number[][]) => {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-const handleUndoAction = (elements: DrawingElement[], actions: DrawingAction[]) => {
+const handleUndoAction = (elements: DrawingElement[], actions: DrawingAction[]): DrawingElement[] => {
     const indexBeforeTheUndo = actions.length - 1
     let i = 0;
-    while (actions[indexBeforeTheUndo - i].type === ActionType.UNDO) {
+    while (actions[indexBeforeTheUndo - i]?.type === ActionType.UNDO) {
         i++;
     }
     const actionToUndo = actions[indexBeforeTheUndo - (i * 2)];
+    if (!actionToUndo) return []
     let newElements = [...elements];
 
     switch (actionToUndo.type) {
@@ -413,10 +414,8 @@ const useActions = (initialActions: DrawingAction[], onActionsChange: (newAction
 
     const pushAction = (action: DrawingAction, overwrite = false) => {
         const newElements = handleAction(action, elements, actions);
-        console.log("Updated Elements", newElements)
         setElements(newElements);
         if (!overwrite) {
-            console.log("Action", action)
             if (!action.index) action.index = actions.length
             setActions([...actions, action])
         }
@@ -452,7 +451,6 @@ const useActions = (initialActions: DrawingAction[], onActionsChange: (newAction
         initialActions.forEach((action, index) => {
             setTimeout(() => {
                 oldElements = handleAction(action, oldElements, actions)
-                console.log("elements", oldElements)
                 setElements(oldElements);
                 if (!action.index) action.index = actions.length
                 setActions([...actions, action])
@@ -497,7 +495,7 @@ const useActions = (initialActions: DrawingAction[], onActionsChange: (newAction
 //     return element;
 // };
 
-const generateRoughElement = (element: DrawingElement) => {
+const generateRoughElement = (element: DrawingElement): Drawable | undefined => {
     if (!element.coordinates) return;
     const {type, color, coordinates: {x1, x2, y1, y2}} = element
     if (type === ElementType.Line) {
@@ -505,7 +503,12 @@ const generateRoughElement = (element: DrawingElement) => {
     } else if (type === ElementType.Rectangle) {
         return generator.rectangle(x1, y1, x2 - x1, y2 - y1, {stroke: color});
     } else if (type === ElementType.Circle) {
-        return generator.circle(x1, y1, Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), {stroke: color});
+        const width = x2 - x1;
+        const height = y2 - y1;
+        const centerX = x1 + width / 2;
+        const centerY = y1 + height / 2;
+        const diameter = Math.sqrt(width * width + height * height);
+        return generator.circle(centerX, centerY, diameter, {stroke: color});
     }
 };
 const updateShapeElement = (element: DrawingElement, coordinates: Coordinates): DrawingElement => {
@@ -567,7 +570,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
     onActionsChange?: (newActions: DrawingAction[]) => void,
     onSave?: () => void
 }) {
-
 
     const [elements, pushAction, undo, redo] = useActions(initialActions, onActionsChange ?? (() => {
     }))
@@ -755,7 +757,13 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             if (tool === ElementType.Pencil) size = pencilSize;
             if (tool === ElementType.Eraser) size = eraserSize;
 
-            let element: DrawingElement = {index, id, type: tool, color, size};
+            let element: DrawingElement = {
+                index,
+                id,
+                type: tool,
+                color: tool === ElementType.Eraser ? document.body.style.backgroundColor : color,
+                size
+            };
 
             if (tool === ElementType.Rectangle || tool === ElementType.Line || tool === ElementType.Circle) {
                 element = updateShapeElement(element, {x1: clientX, y1: clientY, x2: clientX, y2: clientY});
@@ -768,7 +776,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             setDrawnElements([...drawnElements, element]);
             setSelection({element});
             const newState = tool === ElementType.Text ? State.Writing : State.Drawing;
-            console.log("New State", newState)
             setState(newState);
         }
     };
@@ -777,7 +784,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isEditable || !canvasRef.current || state === State.None) return;
-        console.log("state", state)
         const {clientX, clientY} = getCanvasMouseCoordinates(canvasRef.current, {x: event.clientX, y: event.clientY});
         if (tool === AltTool.Selection) {
             const clickedElement = getElementAtPosition(clientX, clientY, drawnElements);
@@ -985,7 +991,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 
     const handleWritingEnd = () => {
-        console.log("Writing End")
         inputRef.current?.removeEventListener("blur", handleWritingEnd)
 
         if (canvasRef.current && selection && selection.element.type === ElementType.Text && selection.element.coordinates) {

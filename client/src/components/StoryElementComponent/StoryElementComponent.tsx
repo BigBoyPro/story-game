@@ -25,8 +25,7 @@ const StoryElementComponent = ({element, isEditable, onElementChange, onElementD
                 return <img src={element.content} alt="Story element" width="250"/>;
             case StoryElementType.Drawing:
                 const actions = JSON.parse(element.content)
-                return <DrawingComponent initialActions={actions} isEditable={false}
-                                         onActionsChange={(newActions) => handleContentChange(JSON.stringify(newActions))}/>;
+                return <DrawingComponent initialActions={actions} isEditable={false}/>;
             case StoryElementType.Audio:
                 return <audio controls src={element.content}/>;
             default:

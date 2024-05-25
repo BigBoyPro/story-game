@@ -8,8 +8,7 @@ import {
     onStoryAtPart,
     requestEndGame,
     offEndGame,
-    offStories,
-    userId, requestGetStoryAtPart, requestNextPart, onPart
+    userId, requestGetStoryAtPart, requestNextPart, onPart, offStoryAtPart, offPart
 } from "../utils/socketService.ts";
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 import {Page, redirection} from "../App.tsx";
@@ -48,7 +47,8 @@ function ResultsView() {
         if(lobby && !story) requestGetStoryAtPart(lobby.code)
 
         return () => {
-            offStories()
+            offStoryAtPart()
+            offPart()
             offEndGame()
         }
     }, [lobby, navigate]);

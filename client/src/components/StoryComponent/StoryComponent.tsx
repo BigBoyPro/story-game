@@ -40,9 +40,10 @@ function StoryComponent({
 
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
 
-    const drawingActionsRef = useRef<DrawingAction[]>([])
-    const typeRef = useRef<StoryElementType>();
-    const audioRef = useRef<AudioName>();
+    const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
+    const [audio, setAudio] = useState<AudioName>(AudioName.Romantic);
+    const  [drawingActions, setDrawingActions] = useState<DrawingAction[]>([]);
+
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -52,30 +53,32 @@ function StoryComponent({
 
 
     const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
-        drawingActionsRef.current = newActions;
+        setDrawingActions(newActions);
     };
 
     const handleTypeChange = (newType: StoryElementType) => {
-        typeRef.current = newType;
+        setType(newType);
     };
 
     const handleAudioChange = (newAudio: AudioName) => {
-        audioRef.current = newAudio;
+        setAudio(newAudio);
     };
 
     const handleElementAdd = () => {
         if (lobby) {
-            if (typeRef.current == StoryElementType.Image) {
+            console.log("adding new element", type)
+            if (type == StoryElementType.Image) {
                 inputRef.current?.click();
-            } else if (typeRef.current == StoryElementType.Audio) {
-                if (!audioRef.current) return;
-                const audioURL = `/audio/${audioRef.current}.mp3`;
+            } else if (type == StoryElementType.Audio) {
+                if (!audio) return;
+                const audioURL = `/audio/${audio}.mp3`;
                 addNewElement(StoryElementType.Audio, audioURL)
-            } else if (typeRef.current == StoryElementType.Drawing) {
-                drawingActionsRef.current = [];
+            } else if (type == StoryElementType.Drawing) {
+                setDrawingActions([]);
                 setIsDrawing(true);
-            } else if (typeRef.current == StoryElementType.Text) {
+            } else if (type == StoryElementType.Text) {
                 // add new element to the story
+                console.log("adding new text element")
                 addNewElement(StoryElementType.Text, "")
             }
         }
@@ -102,8 +105,8 @@ function StoryComponent({
     const AddDrawingElement = () => {
         if (!lobby) return;
         setIsDrawing(false);
-        addNewElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
-        drawingActionsRef.current = [];
+        addNewElement(StoryElementType.Drawing, JSON.stringify(drawingActions));
+        setDrawingActions([]);
     };
 
     const handleElementChange = (index: number, content: StoryElement) => {
@@ -161,9 +164,10 @@ function StoryComponent({
                                                    }
                                                }/>
 
-                                        <select onChange={event => {
-                                            handleTypeChange(event.target.value as StoryElementType)
-                                        }}>
+                                        <select value={type}
+                                                onChange={event => {
+                                                    handleTypeChange(event.target.value as StoryElementType)
+                                                }}>
                                             {Object.values(StoryElementType).map((value) => (
                                                 value !== StoryElementType.Empty &&
                                                 <option key={value}
@@ -171,10 +175,11 @@ function StoryComponent({
                                             ))}
                                         </select>
 
-                                        {typeRef.current === StoryElementType.Audio &&
-                                            <select onChange={event => {
-                                                handleAudioChange(event.target.value as AudioName)
-                                            }}>
+                                        {type === StoryElementType.Audio &&
+                                            <select value={audio}
+                                                    onChange={event => {
+                                                        handleAudioChange(event.target.value as AudioName)
+                                                    }}>
                                                 {Object.values(AudioName).map((value) => (
                                                     <option key={value}
                                                             value={value}>{value}</option>
@@ -197,7 +202,7 @@ function StoryComponent({
 
                 </>
                 :
-                <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
+                <DrawingComponent initialActions={drawingActions} isEditable={!hasSubmitted}
                                   onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}/>
             }
         </div>
