@@ -1,11 +1,15 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 
-const StoryElementComponent = ({element, isEditable, onElementChange, onElementDelete}: {
+const StoryElementComponent = ({element, isEditable, onElementChange, onElementDelete, onElementEdit, isLast = false, onUp, onDown}: {
     element: StoryElement,
     isEditable: boolean,
+    isLast?: boolean,
     onElementChange?: (newElement: StoryElement) => void,
     onElementDelete?: () => void,
+    onElementEdit?: () => void,
+    onUp?: () => void,
+    onDown?: () => void
 }) => {
 
     const handleContentChange = (content: string) => {
@@ -37,9 +41,20 @@ const StoryElementComponent = ({element, isEditable, onElementChange, onElementD
     return (
         <div className="story-element">
             {renderContent()}
-            {isEditable && onElementDelete &&
-                <button onClick={() => onElementDelete()}>delete</button>}
+            {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
+                <button onClick={() => onElementEdit()}>Edit</button>
+            }
+            {isEditable && onElementDelete && <button onClick={() => onElementDelete()}>Delete</button>}
+            <div>
+                { isEditable && onUp && element.index !== 0 &&
+                    <button onClick={onUp}>Up</button>
+                }
+                { isEditable && onDown && !isLast &&
+                    <button onClick={onDown}>Down</button>
+                }
+            </div>
         </div>
+
     );
 };
 

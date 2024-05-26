@@ -42,6 +42,7 @@ function StoryComponent({
 
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
     const [audio, setAudio] = useState<AudioName>(AudioName.Scary);
+    const [selectedElementIndex, setSelectedElementIndex] = useState<number|null>(null);
 
     const drawingActionsRef = useRef<DrawingAction[]>([]);
 
@@ -65,6 +66,7 @@ function StoryComponent({
     };
 
     const handleElementAdd = () => {
+        setSelectedElementIndex(null);
         if (lobby) {
             console.log("adding new element", type)
             if (type == StoryElementType.Image) {
@@ -72,46 +74,72 @@ function StoryComponent({
             } else if (type == StoryElementType.Audio) {
                 if (!audio) return;
                 const audioURL = `/audio/${audio}.mp3`;
-                addNewElement(StoryElementType.Audio, audioURL)
+                addStoryElement(StoryElementType.Audio, audioURL);
+
             } else if (type == StoryElementType.Drawing) {
                 drawingActionsRef.current = [];
                 setIsDrawing(true);
             } else if (type == StoryElementType.Text) {
                 // add new element to the story
                 console.log("adding new text element")
-                addNewElement(StoryElementType.Text, "")
+                addStoryElement(StoryElementType.Text, "");
             }
         }
     }
 
-    const addNewElement = (type: StoryElementType, content: string) => {
-        lobby && setStoryElements([...storyElements, {
-            index: storyElements.length,
+    const createStoryElement = (index: number, type: StoryElementType, content: string) => {
+        if(!lobby) return;
+        return {
+            index: index,
             userId: userId,
             storyId: story.id,
             round: lobby.round,
             type,
             content
-        }]);
+        };
+    };
+
+    const addStoryElement = (type: StoryElementType, content: string) => {
+        const newElement = createStoryElement(storyElements.length, type, content);
+        if(newElement) setStoryElements([...storyElements, newElement]);
+    }
+
+    const updateElement = (index: number, type: StoryElementType, content: string) => {
+        const newElement = createStoryElement(index, type, content);
+        if (newElement) {
+            const updatedStoryElements = [...storyElements];
+            updatedStoryElements[index] = newElement;
+            setStoryElements(updatedStoryElements);
+        }
     };
 
     const addImageElement = async (file: File) => {
         if (!lobby || !file) return;
         const fileURL = await uploadImage(file);
         if (!fileURL) return;
-        addNewElement(StoryElementType.Image, fileURL)
+        if(selectedElementIndex !== null) {
+            updateElement(selectedElementIndex, StoryElementType.Image, fileURL);
+            setSelectedElementIndex(null);
+        } else {
+            addStoryElement(StoryElementType.Image, fileURL);
+        }
     };
 
     const AddDrawingElement = () => {
         if (!lobby) return;
         setIsDrawing(false);
-        addNewElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+        if(selectedElementIndex !== null) {
+            updateElement(selectedElementIndex, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+            setSelectedElementIndex(null);
+        } else {
+            addStoryElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+        }
         drawingActionsRef.current = [];
     };
 
-    const handleElementChange = (index: number, content: StoryElement) => {
+    const handleElementChange = (index: number, storyElement: StoryElement) => {
         const updatedStoryElements = [...storyElements];
-        updatedStoryElements[index] = content;
+        updatedStoryElements[index] = storyElement;
         setStoryElements(updatedStoryElements);
     };
 
@@ -124,6 +152,16 @@ function StoryComponent({
         setStoryElements(updatedStoryElements);
     };
 
+    const handleElementEdit = (index: number): void => {
+        setSelectedElementIndex(index);
+        if (storyElements[index].type === StoryElementType.Image) {
+            inputRef.current?.click();
+        } else if (storyElements[index].type === StoryElementType.Drawing) {
+            drawingActionsRef.current = JSON.parse(storyElements[index].content);
+            setIsDrawing(true);
+        }
+    }
+
     const handleFinish = () => {
         setHasSubmitted(true);
         if (onSave) onSave();
@@ -134,6 +172,31 @@ function StoryComponent({
         if (onCancel) onCancel();
     };
 
+
+    const handleAddElementAbort = () => {
+        setSelectedElementIndex(null);
+    };
+    const handleElementUp = (index: number) => {
+        if (index === 0) return;
+        const updatedStoryElements = [...storyElements];
+        const temp = updatedStoryElements[index];
+        updatedStoryElements[index] = updatedStoryElements[index - 1];
+        updatedStoryElements[index - 1] = temp;
+        updatedStoryElements[index].index++;
+        updatedStoryElements[index - 1].index--;
+        setStoryElements(updatedStoryElements);
+    };
+
+    const handleElementDown = (index: number) => {
+        if (index === storyElements.length - 1) return;
+        const updatedStoryElements = [...storyElements];
+        const temp = updatedStoryElements[index];
+        updatedStoryElements[index] = updatedStoryElements[index + 1];
+        updatedStoryElements[index + 1] = temp;
+        updatedStoryElements[index].index--;
+        updatedStoryElements[index + 1].index++;
+        setStoryElements(updatedStoryElements);
+    };
 
     return (
         <div className="story-page">
@@ -150,13 +213,16 @@ function StoryComponent({
                                                 isEditable={!hasSubmitted}
                                                 onElementChange={handleElementChange}
                                                 onElementDelete={handleElementDelete}
+                                                onElementEdit={handleElementEdit}
+                                                onUp={handleElementUp}
+                                                onDown={handleElementDown}
                             />
 
                             {!hasSubmitted ?
                                 <>
                                     <div className="side-button-container">
                                         <button onClick={handleElementAdd}>+</button>
-                                        <input type="file" ref={inputRef} accept="image/*" hidden={true}
+                                        <input type="file" ref={inputRef} accept="image/*" hidden={true} onAbort={handleAddElementAbort}
                                                onChange={
                                                    async event => {
                                                        const file = event.target.files ? event.target.files[0] : undefined;

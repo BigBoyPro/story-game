@@ -393,7 +393,7 @@ export const dbSelectUserLobbyCode = async (db: (Pool | PoolClient), userId: str
                 success: false,
                 error: {
                     type: ErrorType.USER_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Information,
                     error: "User not found"
                 }
             };
