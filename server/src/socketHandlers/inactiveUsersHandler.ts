@@ -1,9 +1,9 @@
 import {Pool, PoolClient} from "pg";
 import {
     dbDeleteLobbies, dbDeleteUsers,
-    dbSelectUsersInactive, dbSelectLobbies,
+    dbSelectUsersInactive,
     dbTransaction,
-    dbUpdateLobbyHost,
+    dbUpdateLobbyHost, dbSelectLobbiesWithHost,
 } from "../db";
 import {Lobby, OpResult, processOp} from "../../../shared/sharedTypes";
 import {Server} from "socket.io";
@@ -36,15 +36,13 @@ const inactiveUsersCheck = async (pool: Pool) => {
         if (!success || !inactiveUsers) return {success, error};
 
         const inactiveUserIds = new Set<string>();
-        const lobbyCodes = [];
+
         for (const user of inactiveUsers) {
             inactiveUserIds.add(user.id);
-            if (user.lobbyCode) {
-                lobbyCodes.push(user.lobbyCode);
-            }
         }
 
-        let {data: lobbies, error: lobbiesError, success: lobbiesSuccess} = await dbSelectLobbies(client, lobbyCodes);
+
+        let {data: lobbies, error: lobbiesError, success: lobbiesSuccess} = await dbSelectLobbiesWithHost(client, inactiveUserIds);
         if (!lobbiesSuccess || !lobbies) return {success: lobbiesSuccess, error: lobbiesError};
 
         const activeLobbies = [];
@@ -68,6 +66,7 @@ const inactiveUsersCheck = async (pool: Pool) => {
             }
         }
 
+        console.log("lobbies to remove: ",lobbiesToRemove);
 
         ({error, success} = await dbDeleteLobbies(client, lobbiesToRemove));
         if (!success) return {success, error};

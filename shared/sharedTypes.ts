@@ -1,4 +1,11 @@
 
+export enum AudioName {
+    Scary = "Scary",
+    Romantic = "Romantic",
+    Sad = "Sad",
+    Suspense = "Suspense"
+}
+
 export type User = {
     id: string;
     nickname: string;
@@ -114,7 +121,8 @@ export enum ErrorType {
     USER_NOT_SUBMITTED = "USER_NOT_SUBMITTED",
     DB_ERROR_UPSERTLETE_STORY_ELEMENTS = "DB_ERROR_UPSERTLETE_STORY_ELEMENTS",
     DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
-    NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE"
+    NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
+    DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
