@@ -98,9 +98,15 @@ export const offUsersSubmitted = () => {
 }
 
 export const onStoryAtPart = (callback: ({story, userIndex} : {story: Story, userIndex: number}) => void) => {
+    // log content of elements
+
     socket.on('story at part', ({story, userIndex}) => {
         callback({story, userIndex});
     });
+}
+
+export const offStoryAtPart = () => {
+    socket.off('story at part');
 }
 
 export const onPart = (callback: (userIndex: number) => void) => {
@@ -109,8 +115,8 @@ export const onPart = (callback: (userIndex: number) => void) => {
     });
 }
 
-export const offStories = () => {
-    socket.off('stories');
+export const offPart = () => {
+    socket.off('part');
 }
 
 export const onEndGame = (callback: () => void) => {

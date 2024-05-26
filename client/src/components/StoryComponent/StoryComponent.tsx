@@ -1,6 +1,6 @@
-import React, {useContext, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import "./StoryComponent.css"
-import {Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
+import {AudioName, Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
@@ -12,176 +12,254 @@ const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = 
     if (!getCurrentUser) storyUserIdArray = storyUserIdArray.filter(elementUserId => elementUserId !== userId);
     const storyUserIds = [...new Set(storyUserIdArray)];
     return storyUserIds.map((userId) => {
-            return elements.filter((element) => element.userId == userId);
-        }
-    );
+        return elements.filter((element) => element.userId == userId);
+    });
 };
 
 function StoryComponent({
                             story,
-                            storyElementsState,
-                            userIndexToShow
+                            initialNewStoryElements = [],
+                            isEditable,
+                            onNewStoryElementsChange,
+                            onSave,
+                            onCancel,
+                            shownUserIndex
                         }: {
     story: Story,
-    storyElementsState?: [
-        StoryElement[],
-        (newStoryElements: StoryElement[]) => void,
-        () => void,
-        () => void,
-    ],
-    userIndexToShow?: number,
+    initialNewStoryElements?: StoryElement[],
+    isEditable: boolean,
+    onNewStoryElementsChange?: (newNewStoryElements: StoryElement[]) => void,
+    onSave?: () => void,
+    onCancel?: () => void,
+    shownUserIndex?: number,
 }) {
     const lobby = useContext(LobbyContext);
-    const [storyElements, setStoryElements, onSave, onCancel] = storyElementsState ??
-    (() => {
-        const state = useState<StoryElement[]>([]);
-        return [state[0], state[1], () => {
-        }, () => {
-        }];
-    })();
+    const [storyElements, setStoryElements] = useState<StoryElement[]>(initialNewStoryElements);
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
-
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
-    const [drawingActions, setDrawingActions] = useState<DrawingAction[]>([]);
 
-    const inputRef = React.createRef<HTMLInputElement>();
-    const audioNameRef = React.createRef<HTMLSelectElement>();
+    const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
+    const [audio, setAudio] = useState<AudioName>(AudioName.Scary);
+    const [selectedElementIndex, setSelectedElementIndex] = useState<number|null>(null);
+
+    const drawingActionsRef = useRef<DrawingAction[]>([]);
+
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    onNewStoryElementsChange && useEffect(() => {
+        onNewStoryElementsChange(storyElements);
+    }, [storyElements]);
 
 
-    const addNewElement = (type: StoryElementType, content: string) => {
-        lobby && setStoryElements([...storyElements, {
-            index: storyElements.length,
+    const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
+        drawingActionsRef.current = newActions;
+    };
+
+    const handleTypeChange = (newType: StoryElementType) => {
+        setType(newType);
+    };
+
+    const handleAudioChange = (newAudio: AudioName) => {
+        setAudio(newAudio);
+    };
+
+    const handleElementAdd = () => {
+        setSelectedElementIndex(null);
+        if (lobby) {
+            console.log("adding new element", type)
+            if (type == StoryElementType.Image) {
+                inputRef.current?.click();
+            } else if (type == StoryElementType.Audio) {
+                if (!audio) return;
+                const audioURL = `/audio/${audio}.mp3`;
+                addStoryElement(StoryElementType.Audio, audioURL);
+
+            } else if (type == StoryElementType.Drawing) {
+                drawingActionsRef.current = [];
+                setIsDrawing(true);
+            } else if (type == StoryElementType.Text) {
+                // add new element to the story
+                console.log("adding new text element")
+                addStoryElement(StoryElementType.Text, "");
+            }
+        }
+    }
+
+    const createStoryElement = (index: number, type: StoryElementType, content: string) => {
+        if(!lobby) return;
+        return {
+            index: index,
             userId: userId,
             storyId: story.id,
             round: lobby.round,
             type,
             content
-        }]);
+        };
+    };
+
+    const addStoryElement = (type: StoryElementType, content: string) => {
+        const newElement = createStoryElement(storyElements.length, type, content);
+        if(newElement) setStoryElements([...storyElements, newElement]);
     }
 
-    const handleAddElement = () => {
-        if (lobby && type) {
-            if (type == StoryElementType.Image) {
-                inputRef.current?.click();
-            } else if (type == StoryElementType.Audio) {
-                addAudioElement();
-            } else if (type == StoryElementType.Drawing) {
-                setDrawingActions([]);
-                setIsDrawing(true);
-            } else if (type == StoryElementType.Text) {
-                // add new element to the story
-                addNewElement(StoryElementType.Text, "")
-            }
+    const updateElement = (index: number, type: StoryElementType, content: string) => {
+        const newElement = createStoryElement(index, type, content);
+        if (newElement) {
+            const updatedStoryElements = [...storyElements];
+            updatedStoryElements[index] = newElement;
+            setStoryElements(updatedStoryElements);
         }
-    }
+    };
 
-    const handleElementContentChange = (index: number, content: string) => {
+    const addImageElement = async (file: File) => {
+        if (!lobby || !file) return;
+        const fileURL = await uploadImage(file);
+        if (!fileURL) return;
+        if(selectedElementIndex !== null) {
+            updateElement(selectedElementIndex, StoryElementType.Image, fileURL);
+            setSelectedElementIndex(null);
+        } else {
+            addStoryElement(StoryElementType.Image, fileURL);
+        }
+    };
+
+    const AddDrawingElement = () => {
+        if (!lobby) return;
+        setIsDrawing(false);
+        if(selectedElementIndex !== null) {
+            updateElement(selectedElementIndex, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+            setSelectedElementIndex(null);
+        } else {
+            addStoryElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+        }
+        drawingActionsRef.current = [];
+    };
+
+    const handleElementChange = (index: number, storyElement: StoryElement) => {
         const updatedStoryElements = [...storyElements];
-        updatedStoryElements[index].content = content;
+        updatedStoryElements[index] = storyElement;
         setStoryElements(updatedStoryElements);
     };
 
-
-    const handleFinish = () => {
-        setHasSubmitted(true);
-        onSave();
-    };
-
-
-    const addImageElement = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!lobby) return;
-        const file = event.target.files ? event.target.files[0] : null;
-        if (file) {
-
-            const fileURL = await uploadImage(file);
-            if (!fileURL) return;
-            addNewElement(StoryElementType.Image, fileURL)
-        }
-    };
-
-    const addAudioElement = () => {
-        if (!lobby || !audioNameRef.current) return;
-        const audioURL = `/audio/${audioNameRef.current.value}.mp3`;
-        addNewElement(StoryElementType.Audio, audioURL)
-
-    };
-
-    const handleCancel = () => {
-        setHasSubmitted(false);
-        onCancel();
-    };
-
-
-    const handleSaveDrawing = () => {
-        if (!lobby) return;
-        setIsDrawing(false);
-        setStoryElements([...storyElements, {
-            index: storyElements.length,
-            userId: userId,
-            storyId: story.id,
-            round: lobby.round,
-            type,
-            content: JSON.stringify(drawingActions)
-        }]);
-        setDrawingActions([]);
-    };
-
-    function handleDeleteStoryElement(index: number): void {
+    const handleElementDelete = (index: number): void => {
         const updatedStoryElements = [...storyElements];
         updatedStoryElements.splice(index, 1);
         for (let i = index; i < updatedStoryElements.length; i++) {
             updatedStoryElements[i].index--;
         }
         setStoryElements(updatedStoryElements);
+    };
+
+    const handleElementEdit = (index: number): void => {
+        setSelectedElementIndex(index);
+        if (storyElements[index].type === StoryElementType.Image) {
+            inputRef.current?.click();
+        } else if (storyElements[index].type === StoryElementType.Drawing) {
+            drawingActionsRef.current = JSON.parse(storyElements[index].content);
+            setIsDrawing(true);
+        }
     }
+
+    const handleFinish = () => {
+        setHasSubmitted(true);
+        if (onSave) onSave();
+    };
+
+    const handleCancel = () => {
+        setHasSubmitted(false);
+        if (onCancel) onCancel();
+    };
+
+
+    const handleAddElementAbort = () => {
+        setSelectedElementIndex(null);
+    };
+    const handleElementUp = (index: number) => {
+        if (index === 0) return;
+        const updatedStoryElements = [...storyElements];
+        const temp = updatedStoryElements[index];
+        updatedStoryElements[index] = updatedStoryElements[index - 1];
+        updatedStoryElements[index - 1] = temp;
+        updatedStoryElements[index].index++;
+        updatedStoryElements[index - 1].index--;
+        setStoryElements(updatedStoryElements);
+    };
+
+    const handleElementDown = (index: number) => {
+        if (index === storyElements.length - 1) return;
+        const updatedStoryElements = [...storyElements];
+        const temp = updatedStoryElements[index];
+        updatedStoryElements[index] = updatedStoryElements[index + 1];
+        updatedStoryElements[index + 1] = temp;
+        updatedStoryElements[index].index--;
+        updatedStoryElements[index + 1].index++;
+        setStoryElements(updatedStoryElements);
+    };
 
     return (
         <div className="story-page">
-            {!isDrawing ?
+            {!isEditable || hasSubmitted || !isDrawing ?
                 <>
-                    {getStoryElementsForEachUser(story.elements, !storyElementsState).map((elements, index) =>
+                    {getStoryElementsForEachUser(story.elements, !isEditable).map((elements, index) =>
                         <StoryUserComponent key={index} elements={elements} isEditable={false}
-                                            hidden={userIndexToShow !== undefined ? (index > userIndexToShow) : false}/>
+                                            isHidden={shownUserIndex !== undefined ? (index > shownUserIndex) : false}/>
                     )}
                     {/* new element for the current user*/}
-                    {storyElementsState &&
+                    {isEditable &&
                         <>
                             <StoryUserComponent elements={storyElements}
                                                 isEditable={!hasSubmitted}
-                                                onElementContentChange={handleElementContentChange}
-                                                onDeleteStoryElement={handleDeleteStoryElement}
+                                                onElementChange={handleElementChange}
+                                                onElementDelete={handleElementDelete}
+                                                onElementEdit={handleElementEdit}
+                                                onUp={handleElementUp}
+                                                onDown={handleElementDown}
                             />
 
-                            <div className="side-button-container">
-                                <button onClick={handleAddElement}>+</button>
-                                <input onChange={addImageElement} type="file" ref={inputRef}
-                                       accept="image/*"
-                                       hidden={true}/>
-                                {type === StoryElementType.Audio &&
-                                    <select ref={audioNameRef}>
-                                        <option value="">please select a background music</option>
-                                        <option value="romantic">romantic</option>
-                                        <option value="Scary2">Scary</option>
-                                        <option value="Sad">Sad</option>
-                                        <option value="suspense">suspense</option>
-                                    </select>
-                                }
-                                <select value={type}
-                                        onChange={(event) => setType(event.target.value as StoryElementType)}>
-                                    {Object.values(StoryElementType).map((value) => (
-                                        value !== StoryElementType.Empty &&
-                                        <option key={value}
-                                                value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
-                                    ))}
-                                </select>
-
-                            </div>
                             {!hasSubmitted ?
-                                <button disabled={storyElements.length === 0}
-                                        onClick={() => handleFinish()}>Finish</button>
+                                <>
+                                    <div className="side-button-container">
+                                        <button onClick={handleElementAdd}>+</button>
+                                        <input type="file" ref={inputRef} accept="image/*" hidden={true} onAbort={handleAddElementAbort}
+                                               onChange={
+                                                   async event => {
+                                                       const file = event.target.files ? event.target.files[0] : undefined;
+                                                       if (file) await addImageElement(file)
+                                                   }
+                                               }/>
+
+                                        <select value={type}
+                                                onChange={event => {
+                                                    handleTypeChange(event.target.value as StoryElementType)
+                                                }}>
+                                            {Object.values(StoryElementType).map((value) => (
+                                                value !== StoryElementType.Empty &&
+                                                <option key={value}
+                                                        value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
+                                            ))}
+                                        </select>
+
+                                        {type === StoryElementType.Audio &&
+                                            <select value={audio}
+                                                    onChange={event => {
+                                                        handleAudioChange(event.target.value as AudioName)
+                                                    }}>
+                                                {Object.values(AudioName).map((value) => (
+                                                    <option key={value}
+                                                            value={value}>{value}</option>
+                                                ))}
+                                            </select>
+                                        }
+
+
+                                    </div>
+
+                                    <button disabled={storyElements.length === 0} onClick={handleFinish}>
+                                        Finish
+                                    </button>
+                                </>
                                 :
                                 <button onClick={() => handleCancel()}>Cancel</button>
                             }
@@ -190,7 +268,8 @@ function StoryComponent({
 
                 </>
                 :
-                <DrawingComponent actionsState={[drawingActions, setDrawingActions, handleSaveDrawing]}/>
+                <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
+                                  onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}/>
             }
         </div>
     )

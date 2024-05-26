@@ -8,8 +8,7 @@ import {
     onStoryAtPart,
     requestEndGame,
     offEndGame,
-    offStories,
-    userId, requestGetStoryAtPart, requestNextPart, onPart
+    userId, requestGetStoryAtPart, requestNextPart, onPart, offStoryAtPart, offPart
 } from "../utils/socketService.ts";
 import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 import {Page, redirection} from "../App.tsx";
@@ -17,8 +16,8 @@ import {Page, redirection} from "../App.tsx";
 
 
 function ResultsView() {
-    const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    const lobby = useContext(LobbyContext);
     const [story, setStory] = useState<Story | null>(null);
     const [userIndex, setUserIndex] = useState<number>(0);
     useEffect(() => {
@@ -48,7 +47,8 @@ function ResultsView() {
         if(lobby && !story) requestGetStoryAtPart(lobby.code)
 
         return () => {
-            offStories()
+            offStoryAtPart()
+            offPart()
             offEndGame()
         }
     }, [lobby, navigate]);
@@ -72,7 +72,7 @@ function ResultsView() {
                 <h2>Results</h2>
                 <div className="story-box">
                     <h3>{story.name}</h3>
-                    <StoryComponent key={story.id} story={story} userIndexToShow={userIndex}/>
+                    <StoryComponent key={story.id} story={story} isEditable={false} shownUserIndex={userIndex}/>
                 </div>
                 { (story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
                     <button onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
