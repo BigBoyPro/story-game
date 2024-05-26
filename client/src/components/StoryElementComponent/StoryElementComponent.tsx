@@ -33,7 +33,7 @@ const StoryElementComponent = ({element, isEditable, onElementChange, onElementD
                 const actions = JSON.parse(element.content)
                 return <DrawingComponent initialActions={actions} isEditable={false}/>;
             case StoryElementType.Audio:
-                return <audio controls src={element.content}/>;
+                return <audio controls src={element.content} autoPlay loop/>;
             default:
                 return null;
         }

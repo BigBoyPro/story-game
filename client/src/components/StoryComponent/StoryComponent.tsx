@@ -97,7 +97,7 @@ function StoryComponent({
                 addStoryElement(StoryElementType.Text, "");
             }
             else if (type == StoryElementType.Place) {
-                addPlace();
+                addStoryElement(StoryElementType.Place, placeImage)
             }
 
         }
@@ -214,34 +214,23 @@ function StoryComponent({
         setStoryElements(updatedStoryElements);
     };
 
-    const addPlace = () => {
-        if (!lobby || !placeImage) return;
-        addNewElement(StoryElementType.Place, placeImage)
 
-    };
     const getPlaceImage = (place:string) :string=> {
         switch (place) {
             case 'forest':
                 return forestImg;
-                break;
             case 'beach':
                 return beachImg;
-                break;
             case 'scary_alley':
                 return scaryAlleyImg;
-                break;
             case 'street':
                 return streetImg;
-                break;
             case 'bedroom':
                 return bedroomImg;
-                break;
             case 'hauntedHouse':
                 return hauntedHouseImg;
-                break;
             case 'romantic':
                 return romanticImg;
-                break;
             default:
                 return beachImg;
         }
@@ -256,7 +245,7 @@ function StoryComponent({
             {!isEditable || hasSubmitted || !isDrawing ?
                 <>
                 <div >
-                    {storyElementsState &&
+                    {isEditable &&
                     <select onChange={(event)=>setPlaceImage(getPlaceImage(event.target.value))}>
                        <option value="beach">Beach</option>
                        <option value="forest">Forest</option>
