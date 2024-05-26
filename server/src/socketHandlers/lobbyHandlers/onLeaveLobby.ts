@@ -9,7 +9,7 @@ import {
     dbUpdateUserLastActive,
     dbUpdateUserLobbyCode
 } from "../../db";
-import {broadcastLobbyInfo, leave, sendError, sendLobbyInfo} from "../socketService";
+import {excludedBroadcastLobbyInfo, leave, sendError, sendLobbyInfo} from "../socketService";
 
 export const onLeaveLobby = async (io: Server, pool: Pool, userId: string, lobbyCode: string) => {
     console.log("user " + userId + " sent leave lobby:" + lobbyCode + " request");
@@ -33,7 +33,7 @@ export const onLeaveLobby = async (io: Server, pool: Pool, userId: string, lobby
 
     if (lobby) {
         leave(userId, lobby.code);
-        broadcastLobbyInfo(io, lobby.code, lobby);
+        excludedBroadcastLobbyInfo(userId, lobby.code, lobby);
     }
     sendLobbyInfo(userId, null);
     console.log("user " + userId + " left lobby " + lobbyCode);

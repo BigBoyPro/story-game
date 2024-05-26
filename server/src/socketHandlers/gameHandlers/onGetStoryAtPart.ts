@@ -2,7 +2,7 @@ import {Server} from "socket.io";
 import {Pool} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, Story} from "../../../../shared/sharedTypes";
 import {dbSelectLobbyCurrentPart, dbSelectStoryByIndex, dbUpdateUserLastActive} from "../../db";
-import {broadcastPart, broadcastStoryAtPart, sendError} from "../socketService";
+import { broadcastStoryAtPart, sendError} from "../socketService";
 
 
 export async function onGetStoryAtPart(io: Server, pool: Pool, userId: string, lobbyCode: string) {

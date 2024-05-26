@@ -1,5 +1,5 @@
-import {Lobby, Story, StoryElement, StoryElementType} from "../../../shared/sharedTypes.ts";
-import {NavigateFunction, useNavigate} from "react-router-dom";
+import {Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
@@ -9,48 +9,29 @@ import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 import {
     onStory,
     onGetStoryElements,
-    sendStoryElements,
+    submitStoryElements,
     offStory,
-    userId,
-    offGetStoryElements
+    offGetStoryElements, unsubmitStoryElements, userId
 } from "../utils/socketService.ts";
-
-
-const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
-            navigate("/lobby", {replace: true});
-        } else if(lobby.round < 0){
-            navigate("/results", {replace: true});
-        }
-    }else{
-        navigate("/", {replace: true})
-    }
-};
+import {Page, redirection} from "../App.tsx";
 
 
 function GameView() {
-    const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    const lobby = useContext(LobbyContext);
     const user = lobby?.users.find(user => user.id === userId);
     const [story, setStory] = useState<Story | null>(null);
-    // const [remainingTime, setRemainingTime] = useState<number | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
     useEffect(() => {
-        redirection(lobby, navigate);
+        redirection(lobby, navigate, Page.Game);
 
         onStory((story) => {
-            const showStory = story.elements.length == 0 || story.elements[story.elements.length - 1].userId != userId;
-            console.log('Story received:', story, showStory);
-            // don't set story if the last story element is from the current user
-            if (showStory) {
-                setStory(story);
-            }
+            setStory(story);
         });
 
         onGetStoryElements(() => {
-            console.log('Get story elements');
-            onFinish();
+            console.log('story elements requested!');
+            handleSaveStoryElements();
         });
 
 
@@ -60,38 +41,39 @@ function GameView() {
         }
     }, [lobby, lobby?.roundStartAt, lobby?.roundEndAt, navigate, story]);
 
-    const onFinish = () => {
-        console.log('onFinish');
-        if(!lobby) {
-            console.log('lobby does not exist',lobby);
+    const handleNewStoryElementsChange = (newStoryElements: StoryElement[]) => {
+        newStoryElementsRef.current = newStoryElements;
+    }
+
+    const handleSaveStoryElements = () => {
+        if (!lobby) {
+            console.log('lobby does not exist', lobby);
             return;
         }
-        if(!story) {
-            console.log('story does not exist',story);
+        if (!story) {
+            console.log('story does not exist', story);
             return;
         }
         console.log('lobby and story exist');
-        if(newStoryElementsRef.current.length > 0){
+        if (newStoryElementsRef.current.length > 0) {
             console.log("sending story elements", newStoryElementsRef.current);
-            sendStoryElements(lobby.code, newStoryElementsRef.current);
-        } else {
-            const storyElement: StoryElement = {
-                index: newStoryElementsRef.current.length,
-                userId: userId,
-                storyId: story.id,
-                round: lobby.round,
-                type: StoryElementType.Empty,
-                content: ""
-            }
-            console.log("sending empty story element");
-            sendStoryElements(lobby.code, [storyElement]);
+            submitStoryElements(lobby.code, newStoryElementsRef.current);
         }
-        setStory(null);
     }
 
-  return(
-      <div className="game-page" >
-          <div className={"video-background-container"}>
+    const handleCancelStoryElements = () => {
+        console.log('onCancel');
+        if (!lobby) {
+            console.log('lobby does not exist', lobby);
+            return;
+        }
+        unsubmitStoryElements(lobby.code);
+    }
+
+
+    return (
+        <div className="game-page">
+            <div className={"video-background-container"}>
 
 
               <video autoPlay loop muted className={"video-background"}>
@@ -109,7 +91,13 @@ function GameView() {
                   <h2>Round : {lobby?.round}/{lobby?.users.length}</h2>
                   {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                   {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
-                  { story && <StoryComponent key={story.id} story={story} onFinish={onFinish} onNewStoryElementsChange={(newStoryElements) => newStoryElementsRef.current = newStoryElements}/>}
+                  { story && <StoryComponent key={story.id} story={story} isEditable={true}
+                                    initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
+                                    onNewStoryElementsChange={handleNewStoryElementsChange}
+                                    onSave={handleSaveStoryElements}
+                                    onCancel={handleCancelStoryElements}
+                    />
+                }
               </div>
 
               <div className="side-bar">

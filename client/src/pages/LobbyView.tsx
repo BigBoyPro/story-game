@@ -1,43 +1,25 @@
 import {LobbyContext} from "../LobbyContext.tsx";
 import {useContext, useEffect} from "react";
 import {requestLeaveLobby, requestStartGame, userId} from "../utils/socketService.ts";
-import {NavigateFunction, useNavigate} from "react-router-dom";
-import {Lobby} from "../../../shared/sharedTypes.ts";
+import {useNavigate} from "react-router-dom";
+import {Page, redirection} from "../App.tsx";
 import './LobbyView.css';
 import CrownIcon from '../pages/assets/theCrown.png';
 
 
 
-const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
-        } else if (lobby.round > 0) {
-            console.log('navigating to game')
-            navigate("/game", {replace: true});
-        } else if (lobby.round < 0) {
-            navigate("/results", {replace: true})
-        }
-    } else {
-        navigate("/", {replace: true})
-    }
-};
-
 function LobbyView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
     useEffect(() => {
-        redirection(lobby, navigate);
+        redirection(lobby, navigate, Page.Lobby);
     }, [navigate, lobby]);
 
 
     const handleStartGame = () => {
-        redirection(lobby, navigate);
-        // start game
+        redirection(lobby, navigate, Page.Lobby);
+        if(!lobby) return;
         console.log('starting game')
-        if(!lobby) {
-            navigate("/", {replace: true});
-            return;
-        }
         requestStartGame(lobby.code)
     }
     const handleBack = () => {

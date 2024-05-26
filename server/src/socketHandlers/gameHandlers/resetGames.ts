@@ -12,7 +12,6 @@ export async function resetGames(io: Server, pool: Pool ){
     const {data: activeLobbies, error, success} = await processOp(() =>
         dbSelectLobbiesActive(pool)
     );
-    console.log("activeLobbies: ", activeLobbies)
     if (!success) {
         console.error("error selecting activeLobbies playing: " + error);
         return;

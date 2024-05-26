@@ -1,8 +1,16 @@
 
+export enum AudioName {
+    Scary = "Scary",
+    Romantic = "Romantic",
+    Sad = "Sad",
+    Suspense = "Suspense"
+}
+
 export type User = {
     id: string;
     nickname: string;
     lobbyCode: (string | null);
+    ready: boolean;
 };
 
 export type Lobby = {
@@ -38,6 +46,7 @@ export enum StoryElementType{
     Empty = 'empty',
     Text = 'text',
     Image = 'image',
+    Drawing = 'drawing',
     Audio = 'audio'
 }
 
@@ -91,7 +100,6 @@ export enum ErrorType {
     DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED = "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED",
     DB_ERROR_UPDATE_LOBBY_ROUND = "DB_ERROR_UPDATE_LOBBY_ROUND",
 
-    DB_ERROR_DELETE_USER = "DB_ERROR_DELETE_USER",
     DB_ERROR_DELETE_LOBBY = "DB_ERROR_DELETE_LOBBY",
     DB_ERROR_DELETE_STORIES = "DB_ERROR_DELETE_STORIES",
     DB_ERROR_BEGIN = "DB_ERROR_BEGIN",
@@ -99,7 +107,6 @@ export enum ErrorType {
     DB_ERROR_ROLLBACK = "DB_ERROR_ROLLBACK",
     DB_ERROR_SELECT_LOBBY_COUNT = "DB_ERROR_SELECT_LOBBY_COUNT",
     DB_ERROR_SELECT_LOBBIES_PLAYING = "DB_ERROR_SELECT_LOBBIES_PLAYING",
-    DB_ERROR_SELECT_STORIES = "DB_ERROR_SELECT_STORIES",
     DB_ERROR_SELECT_USERS_COUNT = "DB_ERROR_SELECT_USERS_COUNT",
     DB_ERROR_SELECT_LOBBY_CURRENT_PART = "DB_ERROR_SELECT_LOBBY_CURRENT_PART",
     DB_ERROR_UPDATE_LOBBY_CURRENT_PART = "DB_ERROR_UPDATE_LOBBY_CURRENT_PART",
@@ -108,6 +115,13 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBIES = "DB_ERROR_SELECT_LOBBIES",
     DB_ERROR_DELETE_LOBBIES = "DB_ERROR_DELETE_LOBBIES",
     DB_ERROR_DELETE_USERS = "DB_ERROR_DELETE_USERS",
+    DB_ERROR_SELECT_USER_READY = "DB_ERROR_SELECT_USER_READY",
+    DB_ERROR_UPDATE_USER_READY = "DB_ERROR_UPDATE_USER_READY",
+    USER_NOT_SUBMITTED = "USER_NOT_SUBMITTED",
+    DB_ERROR_UPSERTLETE_STORY_ELEMENTS = "DB_ERROR_UPSERTLETE_STORY_ELEMENTS",
+    DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
+    NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
+    DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -115,13 +129,13 @@ export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promi
     if (res.error) {
         switch (res.error.logLevel) {
             case LogLevel.Information:
-                console.info(res.error.error);
+                console.info(res.error.type, res.error.error);
                 break
             case LogLevel.Warning:
-                console.warn(res.error.error);
+                console.warn(res.error.type, res.error.error);
                 break;
             case LogLevel.Error:
-                console.error(res.error.error);
+                console.error(res.error.type, res.error.error);
                 break;
         }
     }

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
-const socket = io('http://localhost:4000');
+const socket = io('http://localhost:1234');
 
 export const userId = localStorage.getItem('userId')
     || (() => {
@@ -88,9 +88,15 @@ export const offUsersSubmitted = () => {
 }
 
 export const onStoryAtPart = (callback: ({story, userIndex} : {story: Story, userIndex: number}) => void) => {
+    // log content of elements
+
     socket.on('story at part', ({story, userIndex}) => {
         callback({story, userIndex});
     });
+}
+
+export const offStoryAtPart = () => {
+    socket.off('story at part');
 }
 
 export const onPart = (callback: (userIndex: number) => void) => {
@@ -99,8 +105,8 @@ export const onPart = (callback: (userIndex: number) => void) => {
     });
 }
 
-export const offStories = () => {
-    socket.off('stories');
+export const offPart = () => {
+    socket.off('part');
 }
 
 export const onEndGame = (callback: () => void) => {
@@ -148,7 +154,11 @@ export const requestLeaveLobby = (lobbyCode: string) => {
     socket.emit('leave lobby', userId, lobbyCode);
 }
 
-export const sendStoryElements = (lobbyCode: string, elements: StoryElement[]) => {
-    socket.emit('story elements', userId, lobbyCode, elements);
+export const submitStoryElements = (lobbyCode: string, elements: StoryElement[]) => {
+    socket.emit('submit story elements', userId, lobbyCode, elements);
+}
+
+export const unsubmitStoryElements = (lobbyCode: string) => {
+    socket.emit('unsubmit story elements', userId, lobbyCode);
 }
 

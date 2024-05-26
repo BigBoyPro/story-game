@@ -1,28 +1,17 @@
 import React, {useContext, useEffect, useState} from "react";
-import {requestCreateLobby, requestJoinLobby, userId} from "../utils/socketService.ts";
+import {requestCreateLobby, requestJoinLobby} from "../utils/socketService.ts";
 import logo from '../assets/logo.svg';
-import {NavigateFunction, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
-import {Lobby} from "../../../shared/sharedTypes.ts";
+import {Page, redirection} from "../App.tsx";
 
-
-const redirection = (lobby: null | Lobby, navigate: NavigateFunction) => {
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
-            navigate("/lobby", {replace: true});
-        } else if (lobby.round > 0) {
-            navigate("/game", {replace: true});
-        } else if (lobby.round < 0) {
-            navigate("/results", {replace: true});
-        }
-    }
-};
 
 function JoinView() {
-    const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    const lobby = useContext(LobbyContext);
+
     useEffect(() => {
-        redirection(lobby, navigate);
+        redirection(lobby, navigate, Page.Join);
     }, [lobby, navigate]);
 
     const [nickname, setNickname] = useState('');
@@ -30,7 +19,7 @@ function JoinView() {
 
     const handleSubmit = (event : React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        redirection(lobby, navigate);
+        redirection(lobby, navigate, Page.Join);
 
         if (lobbyCode && lobbyCode.length > 0) {
             // join existing lobby
@@ -72,7 +61,7 @@ function JoinView() {
                   </div>
               </div>
       </>
-  );
+    );
 }
 
 export default JoinView;
