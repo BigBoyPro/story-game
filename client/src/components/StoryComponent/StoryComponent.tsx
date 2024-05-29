@@ -42,7 +42,7 @@ function StoryComponent({
 
     const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
     const [audio, setAudio] = useState<AudioName>(AudioName.Scary);
-    const [selectedElementIndex, setSelectedElementIndex] = useState<number|null>(null);
+    const [selectedElementIndex, setSelectedElementIndex] = useState<number | null>(null);
 
     const drawingActionsRef = useRef<DrawingAction[]>([]);
 
@@ -88,7 +88,7 @@ function StoryComponent({
     }
 
     const createStoryElement = (index: number, type: StoryElementType, content: string) => {
-        if(!lobby) return;
+        if (!lobby) return;
         return {
             index: index,
             userId: userId,
@@ -101,7 +101,7 @@ function StoryComponent({
 
     const addStoryElement = (type: StoryElementType, content: string) => {
         const newElement = createStoryElement(storyElements.length, type, content);
-        if(newElement) setStoryElements([...storyElements, newElement]);
+        if (newElement) setStoryElements([...storyElements, newElement]);
     }
 
     const updateElement = (index: number, type: StoryElementType, content: string) => {
@@ -117,7 +117,7 @@ function StoryComponent({
         if (!lobby || !file) return;
         const fileURL = await uploadImage(file);
         if (!fileURL) return;
-        if(selectedElementIndex !== null) {
+        if (selectedElementIndex !== null) {
             updateElement(selectedElementIndex, StoryElementType.Image, fileURL);
             setSelectedElementIndex(null);
         } else {
@@ -128,7 +128,7 @@ function StoryComponent({
     const AddDrawingElement = () => {
         if (!lobby) return;
         setIsDrawing(false);
-        if(selectedElementIndex !== null) {
+        if (selectedElementIndex !== null) {
             updateElement(selectedElementIndex, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
             setSelectedElementIndex(null);
         } else {
@@ -222,7 +222,8 @@ function StoryComponent({
                                 <>
                                     <div className="side-button-container">
                                         <button onClick={handleElementAdd}>+</button>
-                                        <input type="file" ref={inputRef} accept="image/*" hidden={true} onAbort={handleAddElementAbort}
+                                        <input type="file" ref={inputRef} accept="image/*" hidden={true}
+                                               onAbort={handleAddElementAbort}
                                                onChange={
                                                    async event => {
                                                        const file = event.target.files ? event.target.files[0] : undefined;
@@ -268,8 +269,11 @@ function StoryComponent({
 
                 </>
                 :
-                <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
-                                  onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}/>
+                <div className="story-element">
+
+                    <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
+                                      onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}/>
+                </div>
             }
         </div>
     )

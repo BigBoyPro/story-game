@@ -533,41 +533,6 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
 
 }
 
-export const dbSelectLobbies = async (db: (Pool | PoolClient), lobbyCodes: string[]): Promise<OpResult<Lobby[]>> => {
-    try {
-        const res = await db.query(`SELECT *
-                                    FROM lobbies
-                                    WHERE code = ANY($1)`, [lobbyCodes]);
-        const data = res.rows;
-        const lobbies : Lobby[] = [];
-        for (const lobby of data) {
-            const usersRes = await dbSelectUsersInLobby(db, lobby.code);
-            if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
-            lobbies.push({
-                code: lobby.code,
-                hostUserId: lobby.host_user_id,
-                round: lobby.round,
-                usersSubmitted: lobby.users_submitted,
-                roundStartAt: lobby.round_start_at ? new Date(lobby.round_start_at) : null,
-                roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
-                users: usersRes.data,
-                currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
-            });
-        }
-        return {success: true, data: lobbies};
-    } catch (error) {
-        return {
-            success: false,
-            error: {
-                type: ErrorType.DB_ERROR_SELECT_LOBBIES,
-                logLevel: LogLevel.Error,
-                error: error
-            }
-        };
-    }
-}
-
 
 export const dbLockRowLobby = async (db: PoolClient, lobbyCode: string): Promise<OpResult<null>> => {
     try {
