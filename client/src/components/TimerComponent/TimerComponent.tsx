@@ -1,69 +1,50 @@
-import { useState, useEffect } from "react";
 
-const SECOND = 1000;
-const MINUTE = SECOND * 60;
-const HOUR = MINUTE * 60;
-const DAY = HOUR * 24;
+import  { useEffect, useState } from 'react';
+import './TimerComponent.css';
 
-type Timestamp = {
-  days: number,
-  hours: number,
-  minutes: number,
-  seconds: number
-}
-
-
-const getTimestamp = (time : number) : Timestamp => {
-  if(time < 0) return {days: 0, hours: 0, minutes: 0, seconds: 0};
-  return {
-    days: Math.floor(time / DAY),
-    hours: Math.floor((time / HOUR) % 24),
-    minutes: Math.floor((time / MINUTE) % 60),
-    seconds: Math.floor((time / SECOND) % 60)
-  }
-}
-
-const pad = (number: number): string => number.toString().padStart(2, '0');
-
-function TimerComponent({start, end} : {start : Date, end : Date}) {
-
-
-  const [duration,setDuration] = useState(getTimestamp(end.getTime() - start.getTime()))
-  const [timer, setTimer] = useState(getTimestamp(end.getTime() - Date.now()))
-
+function TimerComponent({ start, end }: { start: Date, end: Date }) {
+  const [date, setDate] = useState(new Date());
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-
-      const now = Date.now();
-      const newTime = end.getTime() - now
-      if(start.getTime() > now){
-        setTimer(duration)
-      } else if(newTime >= 0) {
-        setTimer(getTimestamp(newTime))
-      } else {
-        clearInterval(intervalId);
-      }
-    }, SECOND);
-
-    return () => {
-      clearInterval(intervalId);
+    const timerID = setInterval(() => tick(), 1000);
+    return function cleanup() {
+      clearInterval(timerID);
     };
-  }, [end]);
+  });
 
-  useEffect(() => {
-    const newDuration = end.getTime() - start.getTime();
-    if(newDuration >= 0){
-      setDuration(getTimestamp(newDuration))
-    }
-    if(start.getTime() > Date.now()){
-      setTimer(duration)
-    }
-  }, [start,end])
+  const tick = () => {
+    setDate(new Date());
+  };
 
+  const secondsStyle = {
+    transform: `rotate(${date.getSeconds() * 6}deg)`
+  };
+
+  const minutesStyle = {
+    transform: `rotate(${date.getMinutes() * 6}deg)`
+  };
+
+  const hoursStyle = {
+    transform: `rotate(${date.getHours() * 30}deg)`
+  };
+  const calculateStrokeDashoffset = () => {
+    const totalSeconds = (end.getTime() - start.getTime()) / 1000;
+    const remainingSeconds = (end.getTime() - Date.now()) / 1000;
+    const percentage = remainingSeconds / totalSeconds;
+    return 282.6 * (1 - percentage);
+  };
 
   return (
-      <b>{pad(timer.minutes)}:{pad(timer.seconds)}/{pad(duration.minutes)}:{pad(duration.seconds)}</b>
+      <div className="clock">
+        <svg className="clock-svg">
+          <circle className="clock-circle" cx="50" cy="50" r="45" />
+          <circle className="clock-timer" cx="50" cy="50" r="45" style={{ strokeDashoffset: calculateStrokeDashoffset() }} />
+        </svg>
+        <div className="hand hour-hand" style={hoursStyle} />
+        <div className="hand minute-hand" style={minutesStyle} />
+        <div className="hand second-hand" style={secondsStyle} />
+        <div className="dot" />
+      </div>
   );
 }
 
