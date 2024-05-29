@@ -653,11 +653,12 @@ const isElementType = (tool: Tool): tool is ElementType => tool in ElementType;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function DrawingComponent({initialActions = [], isEditable, onActionsChange, onSave}: {
+function DrawingComponent({initialActions = [], isEditable, onActionsChange, onSave, onCancel}: {
     initialActions?: DrawingAction[],
     isEditable: boolean,
     onActionsChange?: (newActions: DrawingAction[]) => void,
     onSave?: () => void
+    onCancel?: () => void
 }) {
 
     const nextIdRef = useRef(0);
@@ -1298,8 +1299,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                     <div className={"colors-container"}>
                         {colors.map((c, index) => {
                             return (
-                                <>
-
                                     <button key={index} style={{
                                         backgroundColor: c,
                                         boxShadow: selectedColor === index ? '0 0 0 0.1rem #3C78D8, 0 0 0 0.1rem #3C78D8' : '0 0 0 0.1rem #000, 0 0 0 0.1rem #fff'
@@ -1308,7 +1307,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                             onClick={() => {
                                                 setSelectedColor(index)
                                             }}/>
-                                </>
                             );
                         })}
                         <button ref={colorPickerButtonRef} className={"color-button"}
@@ -1359,7 +1357,11 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         <button onClick={undo}>Undo</button>
                         <button onClick={redo}>Redo</button>
                     </div>
+                    <div>
+                    <button onClick={onCancel}>Cancel</button>
                     <button onClick={onSave}>Save Drawing</button>
+                    </div>
+
                 </>
             }
         </div>

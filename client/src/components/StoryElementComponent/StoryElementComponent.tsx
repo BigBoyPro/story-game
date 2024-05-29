@@ -1,7 +1,16 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 
-const StoryElementComponent = ({element, isEditable, onElementChange, onElementDelete, onElementEdit, isLast = false, onUp, onDown}: {
+const StoryElementComponent = ({
+                                   element,
+                                   isEditable,
+                                   onElementChange,
+                                   onElementDelete,
+                                   onElementEdit,
+                                   isLast = false,
+                                   onUp,
+                                   onDown
+                               }: {
     element: StoryElement,
     isEditable: boolean,
     isLast?: boolean,
@@ -23,8 +32,20 @@ const StoryElementComponent = ({element, isEditable, onElementChange, onElementD
             case StoryElementType.Empty:
                 return <div/>;
             case StoryElementType.Text:
-                return <textarea value={element.content} readOnly={!isEditable}
-                                 onChange={(e) => handleContentChange(e.target.value)}/>;
+                if (isEditable) {
+                    return <textarea value={element.content} onChange={(e) => handleContentChange(e.target.value)}/>;
+                } else {
+                    const synth = window.speechSynthesis;
+                    const u = new SpeechSynthesisUtterance(element.content);
+                    const speak = () => {
+                        synth.speak(u);
+                    }
+                    return <div>
+                        <button onClick={speak}>Speak</button>
+                        <p>{element.content}</p>
+                    </div>
+
+                }
             case StoryElementType.Image:
                 return <img src={element.content} alt="Story element" width="250"/>;
             case StoryElementType.Drawing:
@@ -46,10 +67,10 @@ const StoryElementComponent = ({element, isEditable, onElementChange, onElementD
             }
             {isEditable && onElementDelete && <button onClick={() => onElementDelete()}>Delete</button>}
             <div>
-                { isEditable && onUp && element.index !== 0 &&
+                {isEditable && onUp && element.index !== 0 &&
                     <button onClick={onUp}>Up</button>
                 }
-                { isEditable && onDown && !isLast &&
+                {isEditable && onDown && !isLast &&
                     <button onClick={onDown}>Down</button>
                 }
             </div>
