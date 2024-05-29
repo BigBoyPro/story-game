@@ -88,7 +88,7 @@ function GameView() {
               </div>
 
               <div className="game-box">
-                  <h2>Round : {lobby?.round}/{lobby?.users.length}</h2>
+                  <h1>Round : {lobby?.round}/{lobby?.users.length}</h1>
                   {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                   {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
                   { story && <StoryComponent key={story.id} story={story} isEditable={true}

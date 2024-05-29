@@ -1,8 +1,12 @@
 .drawing-page{
+    z-index: 2;
     flex: 1;
     display: flex;
     flex-direction: column;
     background-color: white;
+    width: 60vw;
+    height: 60vh;
+    overflow: auto;
 
 }
 
@@ -11,7 +15,8 @@
     display: flex;
     border: 1px solid black;
 /*    aspect ratio of 16:9   */
-    width: 100%;
+/*    width: 100vw;*/
+
     aspect-ratio: 16/9;
 }
 
@@ -20,4 +25,8 @@ canvas{
     height: 100%;
     background: white;
     touch-action: none;
+}
+
+.tools-container{
+    z-index: 3;
 }

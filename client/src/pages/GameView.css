@@ -8,34 +8,20 @@
     background-size: cover;
     background-position: center;
 }
-
 .game-box {
     position: relative;
-    top: -40px;
+    /*top: -2.5rem;*/
     z-index: 1;
     padding: 5rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    background-color: rgba(31, 79, 140, 0.6);
+    align-items: start;
+    background-color: rgba(169, 110, 45, 0.4);
     width: auto;
-    height: auto;
+    min-height: auto;
     border-radius: 0.8rem;
+    overflow: auto;
 }
-.side-bar {
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    background-color: transparent;
-    width: max-content;
-    /*box-shadow: #282c3455 0 0 1rem 0.1rem;*/
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
 .video-background {
     position: fixed;
     right: 0;
@@ -55,7 +41,22 @@
     width: 100vw;
     height: 100vh;
 }
-
+h2{
+    color: #eac3c3;
+}
+.side-bar {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    background-color: transparent;
+    width: max-content;
+    /*box-shadow: #282c3455 0 0 1rem 0.1rem;*/
+    position: absolute;
+    top: 0;
+    right: 0;
+}
 .user-box{
     z-index: 1;
     background-color: white;
@@ -63,24 +64,6 @@
     font-weight: bold;
     border-radius: 0.8rem;
     width: 10rem;
-}
-.crown-icon-small {
-    display: inline-block;
-    width: 2vw;
-    height: auto;
-    vertical-align: middle;
-    margin-right: 0.5vw;
-}
-
-.user-name {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 10.8%;
-    height: 10%;
-    font-weight: bold;
-    font-color: white;
-    background-color: rgba(19, 99, 129, 0.84);
 }
 .current-user-bar{
     z-index: 1;
@@ -101,4 +84,11 @@
     font-weight: bold;
     border-radius: 0.8rem;
     width: 10rem;
+}
+.crown-icon-small {
+    display: inline-block;
+    width: 2vw;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 0.5vw;
 }
