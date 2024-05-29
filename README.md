@@ -7,9 +7,9 @@
 
 Vous devez installer `nodejs` depuis le site officiel: https://nodejs.org/en/download/current
 
-Vous devez lancer le `install client` et le `install server` en haut a droite pour que le code fonctionne 
+Vous devez lancer le `install client` et le `install server` en haut à droite pour que le code fonctionne 
 (que pour les utilisateurs de `IntelliJ IDEA` ou `WebStorm`).  
-Sinon si ca ne fonctionne pas, vous pouvez aussi lancer les commandes suivantes:
+Sinon si ça ne fonctionne pas, vous pouvez aussi lancer les commandes suivantes:
     
     cd client 
     npm install
@@ -19,15 +19,15 @@ Sinon si ca ne fonctionne pas, vous pouvez aussi lancer les commandes suivantes:
 
 
 ### Pour lancer le client:
-Vous pouvez lancer le client en cliquant sur `client dev` en haut a droite.  
-Sinon vous pouvez aussi lancer le client avec la commande suivante:
+Vous pouvez lancer le client en cliquant sur `client dev` en haut à droite.  
+Sinon, vous pouvez aussi lancer le client avec la commande suivante:
 
     cd client
     npm run dev
 
 ### Pour lancer le serveur:
-Vous pouvez lancer le serveur en cliquant sur `server dev` en haut a droite.
-Sinon vous pouvez aussi lancer le serveur avec la commande suivante:
+Vous pouvez lancer le serveur en cliquant sur `server dev` en haut à droite.
+Sinon, vous pouvez aussi lancer le serveur avec la commande suivante:
 
     cd server
     npm run dev
@@ -36,14 +36,14 @@ Sinon vous pouvez aussi lancer le serveur avec la commande suivante:
 
 
 ### Pour acceder a la base de donnees:
-J'ai utilise `Supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne,
+J'ai utilisé `Supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne,
 pour y acceder, vous pouvez `creer un compte` sur le site suivant: https://supabase.com/dashboard/sign-in.  
-Puis donner moi votre `mail` pour que je puisse vous inviter dans l'organisation `BIGSHELL`, pour que vous puissiez acceder a la base de donnees `story`.  
+Puis donnez-moi votre `mail` pour que je puisse vous inviter dans l'organisation `BIGSHELL`, pour que vous puissiez acceder a la base de donnees `story`.  
 
 
-Moi j'utilise l'UI du [site de supabase](https://supabase.com/dashboard/project/nhldzevrwuqvytdltqgi/editor) pour creer les tables et tout...  
-Mais si vous voulez utiliser autre chose, pour avoir `l'URL de Connection` a la la base de donnees cliquer sur la bdd `story` pour aller sur le [Dashboard](https://supabase.com/dashboard/project/nhldzevrwuqvytdltqgi), 
-puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donner les differentes URL de connection.
+Moi, j'utilise l'UI du [site de supabase](https://supabase.com/dashboard/project/nhldzevrwuqvytdltqgi/editor) pour creer les tables et tout...  
+Mais si vous voulez utiliser autre chose, pour avoir `l'URL de Connection` a la base de donnees cliquer sur la bdd `story` pour aller sur le [Dashboard](https://supabase.com/dashboard/project/nhldzevrwuqvytdltqgi), 
+puis en haut à droite de la page, vous avez un bouton `Connect` qui va vous donner les differentes URL de connection.
 
 
 
@@ -70,12 +70,12 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 - [x] ~~Ajouter la fonction de dessiner des images pour les `story elements` `DARYL`~~
 - [ ] Ajouter les parametres du lobby: 
   - [ ] Voir toute l'histoire d'avant ou ne voir que le dernier `story element` ou les `story elements` du dernier utilisateur
-  - [ ] Choisir le nombre de `story elements` par `story` le nombre de texte, d'images et d'audio
+  - [ ] Choisir le nombre de `story elements` par `story` le nombre de textes, d'images et d'audio
   - [ ] Configurer le timer (Ajouter le mode Dynamic)
-  - [ ] Commencer l'histoire en choisissant le nom de l'histoire et les differents presonnages avec leurs descriptions et le theme
+  - [ ] Commencer l'histoire en choisissant le nom de l'histoire et les differents personages avec leurs descriptions et le theme
 
 - [ ] Ajouter des modes de jeu
-  - [ ] Ajouter un mode `Solo` pour le joueurs qui veulent juste creer des histoires
+  - [ ] Ajouter un mode `Solo` pour les joueurs qui veulent juste creer des histoires
   
 - [ ] Ajouter les liens d'invite
 
@@ -85,7 +85,7 @@ puis en haut a droite de la page vous avez un bouton `Connect` qui vas vous donn
 
 - [ ] Ajouter le text to speech pour les `story elements` et plusieurs voix
 
-- [ ] Ajouter la fonction de Partager l'histoire sur les reseaux sociaux
+- [ ] Ajouter la fonction de Partager l'histoire sur les réseaux sociaux
 - [ ] Ajouter un systeme de vote pour le `MVP` de l'histoire
 - [ ] Ajouter un systeme de vote pour la meilleure `story`
 

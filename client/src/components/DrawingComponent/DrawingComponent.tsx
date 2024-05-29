@@ -810,6 +810,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     useEffect(() => {
         window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mouseup', handleMouseUp);
 
         // Clean up the event listener when the component unmounts
         return () => {
@@ -862,10 +863,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isEditable || !canvasRef.current) return;
-        // reset the color picker if we didn't click on its parent
-        if (colorPickerContainerRef.current && colorPickerButtonRef.current && !colorPickerContainerRef.current.contains(event.target as Node) && !colorPickerButtonRef.current.contains(event.target as Node)) {
-            setShowColorPicker(false);
-        }
+
 
 
         const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
@@ -1031,9 +1029,12 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (event: MouseEvent) => {
         if (!isEditable || !canvasRef.current) return;
-
+        // reset the color picker if we didn't click on its parent
+        if (colorPickerContainerRef.current && colorPickerButtonRef.current && !colorPickerContainerRef.current.contains(event.target as Node) && !colorPickerButtonRef.current.contains(event.target as Node)) {
+            setShowColorPicker(false);
+        }
         if (!canvasRef.current) return;
         if (selection) {
             const index = selection.element.index;
