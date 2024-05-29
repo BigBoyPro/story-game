@@ -75,21 +75,38 @@ function GameView() {
         <div className="game-page">
             <div className={"video-background-container"}>
 
+                <video autoPlay loop muted className={"video-background"}>
+                    <source src="../GameVideo.mp4" type="video/mp4" />
+                </video>
 
-              <video autoPlay loop muted className={"video-background"}>
-                  <source src="../GameVideo.mp4" type="video/mp4" />
-              </video>
+                <div className="side-bar">
+                    <h2>Players</h2>
+                    {lobby?.users && lobby.users.map(user =>
+                        <div key={user.id} className="user-box">
+                            {(lobby?.hostUserId === user.id) && <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small" />}
+                            {user.nickname}
+                        </div>
+                    )}
+                </div>
 
-              <div className="current-user-bar">
-                  <h2>Current user</h2>
-                  <div className={"current-user"}>
-                      {user?.nickname}
-                  </div>
-              </div>
+                <div className="current-user-bar">
+                    <h2>Current user</h2>
+                    <div className={"current-user"}>
+                        {user?.nickname}
+                    </div>
+                </div>
 
-              <div className="game-box">
-                  <h1>Round : {lobby?.round}/{lobby?.users.length}</h1>
-                  {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
+                <div className={"round-box"}>
+                    <h2>Round :</h2>
+                    <div className={"round"}>{lobby?.round}/{lobby?.users.length}</div>
+                </div>
+
+                <div className={"timer-box"}>
+                    <h2>Timer :</h2>
+                    {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
+                </div>
+
+                <div className="game-box">
                   {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
                   { story && <StoryComponent key={story.id} story={story} isEditable={true}
                                     initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
@@ -98,16 +115,6 @@ function GameView() {
                                     onCancel={handleCancelStoryElements}
                     />
                 }
-              </div>
-
-              <div className="side-bar">
-                  <h2>Players</h2>
-                  {lobby?.users && lobby.users.map(user =>
-                      <div key={user.id} className="user-box">
-                          {(lobby?.hostUserId === user.id) && <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small" />}
-                          {user.nickname}
-                      </div>
-                  )}
               </div>
           </div>
       </div>

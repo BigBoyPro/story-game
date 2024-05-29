@@ -44,6 +44,15 @@
 h2{
     color: #eac3c3;
 }
+.crown-icon-small {
+    display: inline-block;
+    width: 2vw;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 0.5vw;
+}
+
+
 .side-bar {
     z-index: 1;
     display: flex;
@@ -51,19 +60,23 @@ h2{
     padding: 1rem;
     gap: 1rem;
     background-color: transparent;
-    width: max-content;
-    /*box-shadow: #282c3455 0 0 1rem 0.1rem;*/
+    width:15rem;
     position: absolute;
     top: 0;
     right: 0;
+    align-items: center;
 }
-.user-box{
+.user-box, .current-user, .round{
     z-index: 1;
     background-color: white;
     padding: 1rem;
     font-weight: bold;
     border-radius: 0.8rem;
     width: 10rem;
+    height: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .current-user-bar{
     z-index: 1;
@@ -72,23 +85,36 @@ h2{
     padding: 1rem;
     gap: 1rem;
     background-color: transparent;
-    width: max-content;
+    width:15rem;
     position: absolute;
     top: 0;
-    left: 0;
+    left:0;
+    align-items: center;
 }
-.current-user{
+
+.round-box{
     z-index: 1;
-    background-color: #fdfdfd;
+    display: flex;
+    flex-direction: column;
     padding: 1rem;
-    font-weight: bold;
-    border-radius: 0.8rem;
-    width: 10rem;
+    gap: 1rem;
+    background-color: transparent;
+    width:15rem;
+    position: absolute;
+    top: 0;
+    right: 15rem;
+    align-items: center;
 }
-.crown-icon-small {
-    display: inline-block;
-    width: 2vw;
-    height: auto;
-    vertical-align: middle;
-    margin-right: 0.5vw;
+.timer-box{
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    background-color: transparent;
+    width:15rem;
+    position: absolute;
+    top: 0;
+    left:15rem;
+    align-items: center;
 }
