@@ -623,7 +623,7 @@ const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D
             }
             break;
         default:
-            throw new Error(`Type not recognised`);
+            break;
     }
 };
 
