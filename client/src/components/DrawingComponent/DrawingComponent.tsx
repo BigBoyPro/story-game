@@ -5,7 +5,6 @@ import {RoughCanvas} from "roughjs/bin/canvas";
 import getStroke from "perfect-freehand";
 import {ChromePicker} from "react-color";
 import "./DrawingComponent.css"
-
 //----------------------------------------------------------------------------------------------------------------------
 
 const generator = rough.generator();
@@ -810,11 +809,12 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     useEffect(() => {
         window.addEventListener('mouseup', handleMouseUp);
-        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mousemove', handleMouseMove);
 
         // Clean up the event listener when the component unmounts
         return () => {
             window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousemove', handleMouseMove);
         };
 
     }, [
@@ -863,9 +863,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isEditable || !canvasRef.current) return;
-
-
-
         const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
             x: event.clientX,
             y: event.clientY
@@ -940,7 +937,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 //--------------------------------------------------------------------------------------------------------------------
 
-    const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const handleMouseMove = (event: MouseEvent) => {
         if (!isEditable || !canvasRef.current) return;
         const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
             x: event.clientX,
@@ -1023,9 +1020,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             }
         }
     }
-
-//----------------------------------------------------------------------------------------------------------------------
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1151,17 +1145,14 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 //----------------------------------------------------------------------------------------------------------------------
 
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
     const handleWritingEnd = () => {
         textAreaRef.current?.removeEventListener("blur", handleWritingEnd)
 
-        if (canvasRef.current && selection && selection.element.type === ElementType.Text && selection.element.point) {
+        if (canvasRef.current && selection && selection.element.type === ElementType.Text && textAreaRef.current) {
+            const rect = textAreaRef.current.getBoundingClientRect();
             const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
-                x: selection.element.point.x,
-                y: selection.element.point.y
+                x: rect.left,
+                y: rect.top
             }, canvasSize.width, canvasSize.height)
             const updatedElement = updateTextElement(selection.element, {
                 x: clientX,
@@ -1177,7 +1168,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         setState(State.None);
         setSelection(null);
     };
-
 
     const handleShowColorPicker = () => {
         setShowColorPicker(false);
@@ -1275,7 +1265,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                     ref={textAreaRef}
                                     autoFocus={true}
                                     style={{
-                                        position: 'fixed',
+                                        position: 'absolute',
                                         left: `${selection.element.point.x}px`,
                                         top: `${selection.element.point.y}px`,
                                         fontSize: '2.4rem',
@@ -1346,8 +1336,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             <div className={"canvas-container"}>
                 <canvas ref={canvasRef}
                         id="canvas"
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}>
+                        onMouseDown={handleMouseDown}>
                     Canvas
                 </canvas>
 

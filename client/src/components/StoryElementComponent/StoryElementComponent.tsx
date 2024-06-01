@@ -32,18 +32,19 @@ const StoryElementComponent = ({
             case StoryElementType.Empty:
                 return <div/>;
             case StoryElementType.Text:
+                const textArea = <textarea value={element.content} onChange={(e) => handleContentChange(e.target.value)} disabled={!isEditable}/>;
                 if (isEditable) {
-                    return <textarea value={element.content} onChange={(e) => handleContentChange(e.target.value)}/>;
+                    return textArea;
                 } else {
                     const synth = window.speechSynthesis;
                     const u = new SpeechSynthesisUtterance(element.content);
                     const speak = () => {
                         synth.speak(u);
                     }
-                    return <div>
+                    return <>
+                        {textArea}
                         <button onClick={speak}>Speak</button>
-                        <p>{element.content}</p>
-                    </div>
+                    </>
 
                 }
             case StoryElementType.Image:
