@@ -20,6 +20,7 @@ function ResultsView() {
     const lobby = useContext(LobbyContext);
     const [story, setStory] = useState<Story | null>(null);
     const [userIndex, setUserIndex] = useState<number>(0);
+    const [isPlaying, setIsPlaying] = useState(true);
     useEffect(() => {
         redirection(lobby, navigate, Page.Results);
 
@@ -72,12 +73,15 @@ function ResultsView() {
                 <h2>Results</h2>
                 <div className="story-box">
                     <h3>{story.name}</h3>
-                    <StoryComponent key={story.id} story={story} isEditable={false} shownUserIndex={userIndex}/>
+                    <StoryComponent key={story.id} story={story} isEditable={false} shownUserIndex={userIndex}
+                                    onPlayingEnd={() => setIsPlaying(false)}
+                    />
                 </div>
-                { (story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
+                { !isPlaying &&
+                    ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
                     <button onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
                     :
-                    <button onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>
+                    <button onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>)
                 }
             </div>
           }

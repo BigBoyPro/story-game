@@ -5,6 +5,8 @@ import {RoughCanvas} from "roughjs/bin/canvas";
 import getStroke from "perfect-freehand";
 import {ChromePicker} from "react-color";
 import "./DrawingComponent.css"
+
+
 //----------------------------------------------------------------------------------------------------------------------
 
 const generator = rough.generator();
@@ -685,7 +687,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
     const [fill, setFill] = useState<boolean>(false);
     const [selectedColor, setSelectedColor] = useState<number>(0);
 
-    // initial colors : black, gray, silver, white, maroon, red, purple, fuchsia, green, lime, teal, aqua, navy, blue, olive, yellow
     const initialColors = [
         '#000000', '#808080', '#C0C0C0', '#FFFFFF',
         '#F2E72B', '#F69B24', '#DC3624', '#C42D41',
@@ -794,7 +795,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                     canvas.style.cursor = "crosshair";
                     break;
                 case ElementType.Eraser:
-                    canvas.style.cursor = 'grabbing';
+                    canvas.style.cursor = 'url(./cursors/eraser.cur), auto'
                     break;
                 case ElementType.Text:
                     canvas.style.cursor = 'text';
@@ -805,6 +806,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             }
         }
     }, [tool, state]);
+
+
 
 
     useEffect(() => {
@@ -1023,18 +1026,12 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseUp = () => {
         if (!isEditable || !canvasRef.current) return;
-        // reset the color picker if we didn't click on its parent
-        if (colorPickerContainerRef.current && colorPickerButtonRef.current && !colorPickerContainerRef.current.contains(event.target as Node) && !colorPickerButtonRef.current.contains(event.target as Node)) {
-            setShowColorPicker(false);
-        }
         if (!canvasRef.current) return;
         if (selection) {
             const index = selection.element.index;
             const element = drawnElements[index];
-
-
             if ((state === State.Drawing || state === State.Resizing) && (element.type === ElementType.Line || element.type == ElementType.Rectangle)) {
                 const newCoordinates = adjustShapeElementCoordinates(element);
                 const updatedElement = updateShapeElement(element, newCoordinates, canvasSize.height, canvasSize.width);
@@ -1169,8 +1166,17 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         setSelection(null);
     };
 
+    const resetColorPicker = (event: MouseEvent) => {
+        // reset the color picker if we didn't click on its parent
+        if (colorPickerContainerRef.current && colorPickerButtonRef.current && !colorPickerContainerRef.current.contains(event.target as Node) && !colorPickerButtonRef.current.contains(event.target as Node)) {
+            setShowColorPicker(false);
+            window.removeEventListener('mousedown', resetColorPicker)
+        }
+    };
+
     const handleShowColorPicker = () => {
         setShowColorPicker(false);
+        window.removeEventListener('mousedown', resetColorPicker)
 
         // add new color to the color array
         setSelectedColor(colors.length);
@@ -1179,6 +1185,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         setSelectedColor(colors.length);
         setTimeout(() => {
             setShowColorPicker(true);
+
+            window.addEventListener('mousedown', resetColorPicker)
         }, 10);
     };
 

@@ -1,11 +1,12 @@
-import React, {forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
+import React, {createRef, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
 import "./StoryComponent.css"
 import {AudioName, Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
-import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
+import StoryUserComponent, {StoryUserComponentHandles} from "../StoryUserComponent/StoryUserComponent.tsx";
 import {uploadImage} from "../../utils/imageAPI.ts";
 import DrawingComponent, {DrawingAction} from "../DrawingComponent/DrawingComponent.tsx";
+import {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
 
 const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = true) => {
     let storyUserIdArray = elements.map((element) => element.userId)
@@ -17,7 +18,7 @@ const getStoryElementsForEachUser = (elements: StoryElement[], getCurrentUser = 
 };
 
 export interface StoryComponentHandles {
-    forceSave: () => StoryElement[] ;
+    forceSave: () => StoryElement[];
 }
 
 const StoryComponent = forwardRef(
@@ -28,7 +29,8 @@ const StoryComponent = forwardRef(
                                 onNewStoryElementsChange,
                                 onSave,
                                 onCancel,
-                                shownUserIndex
+                                shownUserIndex,
+                                onPlayingEnd
                             }: {
         story: Story,
         initialNewStoryElements?: StoryElement[],
@@ -37,7 +39,21 @@ const StoryComponent = forwardRef(
         onSave?: () => void,
         onCancel?: () => void,
         shownUserIndex?: number,
+        onPlayingEnd?: () => void
     }, ref: React.Ref<StoryComponentHandles>) {
+        useImperativeHandle(ref, () => ({
+            forceSave,
+        }));
+
+        const forceSave = (): StoryElement[] => {
+            const newStoryElements = [...storyElements];
+            if (isDrawing && selectedElementIndex === null) {
+                const drawingElement = createStoryElement(newStoryElements.length, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+                if (drawingElement) newStoryElements.push(drawingElement);
+            }
+            return newStoryElements;
+        }
+
         const lobby = useContext(LobbyContext);
         const [storyElements, setStoryElements] = useState<StoryElement[]>(initialNewStoryElements);
 
@@ -49,26 +65,25 @@ const StoryComponent = forwardRef(
         const [audio, setAudio] = useState<AudioName>(AudioName.Scary);
         const [selectedElementIndex, setSelectedElementIndex] = useState<number | null>(null);
 
+        const [autoPlay, setAutoPlay] = useState(false);
+        const [tts, setTTS] = useState(true);
+        const [isPlaying, setIsPlaying] = useState(false);
+        const [canPlay, setCanPlay] = useState(true);
+
         const drawingActionsRef = useRef<DrawingAction[]>([]);
 
         const inputRef = useRef<HTMLInputElement>(null);
+
+        const storyUserElementComponentRefs = useRef<StoryUserComponentHandles[]>([]);
+        useEffect(() => {
+            storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
+        }, [story]);
 
         onNewStoryElementsChange && useEffect(() => {
             onNewStoryElementsChange(storyElements);
         }, [storyElements]);
 
-        useImperativeHandle(ref, () => ({
-            forceSave,
-        }));
 
-        const forceSave = () : StoryElement[] => {
-            const newStoryElements = [...storyElements];
-            if (isDrawing && selectedElementIndex === null) {
-                const drawingElement = createStoryElement(newStoryElements.length, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
-                if (drawingElement) newStoryElements.push(drawingElement);
-            }
-            return newStoryElements;
-        }
         const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
             drawingActionsRef.current = newActions;
         };
@@ -103,7 +118,7 @@ const StoryComponent = forwardRef(
             }
         }
 
-        const createStoryElement = (index: number, type: StoryElementType, content: string) : StoryElement|undefined => {
+        const createStoryElement = (index: number, type: StoryElementType, content: string): StoryElement | undefined => {
             if (!lobby) return;
             return {
                 index: index,
@@ -225,9 +240,50 @@ const StoryComponent = forwardRef(
             <div className="story-page">
                 {!isEditable || hasSubmitted || !isDrawing ?
                     <>
-                        {getStoryElementsForEachUser(story.elements, !isEditable).map((elements, index) =>
-                            <StoryUserComponent key={index} elements={elements} isEditable={false}
-                                                isHidden={shownUserIndex !== undefined ? (index > shownUserIndex) : false}/>
+                        <div>
+                            <label htmlFor="autoPlay">Auto Play</label>
+                            <input type="checkbox" checked={autoPlay}
+                                   onChange={(event) => setAutoPlay(event.target.checked)}/>
+                        </div>
+                        <div>
+                            <label htmlFor="tts">TTS</label>
+                            <input type="checkbox" checked={tts}
+                                   onChange={(event) => setTTS(event.target.checked)}/>
+                        </div>
+                        {getStoryElementsForEachUser(story.elements, !isEditable).map((elements, index, array) => {
+                                return (<>
+                                    <StoryUserComponent ref={(el) => {
+                                        if (storyUserElementComponentRefs.current[index] !== el && el) {
+                                            storyUserElementComponentRefs.current[index] = el;
+                                            if (autoPlay && index === array.length - 1) el.play(tts, true);
+                                        }
+                                    }}
+                                                        key={index} elements={elements} isEditable={false}
+                                                        isHidden={shownUserIndex !== undefined ? (index > shownUserIndex) : false}
+                                                        onPlayingEnd={(isLast) => {
+                                                            if (index === array.length - 1) {
+                                                                setCanPlay(!isLast)
+                                                                if (isLast){
+                                                                    onPlayingEnd && onPlayingEnd();
+                                                                }
+                                                                setIsPlaying(false);
+                                                            }
+                                                        }}
+                                    />
+                                    {!autoPlay && index === array.length - 1 && canPlay &&
+                                        (!isPlaying ?
+                                                <button
+                                                    onClick={() => {
+                                                        setIsPlaying(true);
+                                                        storyUserElementComponentRefs.current[index]?.play(tts,false);
+                                                    }}>Play</button>
+                                                :
+                                                <button disabled={true}>...</button>
+                                        )
+                                    }
+                                </>)
+                                    ;
+                            }
                         )}
                         {/* new element for the current user*/}
                         {isEditable &&
@@ -295,7 +351,8 @@ const StoryComponent = forwardRef(
                     <div className="story-element">
 
                         <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
-                                          onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement} onCancel={handleCancelDrawing}/>
+                                          onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}
+                                          onCancel={handleCancelDrawing}/>
                     </div>
                 }
             </div>
