@@ -1,15 +1,16 @@
+import {inactiveUsersHandler} from "./socketHandlers/inactiveUsersHandler";
+import {Server} from 'socket.io';
+import {resetGames} from "./socketHandlers/gameHandlers/resetGames";
+import {setupSocketHandlers} from "./socketHandlers/socketService";
+import http from "http";
+import express from "express";
+import cors from "cors";
+import {Pool} from "pg";
+
 (async function() {
     while (true) {
         try {
-            const http = require('http');
-            const express = require('express');
-            const cors = require('cors');
-            const {Server} = require('socket.io');
-            const {Pool} = require('pg');
 
-            const {setupSocketHandlers} = require('./socketHandlers/socketService');
-            const {inactiveUsersHandler} = require("./socketHandlers/inactiveUsersHandler");
-            const {resetGames} = require("./socketHandlers/gameHandlers/resetGames");
 
             const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
 
