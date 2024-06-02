@@ -41,7 +41,7 @@ async function startServer(io: Server, pool: Pool) {
 
     setupSocketHandlers(io, pool);
 
-    server.listen(1234, () => {
+    server.listen(1234,'0.0.0.0', () => {
         console.log("Server is running on port 1234");
     });
     console.log('Server listening');
