@@ -551,7 +551,14 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: usersRes.data,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: {
+                    nbOfPlayers: data[0].nb_Of_Players,
+                    seePrevStory: data[0].see_prev_story,
+                    nbOfElements: data[0].nb_of_Elements,
+                    dynamicTimer: data[0].dynamic_timer,
+                    roundTime: data[0].round_time
+                }
             });
         }
         return {success: true, data: lobbies};
@@ -891,9 +898,13 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
 export const dbUpdateLobbySettings = async (db: (Pool | PoolClient), lobbyCode: string, lobbySettings: LobbySettings): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET lobbySettings = $1,
-                        WHERE code = $2, [lobbySettings, lobbyCode]`);
-        return {success: true}
+                        SET nb_of_players = $1,
+                            see_prev_story = $2,
+                            nb_of_elements = $3,
+                            dynamic_timer = $4,
+                            round_time = $5
+                        WHERE code = $6`, [lobbySettings.nbOfPlayers, lobbySettings.seePrevStory, lobbySettings.nbOfElements, lobbySettings.dynamicTimer, lobbySettings.roundTime, lobbyCode]);
+        return {success: true};
     } catch (error) {
         return {
             success: false,

@@ -1,6 +1,15 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp, TimerSetting, User} from "../../../../shared/sharedTypes";
+import {
+    ErrorType,
+    Lobby,
+    LobbySettings,
+    LogLevel,
+    OpResult,
+    processOp,
+    TimerSetting,
+    User
+} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {
     dbInsertLobby,
@@ -11,6 +20,14 @@ import {
     dbUpsertUser
 } from "../../db";
 import {ROUND_MILLISECONDS} from "../gameHandlers/roundHandler";
+
+const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
+    nbOfPlayers: 8,
+    seePrevStory: false,
+    nbOfElements: null,
+    dynamicTimer: TimerSetting.NORMAL,
+    roundTime: ROUND_MILLISECONDS
+}
 
 export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nickname: string) => {
     console.log("user " + userId + " sent create lobby request");
@@ -58,11 +75,7 @@ export const createLobby = (pool: Pool, userId: string, nickname: string): Promi
             currentStoryIndex: null,
             currentUserIndex: null,
             //
-            lobbySettings: {
-                seePrevStory: false,
-                nbOfElements: null,
-                dynamicTimer: TimerSetting.NORMAL,
-                roundTime: ROUND_MILLISECONDS }
+            lobbySettings: DEFAULT_LOBBY_SETTINGS
         };
         ({success, error} = await dbInsertLobby(client, lobby));
         if (!success) return {success, error};
