@@ -1,6 +1,6 @@
 import http from 'http';
 import express from 'express';
-import cors from 'cors';
+// import cors from 'cors';
 import {Server} from 'socket.io';
 import {Pool} from 'pg';
 
@@ -29,14 +29,15 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
-app.use(cors());
+// app.use(cors());
 
-const io = new Server(server, {
-    cors: {
-        origin: "*", // replace with your client's origin
-        methods: ["GET", "POST"]
-    }
-});
+const io = new Server(server)
+//     , {
+//     cors: {
+//         origin: "*", // replace with your client's origin
+//         methods: ["GET", "POST"]
+//     }
+// });
 
 async function startServer(io: Server, pool: Pool) {
     await resetGames(io, pool);
