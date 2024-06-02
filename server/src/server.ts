@@ -53,7 +53,7 @@ async function startServer(io: Server, pool: Pool) {
 
     setupSocketHandlers(io, pool);
 
-    server.listen( parseInt(PORT),HOST,() => {
+    server.listen( parseInt(PORT),() => {
         console.log("Server is running on port " + PORT + "!");
     });
     console.log('Server listening');
