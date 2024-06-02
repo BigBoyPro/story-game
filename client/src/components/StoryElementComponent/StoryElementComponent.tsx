@@ -1,6 +1,7 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 import React, {forwardRef, useImperativeHandle, useState} from "react";
+import LanguageDetect from "languagedetect";
 
 export interface StoryElementComponentHandles {
     play: (tts: boolean) => void;
@@ -53,6 +54,8 @@ const StoryElementComponent = forwardRef(
 
         const [isPlaying, setIsPlaying] = useState(false);
         const synth = window.speechSynthesis;
+        const languageDetector = new LanguageDetect();
+        languageDetector.setLanguageType('iso2');
 
         const handleSpeak = () => {
             if (isPlaying) {
@@ -63,7 +66,11 @@ const StoryElementComponent = forwardRef(
                     onPlayingEnd && onPlayingEnd();
                 }
             } else {
+
+
+
                 const utterance = new SpeechSynthesisUtterance(element.content);
+                utterance.lang = languageDetector.detect(element.content, 1)[0][0];
                 utterance.onend = () => {
                     onPlayingEnd && onPlayingEnd();
                     setIsPlaying(false);
