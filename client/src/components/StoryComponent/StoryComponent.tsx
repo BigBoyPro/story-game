@@ -240,16 +240,20 @@ const StoryComponent = forwardRef(
             <div className="story-page">
                 {!isEditable || hasSubmitted || !isDrawing ?
                     <>
-                        <div>
-                            <label htmlFor="autoPlay">Auto Play</label>
-                            <input type="checkbox" checked={autoPlay}
-                                   onChange={(event) => setAutoPlay(event.target.checked)}/>
-                        </div>
-                        <div>
-                            <label htmlFor="tts">TTS</label>
-                            <input type="checkbox" checked={tts}
-                                   onChange={(event) => setTTS(event.target.checked)}/>
-                        </div>
+                        {!isEditable &&
+                            <>
+                                <div>
+                                    <label htmlFor="autoPlay">Auto Play</label>
+                                    <input type="checkbox" checked={autoPlay}
+                                           onChange={(event) => setAutoPlay(event.target.checked)}/>
+                                </div>
+                                <div>
+                                    <label htmlFor="tts">TTS</label>
+                                    <input type="checkbox" checked={tts}
+                                           onChange={(event) => setTTS(event.target.checked)}/>
+                                </div>
+                            </>
+                        }
                         {getStoryElementsForEachUser(story.elements, !isEditable).map((elements, index, array) => {
                                 return (<>
                                     <StoryUserComponent ref={(el) => {
@@ -259,23 +263,23 @@ const StoryComponent = forwardRef(
                                         }
                                     }}
                                                         key={index} elements={elements} isEditable={false}
-                                                        isHidden={shownUserIndex !== undefined ? (index > shownUserIndex) : false}
+                                                        isHidden={!isEditable && shownUserIndex !== undefined ? (index > shownUserIndex) : false}
                                                         onPlayingEnd={(isLast) => {
-                                                            if (index === array.length - 1) {
+                                                            if (!isEditable && index === array.length - 1) {
                                                                 setCanPlay(!isLast)
-                                                                if (isLast){
+                                                                if (isLast) {
                                                                     onPlayingEnd && onPlayingEnd();
                                                                 }
                                                                 setIsPlaying(false);
                                                             }
                                                         }}
                                     />
-                                    {!autoPlay && index === array.length - 1 && canPlay &&
+                                    {!isEditable && !autoPlay && index === array.length - 1 && canPlay &&
                                         (!isPlaying ?
                                                 <button
                                                     onClick={() => {
                                                         setIsPlaying(true);
-                                                        storyUserElementComponentRefs.current[index]?.play(tts,false);
+                                                        storyUserElementComponentRefs.current[index]?.play(tts, false);
                                                     }}>Play</button>
                                                 :
                                                 <button disabled={true}>...</button>
