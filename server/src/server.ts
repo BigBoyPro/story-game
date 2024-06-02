@@ -15,7 +15,7 @@ try {
     require('dotenv').config();
 
     const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
-    const PORT = parseInt(process.env.PORT || "4444");
+    const PORT = parseInt(process.env.PORT || "443");
 
     if (!SUPABASE_DATABASE_URL) {
         console.error('SUPABASE_DATABASE_URL is not set');
