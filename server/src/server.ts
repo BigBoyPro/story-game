@@ -33,7 +33,7 @@ app.use(cors());
 
 const io = new Server(server, {
     cors: {
-        origin: "https://story-game.vercel.app/", // replace with your client's origin
+        origin: "*", // replace with your client's origin
         methods: ["GET", "POST"]
     }
 });
