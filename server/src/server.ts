@@ -15,7 +15,6 @@ require('dotenv').config();
 
 const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
 const PORT = parseInt(process.env.PORT || "4444");
-const HOST = process.env.HOST || "0.0.0.0";
 
 
 if (!SUPABASE_DATABASE_URL) {
@@ -43,7 +42,7 @@ async function startServer(io: Server, pool: Pool) {
 
     setupSocketHandlers(io, pool);
 
-    server.listen( PORT,HOST,() => {
+    server.listen( PORT,() => {
         console.log("Server is running on port " + PORT + "!");
     });
     console.log('Server listening');
