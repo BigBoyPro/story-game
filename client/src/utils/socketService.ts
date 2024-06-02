@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 const SERVER_URL = process.env.SERVER_URL || 'https://localhost'
+console.log('connecting to server at', SERVER_URL);
 
 
 const socket = io(SERVER_URL);
