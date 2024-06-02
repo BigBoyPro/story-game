@@ -62,7 +62,7 @@ const StoryUserComponent = forwardRef(
         }
 
         const StoryElementComponentRefs = useRef<StoryElementComponentHandles[]>([]);
-        const [shownElementIndex, setShownElementIndex] = useState(-1);
+        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? -1 : elements.length - 1);
         const handlePlayingEnd = (index: number) => {
             if (!isPlayingRef.current) return;
 
@@ -96,11 +96,11 @@ const StoryUserComponent = forwardRef(
                             <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
                         }
                         {elements.map((element, index) => (
-                            <StoryElementComponent ref={(el) => {
-                                if (StoryElementComponentRefs.current[index] !== el && el)
-                                    StoryElementComponentRefs.current[index] = el;
-                            }}
-                                                   key={index}
+                            <StoryElementComponent key={index}
+                                                   ref={(el) => {
+                                                       if (StoryElementComponentRefs.current[index] !== el && el)
+                                                           StoryElementComponentRefs.current[index] = el;
+                                                   }}
                                                    element={element}
                                                    isHidden={!isEditable && onPlayingEnd && (index > shownElementIndex)}
                                                    isEditable={isEditable}

@@ -16,7 +16,7 @@ function ResultsStoryComponent({
     onPlayingEnd?: () => void
 }) {
 
-    const [autoPlay, setAutoPlay] = useState(false);
+    const [autoPlay, setAutoPlay] = useState(true);
     const [tts, setTTS] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const [canPlay, setCanPlay] = useState(true);
@@ -26,14 +26,18 @@ function ResultsStoryComponent({
         storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
     }, [story]);
 
-    const handlePlayingEnd = (isLast : boolean) => {
-            setCanPlay(!isLast)
-            if (isLast && onPlayingEnd) onPlayingEnd();
-            setIsPlaying(false);
+    useEffect(() => {
+        if (autoPlay && shownUserIndex) setTimeout(() => storyUserElementComponentRefs.current[shownUserIndex].play(tts, true), 1000);
+    }, [shownUserIndex, storyUserElementComponentRefs.current]);
+
+    const handlePlayingEnd = (isLast: boolean) => {
+        setCanPlay(!isLast)
+        if (isLast && onPlayingEnd) onPlayingEnd();
+        setIsPlaying(false);
     };
     const handlePlay = (index: number) => {
         setIsPlaying(true);
-        storyUserElementComponentRefs.current[index]?.play(tts, false);
+        storyUserElementComponentRefs.current[index]?.play(tts, true);
     };
     const handleStop = (index: number) => {
         storyUserElementComponentRefs.current[index]?.stop();
@@ -53,31 +57,34 @@ function ResultsStoryComponent({
                        onChange={(event) => setTTS(event.target.checked)}/>
             </div>
 
-            {getStoryElementsForEachUser(story.elements).map((elements, index, array) => {
+            {getStoryElementsForEachUser(story.elements).map((elements, index) => {
 
 
                 return (
                     <React.Fragment key={index}>
-                        <StoryUserComponent elements={elements}
-                                            isEditable={false}
-                                            ref={(el) => {
-                                                if (storyUserElementComponentRefs.current[index] !== el && el) {
-                                                    storyUserElementComponentRefs.current[index] = el;
-                                                    if (autoPlay && index === array.length - 1) setTimeout(() => el.play(tts, true), 1000);
-                                                }
-                                            }}
-                                            resultsProps={{
-                                                onPlayingEnd: (isLast) => {if (index === array.length - 1) handlePlayingEnd(isLast)},
-                                                isHidden: shownUserIndex !== undefined ? (index > shownUserIndex) : false,
-                                            }}
-                        />
-                        {!autoPlay && index === array.length - 1 && canPlay &&
+                        {index === shownUserIndex && canPlay &&
                             (!isPlaying ?
                                     <button onClick={() => handlePlay(index)}>Play</button>
                                     :
                                     <button onClick={() => handleStop(index)}>Stop</button>
                             )
                         }
+                        <StoryUserComponent key={shownUserIndex}
+                                            elements={elements}
+                                            isEditable={false}
+                                            ref={(el) => {
+                                                if (storyUserElementComponentRefs.current[index] !== el && el) {
+                                                    storyUserElementComponentRefs.current[index] = el;
+                                                    if (autoPlay && index === shownUserIndex) setTimeout(() => el.play(tts, true), 1000);
+                                                }
+                                            }}
+                                            resultsProps={{
+                                                onPlayingEnd: (index === shownUserIndex) ? (isLast) => {
+                                                    handlePlayingEnd(isLast)
+                                                } : undefined,
+                                                isHidden: shownUserIndex !== undefined ? (index > shownUserIndex) : false,
+                                            }}
+                        />
                     </React.Fragment>
                 );
             })}
