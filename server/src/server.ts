@@ -7,7 +7,6 @@ import {Pool} from 'pg';
 import {setupSocketHandlers} from './socketHandlers/socketService';
 import {inactiveUsersHandler} from "./socketHandlers/inactiveUsersHandler";
 import {resetGames} from "./socketHandlers/gameHandlers/resetGames";
-import helmet from 'helmet';
 
 const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
 
@@ -31,16 +30,7 @@ const server = http.createServer(app);
 
 app.use(express.json());
 app.use(cors());
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'none'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'"],
-            // Add any other directives you need
-        },
-    },
-}));
+
 const io = new Server(server, {
     cors: {
         origin: "*", // replace with your client's origin
@@ -53,7 +43,7 @@ async function startServer(io: Server, pool: Pool) {
 
     setupSocketHandlers(io, pool);
 
-    server.listen( parseInt(PORT),() => {
+    server.listen( 80,() => {
         console.log("Server is running on port " + PORT + "!");
     });
     console.log('Server listening');
