@@ -198,7 +198,28 @@ export const dbSelectLobbyCount = async (db: (Pool | PoolClient), lobbyCode: str
     }
 
 }
-
+export const dbSelectLobbyByHost = async (db: (Pool | PoolClient), hostUserId: string): Promise<OpResult<Lobby>> => {
+    try {
+        const res = await db.query(`SELECT *
+                                    FROM lobbies
+                                    WHERE host_user_id = $1`, [hostUserId]);
+        const data = res.rows;
+        if (!data || data.length === 0) {
+            return {success: false};
+        }
+        const lobby = data[0];
+        return {success: true, data: lobby};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_LOBBY_BY_HOST,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+}
 
 export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, lock = false): Promise<OpResult<Lobby>> => {
     try {
@@ -635,13 +656,14 @@ export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Prom
         }
     }
 }
-export const dbUpsertUser = async (db: (Pool | PoolClient), user: User): Promise<OpResult<null>> => {
+export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = false): Promise<OpResult<null>> => {
     try {
         await db.query(`INSERT INTO users (id, nickname, ready, lobby_code)
                         VALUES ($1, $2, $3, $4)
                         ON CONFLICT (id) DO UPDATE SET nickname    = $2,
                                                        ready       = $3,
-                                                       last_active = NOW()`, [user.id, user.nickname, user.ready, user.lobbyCode]);
+                                                       last_active = NOW(),
+                                                           ${lock ? 'FOR UPDATE' : ''}`, [user.id, user.nickname, user.ready, user.lobbyCode]);
         return {success: true};
     } catch (error) {
         return {
