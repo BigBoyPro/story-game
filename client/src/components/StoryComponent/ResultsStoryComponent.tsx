@@ -22,7 +22,6 @@ function ResultsStoryComponent({
     const [canPlay, setCanPlay] = useState(!autoPlay);
 
     const storyUserElementComponentRefs = useRef<StoryUserComponentHandles[]>([]);
-
     useEffect(() => {
         storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
     }, [story]);
