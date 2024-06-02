@@ -29,7 +29,7 @@ try {
 
     app.use(express.json());
     app.use(cors());
-    app.get('/test', (req, res) => {
+    app.get('/test', (_req, res) => {
         res.send('Test route accessed!');
     });
     const io = new Server(server, {
