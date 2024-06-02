@@ -2,7 +2,7 @@ import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "https://localhost";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:443";
 console.log('connecting to server at', SERVER_URL);
 
 
