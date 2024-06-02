@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
-const socket = io('https://story-game-serv.vercel.app:1234');
+const socket = io('https://story-game-server.adaptable.app:80');
 
 export const userId = localStorage.getItem('userId')
     || (() => {
