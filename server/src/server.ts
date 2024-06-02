@@ -25,17 +25,23 @@ const pool = new Pool({
     connectionString: SUPABASE_DATABASE_URL
 });
 const app = express();
+app.get('/test', (req, res) => {
+    res.send('Test route accessed!');
+});
 const server = http.createServer(app);
 
 app.use(express.json());
 app.use(cors());
-
+app.get('/test2', (req, res) => {
+    res.send('Test route accessed!');
+});
 const io = new Server(server, {
     cors: {
         origin: "*", // replace with your client's origin
         methods: ["GET", "POST"]
     }
 });
+
 
 async function startServer(io: Server, pool: Pool) {
     await resetGames(io, pool);
