@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
-const socket = io('https://story-game.adaptable.app');
+const socket = io('https://story-game.adaptable.app:4444');
 
 export const userId = localStorage.getItem('userId')
     || (() => {
@@ -36,7 +36,6 @@ export const onLobbyInfo = (callback: (lobby: (Lobby | null)) => void) => {
 export const offLobbyInfo = () => {
     socket.off('lobby info');
 }
-
 
 export const onLeftLobby = (callback: () => void) => {
     socket.on('left lobby', () => {
