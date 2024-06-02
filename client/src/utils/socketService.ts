@@ -2,11 +2,11 @@ import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
-const SERVER_URL = process.env.SERVER_URL
+const SERVER_URL = process.env.SERVER_URL || "https://story-game.adaptable.app";
 console.log('connecting to server at', SERVER_URL);
 
 
-const socket = io(SERVER_URL || 'https://localhost')
+const socket = io(SERVER_URL)
 
 export const userId = localStorage.getItem('userId')
     || (() => {
