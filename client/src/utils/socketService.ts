@@ -37,6 +37,7 @@ export const offLobbyInfo = () => {
     socket.off('lobby info');
 }
 
+
 export const onLeftLobby = (callback: () => void) => {
     socket.on('left lobby', () => {
         callback();
