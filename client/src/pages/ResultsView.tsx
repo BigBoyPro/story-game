@@ -10,8 +10,8 @@ import {
     offEndGame,
     userId, requestGetStoryAtPart, requestNextPart, onPart, offStoryAtPart, offPart
 } from "../utils/socketService.ts";
-import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 import {Page, redirection} from "../App.tsx";
+import ResultsStoryComponent from "../components/StoryComponent/ResultsStoryComponent.tsx";
 
 
 
@@ -73,7 +73,7 @@ function ResultsView() {
                 <h2>Results</h2>
                 <div className="story-box">
                     <h3>{story.name}</h3>
-                    <StoryComponent key={story.id} story={story} isEditable={false} shownUserIndex={userIndex}
+                    <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
                                     onPlayingEnd={() => setIsPlaying(false)}
                     />
                 </div>

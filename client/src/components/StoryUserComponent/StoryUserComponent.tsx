@@ -6,29 +6,38 @@ import {LobbyContext} from "../../LobbyContext.tsx";
 
 export interface StoryUserComponentHandles {
     play: (tts: boolean, autoPlay: boolean) => void;
+    stop: () => void;
 }
 
 const StoryUserComponent = forwardRef(
     function StoryUserComponent({
                                     elements,
                                     isEditable,
-                                    isHidden = false,
-                                    onElementChange,
-                                    onElementDelete,
-                                    onElementEdit,
-                                    onUp,
-                                    onDown,
-                                    onPlayingEnd
+                                    gameProps: {
+                                        onElementChange,
+                                        onElementDelete,
+                                        onElementEdit,
+                                        onUp,
+                                        onDown
+                                    } = {},
+                                    resultsProps: {
+                                        isHidden,
+                                        onPlayingEnd
+                                    } = {}
                                 }: {
         elements: StoryElement[],
         isEditable: boolean,
-        isHidden?: boolean
-        onElementChange?: (index: number, newElement: StoryElement) => void,
-        onElementDelete?: (index: number) => void,
-        onElementEdit?: (index: number) => void,
-        onUp?: (index: number) => void,
-        onDown?: (index: number) => void,
-        onPlayingEnd?: (isLast: boolean) => void
+        gameProps?: {
+            onElementChange?: (index: number, newElement: StoryElement) => void,
+            onElementDelete?: (index: number) => void,
+            onElementEdit?: (index: number) => void,
+            onUp?: (index: number) => void,
+            onDown?: (index: number) => void
+        },
+        resultsProps?: {
+            isHidden?: boolean
+            onPlayingEnd?: (isLast: boolean) => void
+        }
     }, ref: React.Ref<StoryUserComponentHandles>) {
         const lobby = useContext(LobbyContext);
         const isPlayingRef = useRef(false);
@@ -37,21 +46,25 @@ const StoryUserComponent = forwardRef(
 
         useImperativeHandle(ref, () => ({
             play,
+            stop
         }));
         const play = (tts: boolean, autoPlay: boolean) => {
             autoPlayRef.current = autoPlay;
             ttsRef.current = tts;
-            if(!isPlayingRef.current) {
+            if (!isPlayingRef.current) {
                 isPlayingRef.current = true;
                 StoryElementComponentRefs.current[shownElementIndex + 1]?.play(tts);
                 setShownElementIndex(shownElementIndex + 1);
             }
         }
+        const stop = () => {
+            StoryElementComponentRefs.current[shownElementIndex]?.stop();
+        }
 
         const StoryElementComponentRefs = useRef<StoryElementComponentHandles[]>([]);
         const [shownElementIndex, setShownElementIndex] = useState(-1);
         const handlePlayingEnd = (index: number) => {
-            if(!isPlayingRef.current) return;
+            if (!isPlayingRef.current) return;
 
             if (autoPlayRef.current && index < elements.length - 1) {
                 setTimeout(() => {
@@ -89,7 +102,7 @@ const StoryUserComponent = forwardRef(
                             }}
                                                    key={index}
                                                    element={element}
-                                                   isHidden={!isEditable && shownElementIndex !== -1 && (index > shownElementIndex)}
+                                                   isHidden={!isEditable && onPlayingEnd && (index > shownElementIndex)}
                                                    isEditable={isEditable}
                                                    onElementChange={onElementChange ? (newElement) => onElementChange(index, newElement) : undefined}
                                                    onElementDelete={onElementDelete ? () => onElementDelete(index) : undefined}

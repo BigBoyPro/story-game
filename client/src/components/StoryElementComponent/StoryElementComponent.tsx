@@ -4,6 +4,7 @@ import React, {forwardRef, useImperativeHandle, useState} from "react";
 
 export interface StoryElementComponentHandles {
     play: (tts: boolean) => void;
+    stop: () => void;
 }
 
 const StoryElementComponent = forwardRef(
@@ -32,15 +33,19 @@ const StoryElementComponent = forwardRef(
     }, ref: React.Ref<StoryElementComponentHandles>) {
         useImperativeHandle(ref, () => ({
             play,
+            stop
         }));
-
-
         const play = (tts: boolean) => {
             if (element.type === StoryElementType.Text && tts) {
                 handleSpeak();
             } else {
                 onPlayingEnd && onPlayingEnd();
             }
+        }
+        const stop = () => {
+
+            synth.cancel();
+            setIsPlaying(false);
         }
 
         const [isPlaying, setIsPlaying] = useState(false);
