@@ -9,7 +9,7 @@ import {Lobby, OpResult, processOp} from "../../../shared/sharedTypes";
 import {Server} from "socket.io";
 import {broadcastLobbyInfo} from "./socketService";
 
-const INACTIVE_USER_SECONDS = 60 * 60;
+const INACTIVE_USER_SECONDS = 15 * 60 * 60;
 
 export const inactiveUsersHandler = async (io: Server, pool: Pool) => {
     console.log("checking for inactive users");
