@@ -37,7 +37,7 @@ const StoryElementComponent = forwardRef(
             stop
         }));
         const play = (tts: boolean) => {
-            if (element.type === StoryElementType.Text && tts) {
+            if (element.type === StoryElementType.Text && tts && element.content.length > 0) {
                 handleSpeak();
             } else {
                 onPlayingEnd && onPlayingEnd();
@@ -70,7 +70,10 @@ const StoryElementComponent = forwardRef(
                 const utterance = new SpeechSynthesisUtterance(element.content);
                 const languageDetector = new LanguageDetect();
                 languageDetector.setLanguageType('iso2');
-                if(element.content.length > 0)  utterance.lang = languageDetector.detect(element.content, 1)[0][0];
+                if(element.content.length > 0) {
+                    const lang = languageDetector.detect(element.content, 1)[0]?.[0]
+                    if(lang) utterance.lang = lang;
+                }
                 utterance.onend = () => {
                     onPlayingEnd && onPlayingEnd();
                     setIsPlaying(false);
