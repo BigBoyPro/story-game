@@ -43,9 +43,12 @@ const StoryElementComponent = forwardRef(
             }
         }
         const stop = () => {
-
             synth.cancel();
             setIsPlaying(false);
+            if (!synth.speaking) {
+                // If not, manually call the onend function
+                onPlayingEnd && onPlayingEnd();
+            }
         }
 
         const [isPlaying, setIsPlaying] = useState(false);
@@ -55,6 +58,10 @@ const StoryElementComponent = forwardRef(
             if (isPlaying) {
                 synth.cancel();
                 setIsPlaying(false);
+                if (!synth.speaking) {
+                    // If not, manually call the onend function
+                    onPlayingEnd && onPlayingEnd();
+                }
             } else {
                 const utterance = new SpeechSynthesisUtterance(element.content);
                 utterance.onend = () => {
