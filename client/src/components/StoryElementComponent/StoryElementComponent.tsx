@@ -54,8 +54,6 @@ const StoryElementComponent = forwardRef(
 
         const [isPlaying, setIsPlaying] = useState(false);
         const synth = window.speechSynthesis;
-        const languageDetector = new LanguageDetect();
-        languageDetector.setLanguageType('iso2');
 
         const handleSpeak = () => {
             if (isPlaying) {
@@ -70,7 +68,9 @@ const StoryElementComponent = forwardRef(
 
 
                 const utterance = new SpeechSynthesisUtterance(element.content);
-                utterance.lang = languageDetector.detect(element.content, 1)[0][0];
+                const languageDetector = new LanguageDetect();
+                languageDetector.setLanguageType('iso2');
+                if(element.content.length > 0)  utterance.lang = languageDetector.detect(element.content, 1)[0][0];
                 utterance.onend = () => {
                     onPlayingEnd && onPlayingEnd();
                     setIsPlaying(false);

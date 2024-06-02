@@ -26,10 +26,6 @@ function ResultsStoryComponent({
         storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
     }, [story]);
 
-    useEffect(() => {
-        if (autoPlay && shownUserIndex) setTimeout(() => storyUserElementComponentRefs.current[shownUserIndex].play(tts, true), 1000);
-    }, [shownUserIndex, storyUserElementComponentRefs.current]);
-
     const handlePlayingEnd = (isLast: boolean) => {
         setCanPlay(!isLast)
         if (isLast && onPlayingEnd) onPlayingEnd();
