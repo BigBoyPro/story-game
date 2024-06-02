@@ -2,7 +2,7 @@ import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
-const SERVER_URL = process.env.SERVER_URL || "https://story-game.adaptable.app";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "https://localhost";
 console.log('connecting to server at', SERVER_URL);
 
 
