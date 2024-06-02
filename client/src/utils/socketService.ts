@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {Lobby, OpError, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 
-const socket = io('http://localhost:1234');
+const socket = io('https://story-game.adaptable.app:4444');
 
 export const userId = localStorage.getItem('userId')
     || (() => {
