@@ -89,7 +89,7 @@ const StoryUserComponent = forwardRef(
                             }}
                                                    key={index}
                                                    element={element}
-                                                   isHidden={!isEditable && (index > shownElementIndex)}
+                                                   isHidden={!isEditable && shownElementIndex !== -1 && (index > shownElementIndex)}
                                                    isEditable={isEditable}
                                                    onElementChange={onElementChange ? (newElement) => onElementChange(index, newElement) : undefined}
                                                    onElementDelete={onElementDelete ? () => onElementDelete(index) : undefined}

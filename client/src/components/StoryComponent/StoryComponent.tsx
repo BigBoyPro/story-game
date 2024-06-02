@@ -254,6 +254,7 @@ const StoryComponent = forwardRef(
                                 </div>
                             </>
                         }
+
                         {getStoryElementsForEachUser(story.elements, !isEditable).map((elements, index, array) => {
                                 return (<>
                                     <StoryUserComponent ref={(el) => {
