@@ -658,12 +658,17 @@ export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Prom
 }
 export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = false): Promise<OpResult<null>> => {
     try {
+        // Perform the upsert operation
         await db.query(`INSERT INTO users (id, nickname, ready, lobby_code)
                         VALUES ($1, $2, $3, $4)
                         ON CONFLICT (id) DO UPDATE SET nickname    = $2,
                                                        ready       = $3,
-                                                       last_active = NOW(),
-                                                           ${lock ? 'FOR UPDATE' : ''}`, [user.id, user.nickname, user.ready, user.lobbyCode]);
+                                                       last_active = NOW()`, [user.id, user.nickname, user.ready, user.lobbyCode]);
+        if (lock) {
+            // Lock the row
+            await db.query(`SELECT FROM users WHERE id = $1 FOR UPDATE`, [user.id]);
+        }
+
         return {success: true};
     } catch (error) {
         return {
