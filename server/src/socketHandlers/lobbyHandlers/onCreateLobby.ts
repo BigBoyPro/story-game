@@ -1,8 +1,15 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {Lobby, OpResult, processOp, TimerSetting, User} from "../../../../shared/sharedTypes";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp, TimerSetting, User} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
-import {dbInsertLobby, dbSelectLobbyCount, dbTransaction, dbUpdateUserLobbyCode, dbUpsertUser} from "../../db";
+import {
+    dbInsertLobby,
+    dbSelectLobbyByHost,
+    dbSelectLobbyCount,
+    dbTransaction,
+    dbUpdateUserLobbyCode,
+    dbUpsertUser
+} from "../../db";
 import {ROUND_MILLISECONDS} from "../gameHandlers/roundHandler";
 
 export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nickname: string) => {
@@ -27,8 +34,12 @@ export const createLobby = (pool: Pool, userId: string, nickname: string): Promi
         // upsert user
         const user: User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
 
-        let {success, error} = await dbUpsertUser(client, user);
+        let {success, error} = await dbUpsertUser(client, user, true);
         if (!success) return {success, error};
+
+        let existingLobby;
+        ({success, data: existingLobby, error}  = await dbSelectLobbyByHost(client, userId));
+        if (success && existingLobby) return {success: false, error: { logLevel: LogLevel.Warning, type: ErrorType.USER_ALREADY_IN_LOBBY, error: "User is already in a lobby" }};
 
         // generate unique lobby code
         let lobbyCode;

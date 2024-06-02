@@ -1,18 +1,24 @@
 import './App.css'
 import {useEffect, useState} from "react";
 import {
-    onError, onLobbyInfo, onLeftLobby, requestStory,
-    offError, offLobbyInfo, offLeftLobby, onUsersSubmitted, offUsersSubmitted, userId
+    offError,
+    offLeftLobby,
+    offLobbyInfo,
+    offUsersSubmitted,
+    onError,
+    onLeftLobby,
+    onLobbyInfo,
+    onUsersSubmitted,
+    requestStory,
+    userId
 } from "./utils/socketService.ts";
-import {Lobby} from "../../shared/sharedTypes.ts";
+import {Lobby, LogLevel} from "../../shared/sharedTypes.ts";
 
-import {NavigateFunction, Route} from 'react-router-dom';
+import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
 import LobbyView from "./pages/LobbyView.tsx";
 import JoinView from "./pages/JoinView";
 import {LobbyContext} from "./LobbyContext.tsx";
-
-import { createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
 
@@ -82,6 +88,9 @@ function App() {
 
         onError(error => {
             console.error('Error:', error);
+            if(error.logLevel === LogLevel.Error) {
+                window.location.reload();
+            }
         });
 
         return () => {
