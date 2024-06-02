@@ -61,7 +61,6 @@ function ResultsStoryComponent({
                         <StoryUserComponent elements={elements}
                                             isEditable={false}
                                             ref={(el) => {
-                                                console.log("index: ", index);
                                                 if (storyUserElementComponentRefs.current[index] !== el && el) {
                                                     storyUserElementComponentRefs.current[index] = el;
                                                     if (autoPlay && index === array.length - 1) setTimeout(() => el.play(tts, true), 1000);
