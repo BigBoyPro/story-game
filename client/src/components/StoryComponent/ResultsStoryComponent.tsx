@@ -19,7 +19,7 @@ function ResultsStoryComponent({
     const [autoPlay, setAutoPlay] = useState(true);
     const [tts, setTTS] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [canPlay, setCanPlay] = useState(true);
+    const [canPlay, setCanPlay] = useState(!autoPlay);
 
     const storyUserElementComponentRefs = useRef<StoryUserComponentHandles[]>([]);
     useEffect(() => {
@@ -27,7 +27,7 @@ function ResultsStoryComponent({
     }, [story]);
 
     const handlePlayingEnd = (isLast: boolean) => {
-        setCanPlay(!isLast)
+        setCanPlay(!isLast && !autoPlay)
         if (isLast && onPlayingEnd) onPlayingEnd();
         setIsPlaying(false);
     };
