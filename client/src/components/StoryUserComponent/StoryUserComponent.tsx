@@ -1,4 +1,4 @@
-import {StoryElement} from "../../../../shared/sharedTypes.ts";
+import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import StoryElementComponent, {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
 import React, {forwardRef, useContext, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
@@ -65,6 +65,11 @@ const StoryUserComponent = forwardRef(
             ttsRef.current = tts;
             if (!isPlayingRef.current) {
                 isPlayingRef.current = true;
+                if(elements[shownElementIndex + 1] && elements[shownElementIndex + 1].type === StoryElementType.Audio) {
+                    elements.forEach((element) => {
+                        element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(element.index)?.stop();
+                    });
+                }
                 getStoryElementComponentsMap().get(shownElementIndex + 1)?.play(tts);
                 setShownElementIndex(shownElementIndex + 1);
             }
@@ -77,6 +82,11 @@ const StoryUserComponent = forwardRef(
             if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
                 setShownElementIndex(index + 1);
                 setTimeout(() => {
+                    if(elements[index + 1] && elements[index + 1].type === StoryElementType.Audio) {
+                        elements.forEach((element, index) => {
+                            element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(index)?.stop();
+                        });
+                    }
                     getStoryElementComponentsMap().get(index + 1)?.play(ttsRef.current);
                 }, 500);
             } else {
@@ -99,26 +109,26 @@ const StoryUserComponent = forwardRef(
                         {!isEditable && elements.length > 0 &&
                             <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
                         }
-                        {elements.map((element, index) => (
-                            <StoryElementComponent key={index}
+                        {elements.map((element) => (
+                            <StoryElementComponent key={element.index}
                                                    ref={(node) => {
                                                        const map = getStoryElementComponentsMap();
                                                        if (node) {
-                                                           map.set(index, node);
+                                                           map.set(element.index, node);
                                                        } else {
-                                                           map.delete(index);
+                                                           map.delete(element.index);
                                                        }
                                                    }}
                                                    element={element}
-                                                   isHidden={!isEditable && onPlayingEnd && (index > shownElementIndex)}
+                                                   isHidden={!isEditable && onPlayingEnd && (element.index > shownElementIndex)}
                                                    isEditable={isEditable}
-                                                   onElementChange={onElementChange ? (newElement) => onElementChange(index, newElement) : undefined}
-                                                   onElementDelete={onElementDelete ? () => onElementDelete(index) : undefined}
-                                                   onElementEdit={onElementEdit ? () => onElementEdit(index) : undefined}
-                                                   isLast={index === elements.length - 1}
-                                                   onUp={() => onUp ? onUp(index) : undefined}
-                                                   onDown={() => onDown ? onDown(index) : undefined}
-                                                   onPlayingEnd={() => handlePlayingEnd(index)}/>
+                                                   onElementChange={onElementChange ? (newElement) => onElementChange(element.index, newElement) : undefined}
+                                                   onElementDelete={onElementDelete ? () => onElementDelete(element.index) : undefined}
+                                                   onElementEdit={onElementEdit ? () => onElementEdit(element.index) : undefined}
+                                                   isLast={element.index === elements.length - 1}
+                                                   onUp={() => onUp ? onUp(element.index) : undefined}
+                                                   onDown={() => onDown ? onDown(element.index) : undefined}
+                                                   onPlayingEnd={() => handlePlayingEnd(element.index)}/>
                         ))}
                     </div>
                 }
