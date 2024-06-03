@@ -44,6 +44,8 @@ const StoryUserComponent = forwardRef(
         const autoPlayRef = useRef(false);
         const ttsRef = useRef(false);
 
+
+
         useImperativeHandle(ref, () => ({
             play,
             stop
@@ -52,9 +54,9 @@ const StoryUserComponent = forwardRef(
             autoPlayRef.current = autoPlay;
             ttsRef.current = tts;
             if (!isPlayingRef.current) {
-                isPlayingRef.current = true;
                 StoryElementComponentRefs.current[shownElementIndex + 1]?.play(tts);
                 setShownElementIndex(shownElementIndex + 1);
+                isPlayingRef.current = true;
             }
         }
         const stop = () => {
@@ -64,14 +66,13 @@ const StoryUserComponent = forwardRef(
         const StoryElementComponentRefs = useRef<StoryElementComponentHandles[]>([]);
         const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? -1 : elements.length - 1);
         const handlePlayingEnd = (index: number) => {
-            if (!isPlayingRef.current) return;
-
             if (autoPlayRef.current && index < elements.length - 1) {
                 setTimeout(() => {
                     setShownElementIndex(index + 1);
                     StoryElementComponentRefs.current[index + 1]?.play(ttsRef.current);
                 }, 500);
             } else {
+                autoPlayRef.current = false;
                 isPlayingRef.current = false;
                 onPlayingEnd && onPlayingEnd(index === elements.length - 1);
             }
