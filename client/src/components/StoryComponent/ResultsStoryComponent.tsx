@@ -19,11 +19,10 @@ function ResultsStoryComponent({
     const [tts, setTTS] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const alreadyPlayedRef = useRef(false);
-    const [canPlay, setCanPlay] = useState(!autoPlay);
 
     const storyUserComponentRefs = useRef(new Map<number, StoryUserComponentHandles>());
 
-    const getStoryUserElementComponentsMap = () => {
+    const getStoryUserComponentsMap = () => {
         if (!storyUserComponentRefs.current) {
             // Initialize the Map on first usage.
             storyUserComponentRefs.current = new Map();
@@ -31,17 +30,17 @@ function ResultsStoryComponent({
         return storyUserComponentRefs.current;
     };
 
+
+
     useEffect(() => {
         alreadyPlayedRef.current = false;
         setIsPlaying(false);
-        setCanPlay(!autoPlay);
         if(autoPlay){
             handlePlay(shownUserIndex);
         }
     }, [story, shownUserIndex]);
 
     const handlePlayingEnd = () => {
-        setCanPlay(!autoPlay)
         if(!alreadyPlayedRef.current && onPlayingEnd) onPlayingEnd();
         alreadyPlayedRef.current = true;
         setIsPlaying(false);
@@ -49,12 +48,11 @@ function ResultsStoryComponent({
 
     const handlePlay = (index: number) => {
         setIsPlaying(true);
-        getStoryUserElementComponentsMap().get(index)?.play(tts, true);
+        getStoryUserComponentsMap().get(index)?.play(tts, true);
     };
 
     const handleStop = (index: number) => {
-        getStoryUserElementComponentsMap().get(index)?.stop();
-        setIsPlaying(false);
+        getStoryUserComponentsMap().get(index)?.stop();
     }
 
     return (
@@ -75,7 +73,7 @@ function ResultsStoryComponent({
 
                 return (
                     <React.Fragment key={index}>
-                        {index === shownUserIndex && canPlay &&
+                        {index === shownUserIndex && !autoPlay &&
                             (!isPlaying ?
                                     <button onClick={() => handlePlay(index)}>Play</button>
                                     :
@@ -85,7 +83,7 @@ function ResultsStoryComponent({
                         <StoryUserComponent elements={elements}
                                             isEditable={false}
                                             ref={(node) => {
-                                                const map = getStoryUserElementComponentsMap();
+                                                const map = getStoryUserComponentsMap();
                                                 if (node) {
                                                     map.set(index, node);
                                                 } else {

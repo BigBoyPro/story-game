@@ -46,7 +46,7 @@ const StoryElementComponent = forwardRef(
         }, [isPlaying]);
 
         const play = (tts: boolean) => {
-            if(isPlaying) return;
+            if (isPlaying) return;
 
             if (element.type === StoryElementType.Text && tts && element.content.length > 0) {
                 handleSpeak();
@@ -56,14 +56,18 @@ const StoryElementComponent = forwardRef(
         }
 
         const stop = () => {
-            synthRef.current.cancel();
-            if (!synthRef.current.speaking) {
-                // If not, manually call the onend function
-                if(utterance.current !== null) utterance.current.onend = null;
-                if(isPlayingRef.current) {
-                    setIsPlaying(false);
-                    onPlayingEnd && onPlayingEnd();
+            if (element.type === StoryElementType.Text && element.content.length > 0 && synthRef.current.speaking) {
+                synthRef.current.cancel();
+                if (!synthRef.current.speaking) {
+                    // If not, manually call the onend function
+                    if (utterance.current !== null) utterance.current.onend = null;
+                    if (isPlayingRef.current) {
+                        setIsPlaying(false);
+                        onPlayingEnd && onPlayingEnd();
+                    }
                 }
+            } else {
+                onPlayingEnd && onPlayingEnd();
             }
         }
 
@@ -73,7 +77,8 @@ const StoryElementComponent = forwardRef(
                 synthRef.current.cancel();
                 if (!synthRef.current.speaking) {
                     // If not, manually call the onend function
-                    if(isPlayingRef.current) {
+                    if (utterance.current !== null) utterance.current.onend = null;
+                    if (isPlayingRef.current) {
                         setIsPlaying(false);
                         onPlayingEnd && onPlayingEnd();
                     }
@@ -82,13 +87,13 @@ const StoryElementComponent = forwardRef(
                 utterance.current = new SpeechSynthesisUtterance(element.content);
                 const languageDetector = new LanguageDetect();
                 languageDetector.setLanguageType('iso2');
-                if(element.content.length > 0) {
+                if (element.content.length > 0) {
                     const lang = languageDetector.detect(element.content, 1)[0]?.[0]
-                    if(lang) utterance.current.lang = lang;
+                    if (lang) utterance.current.lang = lang;
                 }
 
                 utterance.current.onend = () => {
-                    if(isPlayingRef.current) {
+                    if (isPlayingRef.current) {
                         setIsPlaying(false);
                         onPlayingEnd && onPlayingEnd();
                     }

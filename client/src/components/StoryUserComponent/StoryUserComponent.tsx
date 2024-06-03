@@ -1,6 +1,6 @@
 import {StoryElement} from "../../../../shared/sharedTypes.ts";
 import StoryElementComponent, {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
-import React, {createRef, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
+import React, {forwardRef, useContext, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 
 
@@ -39,37 +39,46 @@ const StoryUserComponent = forwardRef(
             onPlayingEnd?: () => void
         }
     }, ref: React.Ref<StoryUserComponentHandles>) {
+
         const lobby = useContext(LobbyContext);
         const isPlayingRef = useRef(false);
         const autoPlayRef = useRef(false);
         const ttsRef = useRef(false);
-
-
+        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? -1 : elements.length - 1);
+        const storyElementComponentRefs = useRef(new Map<number, StoryElementComponentHandles>());
 
         useImperativeHandle(ref, () => ({
             play,
             stop
         }));
+
+        const getStoryElementComponentsMap = () => {
+            if (!storyElementComponentRefs.current) {
+                // Initialize the Map on first usage.
+                storyElementComponentRefs.current = new Map();
+            }
+            return storyElementComponentRefs.current;
+        };
+
+
         const play = (tts: boolean, autoPlay: boolean) => {
             autoPlayRef.current = autoPlay;
             ttsRef.current = tts;
             if (!isPlayingRef.current) {
-                StoryElementComponentRefs.current[shownElementIndex + 1]?.play(tts);
-                setShownElementIndex(shownElementIndex + 1);
                 isPlayingRef.current = true;
+                getStoryElementComponentsMap().get(shownElementIndex + 1)?.play(tts);
+                setShownElementIndex(shownElementIndex + 1);
             }
         }
         const stop = () => {
-            StoryElementComponentRefs.current[shownElementIndex]?.stop();
+            getStoryElementComponentsMap().get(shownElementIndex)?.stop();
         }
 
-        const StoryElementComponentRefs = useRef<StoryElementComponentHandles[]>([]);
-        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? - 1 : elements.length - 1);
         const handlePlayingEnd = (index: number) => {
-            if (autoPlayRef.current && index < elements.length - 1) {
+            if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
                 setTimeout(() => {
                     setShownElementIndex(index + 1);
-                    StoryElementComponentRefs.current[index + 1]?.play(ttsRef.current);
+                    getStoryElementComponentsMap().get(index + 1)?.play(ttsRef.current);
                 }, 500);
             } else {
                 autoPlayRef.current = false;
@@ -77,10 +86,6 @@ const StoryUserComponent = forwardRef(
                 onPlayingEnd && onPlayingEnd();
             }
         }
-
-        useEffect(() => {
-            StoryElementComponentRefs.current = elements.map((_, i) => StoryElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
-        }, [elements]);
 
 
         const getUserNameFromId = (userId: string): string => {
@@ -98,9 +103,13 @@ const StoryUserComponent = forwardRef(
                         }
                         {elements.map((element, index) => (
                             <StoryElementComponent key={index}
-                                                   ref={(el) => {
-                                                       if (StoryElementComponentRefs.current[index] !== el && el)
-                                                           StoryElementComponentRefs.current[index] = el;
+                                                   ref={(node) => {
+                                                       const map = getStoryElementComponentsMap();
+                                                       if (node) {
+                                                           map.set(index, node);
+                                                       } else {
+                                                           map.delete(index);
+                                                       }
                                                    }}
                                                    element={element}
                                                    isHidden={!isEditable && onPlayingEnd && (index > shownElementIndex)}
