@@ -1,8 +1,7 @@
-import React, {createRef, useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import "./StoryComponent.css"
 import {Story} from "../../../../shared/sharedTypes.ts";
 import StoryUserComponent, {StoryUserComponentHandles} from "../StoryUserComponent/StoryUserComponent.tsx";
-import {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
 
 
@@ -12,40 +11,49 @@ function ResultsStoryComponent({
                                    onPlayingEnd
                                }: {
     story: Story,
-    shownUserIndex?: number,
-    onPlayingEnd?: () => void
+    shownUserIndex: number,
+    onPlayingEnd: () => void
 }) {
 
     const [autoPlay, setAutoPlay] = useState(true);
-    const [tts, setTTS] = useState(false);
+    const [tts, setTTS] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const alreadyPlayedRef = useRef(false);
     const [canPlay, setCanPlay] = useState(!autoPlay);
 
-    const storyUserElementComponentRefs = useRef<StoryUserComponentHandles[]>([]);
-    useEffect(() => {
-        storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
-    }, [story]);
+    const storyUserComponentRefs = useRef(new Map<number, StoryUserComponentHandles>());
+
+    const getStoryUserElementComponentsMap = () => {
+        if (!storyUserComponentRefs.current) {
+            // Initialize the Map on first usage.
+            storyUserComponentRefs.current = new Map();
+        }
+        return storyUserComponentRefs.current;
+    };
+
     useEffect(() => {
         alreadyPlayedRef.current = false;
         setIsPlaying(false);
         setCanPlay(!autoPlay);
+        if(autoPlay){
+            handlePlay(shownUserIndex);
+        }
     }, [story, shownUserIndex]);
 
-    const handlePlayingEnd = (isLast: boolean) => {
-        setCanPlay(!isLast && !autoPlay)
-        if (isLast) {
-            alreadyPlayedRef.current = true;
-            if (onPlayingEnd) onPlayingEnd();
-        }
+    const handlePlayingEnd = () => {
+        setCanPlay(!autoPlay)
+        if(!alreadyPlayedRef.current && onPlayingEnd) onPlayingEnd();
+        alreadyPlayedRef.current = true;
         setIsPlaying(false);
     };
+
     const handlePlay = (index: number) => {
         setIsPlaying(true);
-        storyUserElementComponentRefs.current[index]?.play(tts, true);
+        getStoryUserElementComponentsMap().get(index)?.play(tts, true);
     };
+
     const handleStop = (index: number) => {
-        storyUserElementComponentRefs.current[index]?.stop();
+        getStoryUserElementComponentsMap().get(index)?.stop();
         setIsPlaying(false);
     }
 
@@ -74,21 +82,19 @@ function ResultsStoryComponent({
                                     <button onClick={() => handleStop(index)}>Stop</button>
                             )
                         }
-                        <StoryUserComponent key={shownUserIndex}
-                                            elements={elements}
+                        <StoryUserComponent elements={elements}
                                             isEditable={false}
-                                            ref={(el) => {
-                                                if (storyUserElementComponentRefs.current[index] !== el && el) {
-                                                    storyUserElementComponentRefs.current[index] = el;
-                                                    if (!alreadyPlayedRef.current && !isPlaying && autoPlay && index === shownUserIndex) {
-                                                        setIsPlaying(true)
-                                                        setTimeout(() => el.play(tts, true), 1000);
-                                                    }
+                                            ref={(node) => {
+                                                const map = getStoryUserElementComponentsMap();
+                                                if (node) {
+                                                    map.set(index, node);
+                                                } else {
+                                                    map.delete(index);
                                                 }
                                             }}
                                             resultsProps={{
-                                                onPlayingEnd: (index === shownUserIndex) ? (isLast) => {
-                                                    handlePlayingEnd(isLast)
+                                                onPlayingEnd: (index === shownUserIndex) ? () => {
+                                                    handlePlayingEnd()
                                                 } : undefined,
                                                 isHidden: shownUserIndex !== undefined ? (index > shownUserIndex) : false,
                                             }}

@@ -36,7 +36,7 @@ const StoryUserComponent = forwardRef(
         },
         resultsProps?: {
             isHidden?: boolean
-            onPlayingEnd?: (isLast: boolean) => void
+            onPlayingEnd?: () => void
         }
     }, ref: React.Ref<StoryUserComponentHandles>) {
         const lobby = useContext(LobbyContext);
@@ -64,7 +64,7 @@ const StoryUserComponent = forwardRef(
         }
 
         const StoryElementComponentRefs = useRef<StoryElementComponentHandles[]>([]);
-        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? -1 : elements.length - 1);
+        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? - 1 : elements.length - 1);
         const handlePlayingEnd = (index: number) => {
             if (autoPlayRef.current && index < elements.length - 1) {
                 setTimeout(() => {
@@ -74,7 +74,7 @@ const StoryUserComponent = forwardRef(
             } else {
                 autoPlayRef.current = false;
                 isPlayingRef.current = false;
-                onPlayingEnd && onPlayingEnd(index === elements.length - 1);
+                onPlayingEnd && onPlayingEnd();
             }
         }
 
