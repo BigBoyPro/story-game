@@ -40,6 +40,7 @@ const StoryElementComponent = forwardRef(
         const isPlayingRef = useRef(isPlaying);
         const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
         const utterance = useRef<SpeechSynthesisUtterance | null>(null);
+        const audioRef = useRef<HTMLAudioElement>(null);
 
         useEffect(() => {
             isPlayingRef.current = isPlaying;
@@ -50,6 +51,10 @@ const StoryElementComponent = forwardRef(
 
             if (element.type === StoryElementType.Text && tts && element.content.length > 0) {
                 handleSpeak();
+            } else if (element.type === StoryElementType.Audio && audioRef.current) {
+                audioRef.current?.play();
+                audioRef.current?.addEventListener('ended', handlePlayingEnd);
+                audioRef.current?.addEventListener('pause', handlePlayingEnd);
             } else {
                 onPlayingEnd && onPlayingEnd();
             }
@@ -66,11 +71,24 @@ const StoryElementComponent = forwardRef(
                         onPlayingEnd && onPlayingEnd();
                     }
                 }
+            } else if (element.type === StoryElementType.Audio && audioRef.current && !audioRef.current.paused) {
+                audioRef.current.pause();
+                audioRef.current.removeEventListener('ended', handlePlayingEnd);
+                audioRef.current.removeEventListener('pause', handlePlayingEnd);
+                audioRef.current.currentTime = 0;
             } else {
                 onPlayingEnd && onPlayingEnd();
             }
         }
 
+
+        const handlePlayingEnd = () => {
+            if (isPlayingRef.current) {
+                setIsPlaying(false);
+                onPlayingEnd && onPlayingEnd();
+            }
+
+        }
 
         const handleSpeak = () => {
             if (isPlaying) {
@@ -133,7 +151,7 @@ const StoryElementComponent = forwardRef(
                     const actions = JSON.parse(element.content)
                     return <DrawingComponent initialActions={actions} isEditable={false}/>;
                 case StoryElementType.Audio:
-                    return <audio controls src={element.content}/>;
+                    return <audio ref={audioRef} controls src={element.content}/>;
                 default:
                     return null;
             }
