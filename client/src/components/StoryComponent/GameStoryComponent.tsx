@@ -21,10 +21,10 @@ const GameStoryComponent = forwardRef(
                                     onCancel,
                                 }: {
         story: Story,
-        initialNewStoryElements?: StoryElement[],
-        onNewStoryElementsChange?: (newNewStoryElements: StoryElement[]) => void,
-        onSave?: () => void,
-        onCancel?: () => void,
+        initialNewStoryElements: StoryElement[],
+        onNewStoryElementsChange: (newNewStoryElements: StoryElement[]) => void,
+        onSave: () => void,
+        onCancel: () => void,
     }, ref: React.Ref<GameStoryComponentHandles>) {
         useImperativeHandle(ref, () => ({
             forceSave,

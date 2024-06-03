@@ -6,6 +6,8 @@ import getStroke from "perfect-freehand";
 import {ChromePicker} from "react-color";
 import "./DrawingComponent.css"
 
+import {DRAW_INITIAL_ACTIONS_MILLISECONDS} from "../StoryElementComponent/StoryElementComponent.tsx";
+
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -13,48 +15,6 @@ const generator = rough.generator();
 
 type Coordinates = { x1: number, y1: number, x2: number, y2: number };
 type Point = { x: number, y: number };
-
-// type ShapeElement = {
-//     index: number;
-//     id: number;
-//     type: "rectangle" | "line" | "ellipse";
-//     color: string;
-//     coordinates: Coordinates;
-//     roughElement?: Drawable;
-//
-//     points?: undefined
-//     size?: undefined;
-//     text?: undefined;
-// };
-//
-// type TextElement = {
-//     index: number;
-//     id: number;
-//     type: "text";
-//     color: string;
-//     coordinates: Coordinates;
-//     text?: string;
-//
-//     roughElement?: undefined;
-//     points?: undefined;
-//     size?: undefined;
-// };
-//
-// type PencilElement = {
-//     index: number;
-//     id: number;
-//     type: "pencil" | "eraser";
-//     color: string;
-//     points: Point[];
-//     size: number;
-//
-//     roughElement?: undefined;
-//     coordinates?: undefined;
-//     text?: undefined;
-// };
-//
-// type Element = PencilElement | ShapeElement | TextElement;
-
 
 type DrawingElement = {
     index: number;
@@ -96,7 +56,6 @@ enum ElementType {
 
 enum AltTool {
     Selection = 6,
-    ColorPicker = 7,
 }
 
 type Tool = ElementType | AltTool;
@@ -442,6 +401,7 @@ const updateElementIndexes = (elements: DrawingElement[]): DrawingElement[] => {
     return elements.map((element, index) => ({...element, index}));
 };
 
+
 const useActions = (initialActions: DrawingAction[], nextIdRef: React.MutableRefObject<number>, isEditable: boolean, onActionsChange: (newActions: DrawingAction[]) => void)
     : [DrawingElement[], (action: DrawingAction, overwrite?: boolean) => void, () => void, () => void, () => void] => {
     const [elements, setElements] = useState<DrawingElement[]>([]);
@@ -481,16 +441,18 @@ const useActions = (initialActions: DrawingAction[], nextIdRef: React.MutableRef
         // push Action one by actions with 1-second delay
         let oldElements: DrawingElement[] = [];
         let oldActions: DrawingAction[] = [];
-        const actionTime = isEditable ? 10 : 100;
+        const totalActions = initialActions.length;
+        const totalDuration = isEditable ? DRAW_INITIAL_ACTIONS_MILLISECONDS / 10 : DRAW_INITIAL_ACTIONS_MILLISECONDS; // Total duration in milliseconds
+
         initialActions.forEach((action, index) => {
             setTimeout(() => {
-                oldElements = handleAction(action, oldElements, oldActions)
+                oldElements = handleAction(action, oldElements, oldActions);
                 setElements(oldElements);
                 nextIdRef.current = Math.max(...oldElements.map(element => element.id)) + 1;
-                action.index = index
+                action.index = index;
                 oldActions = [...oldActions, action];
                 setActions(oldActions);
-            }, index * actionTime);
+            }, (index / totalActions) * totalDuration);
         });
 
     }, [])

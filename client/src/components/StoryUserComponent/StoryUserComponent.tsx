@@ -1,6 +1,6 @@
-import {StoryElement} from "../../../../shared/sharedTypes.ts";
+import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import StoryElementComponent, {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
-import React, {createRef, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
+import React, {forwardRef, useContext, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 
 
@@ -36,52 +36,65 @@ const StoryUserComponent = forwardRef(
         },
         resultsProps?: {
             isHidden?: boolean
-            onPlayingEnd?: (isLast: boolean) => void
+            onPlayingEnd?: () => void
         }
     }, ref: React.Ref<StoryUserComponentHandles>) {
+
         const lobby = useContext(LobbyContext);
         const isPlayingRef = useRef(false);
         const autoPlayRef = useRef(false);
         const ttsRef = useRef(false);
-
-
+        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? -1 : elements.length - 1);
+        const storyElementComponentRefs = useRef(new Map<number, StoryElementComponentHandles>());
 
         useImperativeHandle(ref, () => ({
             play,
             stop
         }));
+
+        const getStoryElementComponentsMap = () => {
+            if (!storyElementComponentRefs.current) {
+                // Initialize the Map on first usage.
+                storyElementComponentRefs.current = new Map();
+            }
+            return storyElementComponentRefs.current;
+        };
+
         const play = (tts: boolean, autoPlay: boolean) => {
             autoPlayRef.current = autoPlay;
             ttsRef.current = tts;
             if (!isPlayingRef.current) {
-                StoryElementComponentRefs.current[shownElementIndex + 1]?.play(tts);
-                setShownElementIndex(shownElementIndex + 1);
                 isPlayingRef.current = true;
+                if(elements[shownElementIndex + 1] && elements[shownElementIndex + 1].type === StoryElementType.Audio) {
+                    elements.forEach((element) => {
+                        element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(element.index)?.stop();
+                    });
+                }
+                getStoryElementComponentsMap().get(shownElementIndex + 1)?.play(tts);
+                setShownElementIndex(shownElementIndex + 1);
             }
         }
         const stop = () => {
-            StoryElementComponentRefs.current[shownElementIndex]?.stop();
+            getStoryElementComponentsMap().get(shownElementIndex)?.stop();
         }
 
-        const StoryElementComponentRefs = useRef<StoryElementComponentHandles[]>([]);
-        const [shownElementIndex, setShownElementIndex] = useState(onPlayingEnd ? -1 : elements.length - 1);
         const handlePlayingEnd = (index: number) => {
-            if (autoPlayRef.current && index < elements.length - 1) {
+            if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
+                setShownElementIndex(index + 1);
                 setTimeout(() => {
-                    setShownElementIndex(index + 1);
-                    StoryElementComponentRefs.current[index + 1]?.play(ttsRef.current);
+                    if(elements[index + 1] && elements[index + 1].type === StoryElementType.Audio) {
+                        elements.forEach((element, index) => {
+                            element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(index)?.stop();
+                        });
+                    }
+                    getStoryElementComponentsMap().get(index + 1)?.play(ttsRef.current);
                 }, 500);
             } else {
                 autoPlayRef.current = false;
                 isPlayingRef.current = false;
-                onPlayingEnd && onPlayingEnd(index === elements.length - 1);
+                onPlayingEnd && onPlayingEnd();
             }
         }
-
-        useEffect(() => {
-            StoryElementComponentRefs.current = elements.map((_, i) => StoryElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
-        }, [elements]);
-
 
         const getUserNameFromId = (userId: string): string => {
             const nickname = lobby?.users.find(user => user.id === userId)?.nickname;
@@ -96,22 +109,26 @@ const StoryUserComponent = forwardRef(
                         {!isEditable && elements.length > 0 &&
                             <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
                         }
-                        {elements.map((element, index) => (
-                            <StoryElementComponent key={index}
-                                                   ref={(el) => {
-                                                       if (StoryElementComponentRefs.current[index] !== el && el)
-                                                           StoryElementComponentRefs.current[index] = el;
+                        {elements.map((element) => (
+                            <StoryElementComponent key={element.index}
+                                                   ref={(node) => {
+                                                       const map = getStoryElementComponentsMap();
+                                                       if (node) {
+                                                           map.set(element.index, node);
+                                                       } else {
+                                                           map.delete(element.index);
+                                                       }
                                                    }}
                                                    element={element}
-                                                   isHidden={!isEditable && onPlayingEnd && (index > shownElementIndex)}
+                                                   isHidden={!isEditable && onPlayingEnd && (element.index > shownElementIndex)}
                                                    isEditable={isEditable}
-                                                   onElementChange={onElementChange ? (newElement) => onElementChange(index, newElement) : undefined}
-                                                   onElementDelete={onElementDelete ? () => onElementDelete(index) : undefined}
-                                                   onElementEdit={onElementEdit ? () => onElementEdit(index) : undefined}
-                                                   isLast={index === elements.length - 1}
-                                                   onUp={() => onUp ? onUp(index) : undefined}
-                                                   onDown={() => onDown ? onDown(index) : undefined}
-                                                   onPlayingEnd={() => handlePlayingEnd(index)}/>
+                                                   onElementChange={onElementChange ? (newElement) => onElementChange(element.index, newElement) : undefined}
+                                                   onElementDelete={onElementDelete ? () => onElementDelete(element.index) : undefined}
+                                                   onElementEdit={onElementEdit ? () => onElementEdit(element.index) : undefined}
+                                                   isLast={element.index === elements.length - 1}
+                                                   onUp={() => onUp ? onUp(element.index) : undefined}
+                                                   onDown={() => onDown ? onDown(element.index) : undefined}
+                                                   onPlayingEnd={() => handlePlayingEnd(element.index)}/>
                         ))}
                     </div>
                 }
