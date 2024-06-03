@@ -10,7 +10,7 @@ import {Pool} from "pg";
 try {
 
 
-    const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
+    const INACTIVE_USERS_CHECK_MILLISECONDS = 30 * 60 * 1000;
 
     require('dotenv').config();
 

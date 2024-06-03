@@ -19,6 +19,7 @@ function ResultsStoryComponent({
     const [autoPlay, setAutoPlay] = useState(true);
     const [tts, setTTS] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
+    const alreadyPlayedRef = useRef(false);
     const [canPlay, setCanPlay] = useState(!autoPlay);
     const [placeImage, setPlaceImage] = useState((story.elements.find(element => element.type === StoryElementType.Place)?.content as PlaceType) || PlaceType.None);
 
@@ -27,10 +28,18 @@ function ResultsStoryComponent({
         storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
         setPlaceImage((story.elements.find(element => element.type === StoryElementType.Place)?.content as PlaceType) || PlaceType.None);
     }, [story]);
+    useEffect(() => {
+        alreadyPlayedRef.current = false;
+        setIsPlaying(false);
+        setCanPlay(!autoPlay);
+    }, [story, shownUserIndex]);
 
     const handlePlayingEnd = (isLast: boolean) => {
         setCanPlay(!isLast && !autoPlay)
-        if (isLast && onPlayingEnd) onPlayingEnd();
+        if (isLast) {
+            alreadyPlayedRef.current = true;
+            if (onPlayingEnd) onPlayingEnd();
+        }
         setIsPlaying(false);
     };
     const handlePlay = (index: number) => {
@@ -79,7 +88,10 @@ function ResultsStoryComponent({
                                             ref={(el) => {
                                                 if (storyUserElementComponentRefs.current[index] !== el && el) {
                                                     storyUserElementComponentRefs.current[index] = el;
-                                                    if (autoPlay && index === shownUserIndex) setTimeout(() => el.play(tts, true), 1000);
+                                                    if (!alreadyPlayedRef.current && !isPlaying && autoPlay && index === shownUserIndex) {
+                                                        setIsPlaying(true)
+                                                        setTimeout(() => el.play(tts, true), 1000);
+                                                    }
                                                 }
                                             }}
                                             resultsProps={{

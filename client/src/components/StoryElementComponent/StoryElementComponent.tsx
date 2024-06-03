@@ -1,6 +1,6 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
-import React, {forwardRef, useImperativeHandle, useState} from "react";
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
 import LanguageDetect from "languagedetect";
 
 export interface StoryElementComponentHandles {
@@ -36,49 +36,64 @@ const StoryElementComponent = forwardRef(
             play,
             stop
         }));
+        const [isPlaying, setIsPlaying] = useState(false);
+        const isPlayingRef = useRef(isPlaying);
+        const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
+        const utterance = useRef<SpeechSynthesisUtterance | null>(null);
+
+        useEffect(() => {
+            isPlayingRef.current = isPlaying;
+        }, [isPlaying]);
+
         const play = (tts: boolean) => {
+            if(isPlaying) return;
+
             if (element.type === StoryElementType.Text && tts && element.content.length > 0) {
                 handleSpeak();
             } else {
                 onPlayingEnd && onPlayingEnd();
             }
         }
+
         const stop = () => {
-            synth.cancel();
-            setIsPlaying(false);
-            if (!synth.speaking) {
+            synthRef.current.cancel();
+            if (!synthRef.current.speaking) {
                 // If not, manually call the onend function
-                onPlayingEnd && onPlayingEnd();
+                if(utterance.current !== null) utterance.current.onend = null;
+                if(isPlayingRef.current) {
+                    setIsPlaying(false);
+                    onPlayingEnd && onPlayingEnd();
+                }
             }
         }
 
-        const [isPlaying, setIsPlaying] = useState(false);
-        const synth = window.speechSynthesis;
 
         const handleSpeak = () => {
             if (isPlaying) {
-                synth.cancel();
-                setIsPlaying(false);
-                if (!synth.speaking) {
+                synthRef.current.cancel();
+                if (!synthRef.current.speaking) {
                     // If not, manually call the onend function
-                    onPlayingEnd && onPlayingEnd();
+                    if(isPlayingRef.current) {
+                        setIsPlaying(false);
+                        onPlayingEnd && onPlayingEnd();
+                    }
                 }
             } else {
-
-
-
-                const utterance = new SpeechSynthesisUtterance(element.content);
+                utterance.current = new SpeechSynthesisUtterance(element.content);
                 const languageDetector = new LanguageDetect();
                 languageDetector.setLanguageType('iso2');
                 if(element.content.length > 0) {
                     const lang = languageDetector.detect(element.content, 1)[0]?.[0]
-                    if(lang) utterance.lang = lang;
+                    if(lang) utterance.current.lang = lang;
                 }
-                utterance.onend = () => {
-                    onPlayingEnd && onPlayingEnd();
-                    setIsPlaying(false);
+
+                utterance.current.onend = () => {
+                    if(isPlayingRef.current) {
+                        setIsPlaying(false);
+                        onPlayingEnd && onPlayingEnd();
+                    }
                 };
-                synth.speak(utterance);
+                synthRef.current.speak(utterance.current);
                 setIsPlaying(true);
             }
         };
