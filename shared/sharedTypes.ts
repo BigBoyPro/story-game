@@ -1,5 +1,18 @@
 
-export enum AudioName {
+
+export enum PlaceType {
+    None = '',
+    Forest = 'forest',
+    Beach = 'beach',
+    ScaryAlley = 'scary_alley',
+    Street = 'street',
+    Bedroom = 'bedroom',
+    HauntedHouse = 'haunted_house',
+    Romantic = 'romantic',
+}
+
+
+export enum AudioType {
     Scary = "Scary",
     Romantic = "Romantic",
     Sad = "Sad",
@@ -93,7 +106,7 @@ export enum ErrorType {
     DB_ERROR_INSERT_STORY_ELEMENTS = "DB_ERROR_INSERT_STORY_ELEMENTS",
     DB_ERROR_INSERT_LOBBY = "DB_ERROR_INSERT_LOBBY",
 
-    DB_ERROR_UPSERT_USER = "DB_ERROR_UPDATE_USER",
+    DB_ERROR_UPSERT_USER = "DB_ERROR_UPSERT_USER",
 
     DB_ERROR_UPDATE_USER_LAST_ACTIVE = "DB_ERROR_UPDATE_USER_LAST_ACTIVE",
     DB_ERROR_UPDATE_USER_LOBBY_CODE = "DB_ERROR_UPDATE_USER_LOBBY_CODE",
@@ -123,6 +136,8 @@ export enum ErrorType {
     DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
     NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
     DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
+    DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
+    USER_ALREADY_IN_LOBBY = "USER_ALREADY_IN_LOBBY",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {

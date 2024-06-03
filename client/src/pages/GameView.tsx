@@ -3,7 +3,6 @@ import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
-import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 import {
     onStory,
     onGetStoryElements,
@@ -13,13 +12,14 @@ import {
 } from "../utils/socketService.ts";
 import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 import {Page, redirection} from "../App.tsx";
-
+import GameStoryComponent, {GameStoryComponentHandles} from "../components/StoryComponent/GameStoryComponent.tsx";
 
 function GameView() {
     const navigate = useNavigate();
     const lobby = useContext(LobbyContext);
     const [story, setStory] = useState<Story | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
+    const storyComponentRef = useRef<GameStoryComponentHandles>(null);
     useEffect(() => {
         redirection(lobby, navigate, Page.Game);
 
@@ -29,7 +29,11 @@ function GameView() {
 
         onGetStoryElements(() => {
             console.log('story elements requested!');
-            handleSaveStoryElements();
+            const e = storyComponentRef.current?.forceSave();
+            if(e && lobby) {
+                console.log('story elements sent!', e);
+                submitStoryElements(lobby.code, e);
+            }
         });
 
         return () => {
@@ -52,6 +56,7 @@ function GameView() {
             return;
         }
         console.log('lobby and story exist');
+        console.log('newStoryElementsRef.current', newStoryElementsRef.current);
         if (newStoryElementsRef.current.length > 0) {
             console.log("sending story elements", newStoryElementsRef.current);
             submitStoryElements(lobby.code, newStoryElementsRef.current);
@@ -76,7 +81,9 @@ function GameView() {
                     <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                 {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
                 {story &&
-                    <StoryComponent key={story.id} story={story} isEditable={true}
+                    <GameStoryComponent key={story.id}
+                                    ref={storyComponentRef}
+                                    story={story}
                                     initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
                                     onNewStoryElementsChange={handleNewStoryElementsChange}
                                     onSave={handleSaveStoryElements}
