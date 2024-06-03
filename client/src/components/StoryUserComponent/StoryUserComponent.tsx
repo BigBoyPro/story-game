@@ -70,6 +70,7 @@ const StoryUserComponent = forwardRef(
                         element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(element.index)?.stop();
                     });
                 }
+                console.log("play", shownElementIndex + 1, elements[shownElementIndex + 1]);
                 getStoryElementComponentsMap().get(shownElementIndex + 1)?.play(tts);
                 setShownElementIndex(shownElementIndex + 1);
             }
@@ -79,6 +80,7 @@ const StoryUserComponent = forwardRef(
         }
 
         const handlePlayingEnd = (index: number) => {
+            console.log("playing end", index, elements[index]);
             if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
                 setShownElementIndex(index + 1);
                 setTimeout(() => {

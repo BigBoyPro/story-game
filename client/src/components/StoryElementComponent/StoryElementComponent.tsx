@@ -44,17 +44,22 @@ const StoryElementComponent = forwardRef(
         const utterance = useRef<SpeechSynthesisUtterance | null>(null);
         const audioRef = useRef<HTMLAudioElement>(null);
         const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+        const shouldPlayOnLoad = useRef(false);
 
         useEffect(() => {
             isPlayingRef.current = isPlaying;
         }, [isPlaying]);
 
         const play = (tts: boolean) => {
+            console.log('play isPlaying', isPlaying, 'isPlayingRef', isPlayingRef.current, 'element', element);
             if (isPlaying) return;
             if (element.type === StoryElementType.Text && tts && element.content.length > 0) {
                 handleSpeak();
-            } else if (element.type === StoryElementType.Audio && audioRef.current) {
+            } else if (element.type === StoryElementType.Audio) {
+                if (audioRef.current) {
+                console.log('playing audio');
                 audioRef.current.play().then(() => {
+                    console.log('audio played');
                     setIsPlaying(true);
                     isPlayingRef.current = true;
                     timeoutRef.current = setTimeout(() => onPlayingEnd && onPlayingEnd(), AUDIO_PLAY_TIMEOUT_MILLISECONDS);
@@ -64,6 +69,10 @@ const StoryElementComponent = forwardRef(
                     }
                     onPlayingEnd && onPlayingEnd();
                 });
+                }else{
+                    shouldPlayOnLoad.current = true;
+                }
+
             } else if (element.type === StoryElementType.Drawing) {
                 setIsPlaying(true);
                 timeoutRef.current = setTimeout(() => {handlePlayingEnd()}, DRAW_INITIAL_ACTIONS_MILLISECONDS + 500);
@@ -158,7 +167,12 @@ const StoryElementComponent = forwardRef(
                     const actions = JSON.parse(element.content)
                     return <DrawingComponent initialActions={actions} isEditable={false}/>;
                 case StoryElementType.Audio:
-                    return <audio ref={audioRef} controls src={element.content} loop/>;
+                    return <audio ref={audioRef} controls  src={element.content} loop
+                                  onLoadedData={() => {
+                                      if (shouldPlayOnLoad.current) {
+                                          play(false);
+                                      }
+                                  }}/>;
                 default:
                     return null;
             }
