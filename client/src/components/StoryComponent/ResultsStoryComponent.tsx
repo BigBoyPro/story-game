@@ -17,7 +17,7 @@ function ResultsStoryComponent({
 }) {
 
     const [autoPlay, setAutoPlay] = useState(true);
-    const [tts, setTTS] = useState(true);
+    const [tts, setTTS] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const alreadyPlayedRef = useRef(false);
     const [canPlay, setCanPlay] = useState(!autoPlay);
