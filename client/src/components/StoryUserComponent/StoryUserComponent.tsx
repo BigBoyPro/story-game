@@ -60,7 +60,6 @@ const StoryUserComponent = forwardRef(
             return storyElementComponentRefs.current;
         };
 
-
         const play = (tts: boolean, autoPlay: boolean) => {
             autoPlayRef.current = autoPlay;
             ttsRef.current = tts;
@@ -76,8 +75,8 @@ const StoryUserComponent = forwardRef(
 
         const handlePlayingEnd = (index: number) => {
             if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
+                setShownElementIndex(index + 1);
                 setTimeout(() => {
-                    setShownElementIndex(index + 1);
                     getStoryElementComponentsMap().get(index + 1)?.play(ttsRef.current);
                 }, 500);
             } else {
@@ -86,7 +85,6 @@ const StoryUserComponent = forwardRef(
                 onPlayingEnd && onPlayingEnd();
             }
         }
-
 
         const getUserNameFromId = (userId: string): string => {
             const nickname = lobby?.users.find(user => user.id === userId)?.nickname;
