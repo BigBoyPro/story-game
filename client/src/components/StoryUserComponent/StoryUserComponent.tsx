@@ -1,4 +1,4 @@
-import {StoryElement} from "../../../../shared/sharedTypes.ts";
+import {PlaceType, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import StoryElementComponent, {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
 import React, {createRef, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
@@ -44,6 +44,12 @@ const StoryUserComponent = forwardRef(
         const autoPlayRef = useRef(false);
         const ttsRef = useRef(false);
 
+        const [placeImage, setPlaceImage] = useState((elements.find(element => element.type === StoryElementType.Place)?.content as PlaceType) || PlaceType.None);
+
+        useEffect(() => {
+            setPlaceImage((elements.find(element => element.type === StoryElementType.Place)?.content as PlaceType) || PlaceType.None);
+        }, [elements]);
+
 
 
         useImperativeHandle(ref, () => ({
@@ -83,6 +89,8 @@ const StoryUserComponent = forwardRef(
         }, [elements]);
 
 
+
+
         const getUserNameFromId = (userId: string): string => {
             const nickname = lobby?.users.find(user => user.id === userId)?.nickname;
             if (nickname)
@@ -92,7 +100,13 @@ const StoryUserComponent = forwardRef(
         return (
             <>
                 {!isHidden &&
-                    <div className="story-element">
+                    <div className="story-element"
+                     style={{
+                        backgroundImage: `url(./places/${placeImage}.png)`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
+                    }}>
                         {!isEditable && elements.length > 0 &&
                             <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
                         }
