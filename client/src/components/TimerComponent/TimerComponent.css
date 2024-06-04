@@ -1,7 +1,7 @@
 .clock {
     width: 100px;
     height: 100px;
-    border: 8px solid #eac3c3;
+    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgb(194, 98, 98) 100%);
     border-radius: 50%;
     position: relative;
 }
@@ -9,7 +9,7 @@
 .hand {
     width: 50%;
     height: 2px;
-    background: #eac3c3;
+    background: #947575;
     position: absolute;
     bottom: 50%;
     transform-origin: right;
@@ -34,7 +34,7 @@
 .dot {
     width: 12px;
     height: 12px;
-    background: #eac3c3;
+    background: #947575;
     border-radius: 50%;
     position: absolute;
     top: 50%;
@@ -51,16 +51,17 @@
 
 .clock-circle {
     fill: none;
-    stroke: #eac3c3;
+    stroke: white;
     stroke-width: 10;
 }
 
 .clock-timer {
     fill: none;
-    stroke: white;
+    stroke: red;
     stroke-width: 10;
-    stroke-dasharray: 282.6; /* 2 * Pi * r (where r is 45) */
+    stroke-dasharray: 282.6;
     stroke-dashoffset: 282.6;
     transform: rotate(-90deg);
     transform-origin: center;
 }
+

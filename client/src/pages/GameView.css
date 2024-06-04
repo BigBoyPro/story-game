@@ -118,15 +118,3 @@ h2{
     left:15rem;
     align-items: center;
 }
-.timer {
-    color: #eac3c3;
-    font-size: 1.5rem;
-    font-weight: bold;
-    background-color: rgba(169, 110, 45, 0.4);
-    padding: 0.5rem;
-    border-radius: 0.8rem;
-    text-align: center;
-    width: auto;
-    min-height: auto;
-    border: 2px solid #eac3c3;
-}

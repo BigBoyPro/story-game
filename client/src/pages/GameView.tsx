@@ -97,12 +97,12 @@ function GameView() {
                 </div>
 
                 <div className={"round-box"}>
-                    <h2>Round :</h2>
+                    <h2>Round</h2>
                     <div className={"round"}>{lobby?.round}/{lobby?.users.length}</div>
                 </div>
 
                 <div className={"timer-box"}>
-                    <h2>Timer :</h2>
+                    <h2>Timer</h2>
                     {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                 </div>
 
