@@ -1,6 +1,6 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {Lobby, OpResult, processOp} from "../../../../shared/sharedTypes";
+import {Lobby, OpResult, processOp, SocketEvent} from "../../../../shared/sharedTypes";
 import {
     dbDeleteLobby,
     dbSelectLobby,
@@ -11,7 +11,7 @@ import {
 } from "../../db";
 import {excludedBroadcastLobbyInfo, leave, sendError, sendLobbyInfo} from "../socketService";
 
-export const onLeaveLobby = async (io: Server, pool: Pool, userId: string, lobbyCode: string) => {
+export const onLeaveLobby = async (event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) => {
     console.log("user " + userId + " sent leave lobby:" + lobbyCode + " request");
 
     // update user last active
@@ -19,7 +19,7 @@ export const onLeaveLobby = async (io: Server, pool: Pool, userId: string, lobby
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     let lobby;
@@ -27,7 +27,7 @@ export const onLeaveLobby = async (io: Server, pool: Pool, userId: string, lobby
         leaveLobby(pool, userId, lobbyCode)
     ))
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 

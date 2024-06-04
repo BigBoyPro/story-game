@@ -1,16 +1,16 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp} from "../../../../shared/sharedTypes";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent} from "../../../../shared/sharedTypes";
 import {dbDeleteAllStories, dbSelectLobby, dbTransaction, dbUpdateLobbyRound, dbUpdateUserLastActive} from "../../db";
 import {broadcastLobbyInfo, sendError} from "../socketService";
 
-export async function onEndGame(io: Server, pool: Pool, userId: string, lobbyCode: string) {
+export async function onEndGame(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
     console.log("user " + userId + " sent end game request");
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
@@ -19,7 +19,7 @@ export async function onEndGame(io: Server, pool: Pool, userId: string, lobbyCod
         endGame(pool, userId, lobbyCode)
     ));
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     broadcastLobbyInfo(io, lobby.code, lobby);

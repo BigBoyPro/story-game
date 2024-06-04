@@ -139,7 +139,7 @@ export const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), storyIndex
 const dbSelectUsersInLobby = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<User[]>> => {
     try {
         const res = await db.query(`SELECT *
-                                    FROM users
+                                    FROM public.users
                                     WHERE lobby_code = $1
                                     ORDER BY created_at`, [lobbyCode]);
         const data = res.rows;
@@ -160,7 +160,7 @@ const dbSelectUsersInLobby = async (db: (Pool | PoolClient), lobbyCode: string):
 export const dbSelectUsersInLobbyCount = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<number>> => {
     try {
         const res = await db.query(`SELECT COUNT(*)
-                                    FROM users
+                                    FROM public.users
                                     WHERE lobby_code = $1`, [lobbyCode]);
         const data = res.rows;
         const count = parseInt(data[0].count);
@@ -380,7 +380,7 @@ export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: s
 export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: number): Promise<OpResult<User[]>> => {
     try {
         const res = await db.query(`SELECT *
-                                    FROM users
+                                    FROM public.users
                                     WHERE NOW() - last_active > INTERVAL '${seconds}' SECOND`);
         const data = res.rows;
         const users : User[] = data.map(row => ({
@@ -406,7 +406,7 @@ export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: nu
 export const dbSelectUserLobbyCode = async (db: (Pool | PoolClient), userId: string): Promise<OpResult<string | null>> => {
     try {
         const res = await db.query(`SELECT lobby_code
-                                    FROM users
+                                    FROM public.users
                                     WHERE id = $1`, [userId]);
         const data = res.rows;
         if (!data || data.length === 0) {
@@ -436,7 +436,7 @@ export const dbSelectUserLobbyCode = async (db: (Pool | PoolClient), userId: str
 export const dbSelectUserReady = async (db: (Pool | PoolClient), userId: string, lock = false): Promise<OpResult<boolean>> => {
     try {
         const res = await db.query(`SELECT ready
-                                    FROM users
+                                    FROM public.users
                                     WHERE id = $1 ${lock ? 'FOR UPDATE' : ''}`, [userId]);
         const data = res.rows;
         if (!data || data.length === 0) {
@@ -659,14 +659,14 @@ export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Prom
 export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = false): Promise<OpResult<null>> => {
     try {
         // Perform the upsert operation
-        await db.query(`INSERT INTO users (id, nickname, ready, lobby_code)
+        await db.query(`INSERT INTO public.users (id, nickname, ready, lobby_code)
                         VALUES ($1, $2, $3, $4)
                         ON CONFLICT (id) DO UPDATE SET nickname    = $2,
                                                        ready       = $3,
                                                        last_active = NOW()`, [user.id, user.nickname, user.ready, user.lobbyCode]);
         if (lock) {
             // Lock the row
-            await db.query(`SELECT FROM users WHERE id = $1 FOR UPDATE`, [user.id]);
+            await db.query(`SELECT FROM public.users WHERE id = $1 FOR UPDATE`, [user.id]);
         }
 
         return {success: true};
@@ -683,7 +683,7 @@ export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = f
 }
 export const dbUpdateUserLastActive = async (db: (Pool | PoolClient), userId: string): Promise<OpResult<null>> => {
     try {
-        await db.query(`UPDATE users
+        await db.query(`UPDATE public.users
                         SET last_active = NOW()
                         WHERE id = $1`, [userId]);
         return {success: true};
@@ -701,11 +701,11 @@ export const dbUpdateUserLastActive = async (db: (Pool | PoolClient), userId: st
 export const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), userId: string, lobbyCode: string | null): Promise<OpResult<null>> => {
     try {
         if (lobbyCode === null) {
-            await db.query(`UPDATE users
+            await db.query(`UPDATE public.users
                             SET lobby_code = NULL
                             WHERE id = $1`, [userId]);
         } else {
-            await db.query(`UPDATE users
+            await db.query(`UPDATE public.users
                             SET lobby_code = $1
                             WHERE id = $2`, [lobbyCode, userId]);
         }
@@ -724,7 +724,7 @@ export const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), userId: str
 
 export const dbUpdateUserReady = async (db: (Pool | PoolClient), userId: string, ready: boolean): Promise<OpResult<null>> => {
     try {
-        await db.query(`UPDATE users
+        await db.query(`UPDATE public.users
                         SET ready = $1
                         WHERE id = $2`, [ready, userId]);
         return {success: true};
@@ -743,7 +743,7 @@ export const dbUpdateUserReady = async (db: (Pool | PoolClient), userId: string,
 
 export const dbUpdateUsersReady = async (db: (Pool | PoolClient), userIds: string[], ready: boolean): Promise<OpResult<null>> => {
     try {
-        await db.query(`UPDATE users
+        await db.query(`UPDATE public.users
                         SET ready = $1
                         WHERE id = ANY($2)`, [ready, userIds]);
         return {success: true};
@@ -878,7 +878,7 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
 export const dbDeleteUsers = async (db: (Pool | PoolClient), userIds: string[]): Promise<OpResult<null>> => {
     try {
         await db.query(`DELETE
-                        FROM users
+                        FROM public.users
                         WHERE id = ANY($1)`, [userIds]);
         return {success: true};
     } catch (error) {

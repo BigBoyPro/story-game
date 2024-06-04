@@ -1,6 +1,6 @@
 import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
 import StoryElementComponent, {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
-import React, {forwardRef, useContext, useImperativeHandle, useRef, useState} from "react";
+import React, {forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 
 
@@ -59,37 +59,41 @@ const StoryUserComponent = forwardRef(
             }
             return storyElementComponentRefs.current;
         };
+        const [playingEndedIndex, setPlayingEndedIndex] = useState(shownElementIndex-1)
 
         const play = (tts: boolean, autoPlay: boolean) => {
             autoPlayRef.current = autoPlay;
             ttsRef.current = tts;
             if (!isPlayingRef.current) {
                 isPlayingRef.current = true;
-                if(elements[shownElementIndex + 1] && elements[shownElementIndex + 1].type === StoryElementType.Audio) {
-                    elements.forEach((element) => {
-                        element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(element.index)?.stop();
-                    });
-                }
-                console.log("play", shownElementIndex + 1, elements[shownElementIndex + 1]);
-                getStoryElementComponentsMap().get(shownElementIndex + 1)?.play(tts);
-                setShownElementIndex(shownElementIndex + 1);
+                setPlayingEndedIndex(shownElementIndex)
             }
         }
+
+        useEffect(() => {
+            setShownElementIndex(prevIndex => {
+                if (prevIndex !== playingEndedIndex) return prevIndex;
+                const nextIndex = prevIndex + 1;
+                if (elements[nextIndex] && elements[nextIndex].type === StoryElementType.Audio) {
+                    elements.forEach((element, index) => {
+                        element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(index)?.stop();
+                    });
+                }
+                setTimeout(() => {
+                    getStoryElementComponentsMap().get(nextIndex)?.play(ttsRef.current);
+                }, 0);
+                return nextIndex;
+            });
+        }, [playingEndedIndex]);
         const stop = () => {
             getStoryElementComponentsMap().get(shownElementIndex)?.stop();
         }
 
         const handlePlayingEnd = (index: number) => {
-            console.log("playing end", index, elements[index]);
             if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
-                setShownElementIndex(index + 1);
+                console.log("playing ended", index);
                 setTimeout(() => {
-                    if(elements[index + 1] && elements[index + 1].type === StoryElementType.Audio) {
-                        elements.forEach((element, index) => {
-                            element.type === StoryElementType.Audio && getStoryElementComponentsMap().get(index)?.stop();
-                        });
-                    }
-                    getStoryElementComponentsMap().get(index + 1)?.play(ttsRef.current);
+                    setPlayingEndedIndex(index)
                 }, 500);
             } else {
                 autoPlayRef.current = false;
@@ -120,6 +124,7 @@ const StoryUserComponent = forwardRef(
                                                        } else {
                                                            map.delete(element.index);
                                                        }
+
                                                    }}
                                                    element={element}
                                                    isHidden={!isEditable && onPlayingEnd && (element.index > shownElementIndex)}

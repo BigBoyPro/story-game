@@ -1,9 +1,34 @@
+export enum SocketEvent {
+    CONNECT = 'connect',
+    DISCONNECT = 'disconnect',
+    CREATE_LOBBY = 'create lobby',
+    JOIN_LOBBY = 'join lobby',
+    LEAVE_LOBBY = 'leave lobby',
+    START_GAME = 'start game',
+    SUBMIT_STORY_ELEMENTS = 'submit story elements',
+    UNSUBMIT_STORY_ELEMENTS = 'unsubmit story elements',
+    END_GAME = 'end game',
+    GET_STORY = 'get story',
+    GET_STORY_AT_PART = 'get story at part',
+    NEXT_PART = 'next part',
+    GET_LOBBY = 'get lobby',
+    LOBBY_INFO = 'lobby info',
+    LEFT_LOBBY = 'left lobby',
+    ERROR = 'error',
+    STORY = 'story',
+    GET_STORY_ELEMENTS = 'get story elements',
+    USERS_SUBMITTED = 'users submitted',
+    STORY_AT_PART = 'story at part',
+    PART = 'part',
+    SUBMITTED = 'submitted',
+}
+
 
 export enum AudioName {
-    Scary = "Scary",
-    Romantic = "Romantic",
-    Sad = "Sad",
-    Suspense = "Suspense"
+    Scary = "/audio/Scary.mp3",
+    Romantic = "/audio/Romantic.mp3",
+    Sad = "/audio/Sad.mp3",
+    Suspense = "/audio/Suspense.mp3"
 }
 
 export type User = {
