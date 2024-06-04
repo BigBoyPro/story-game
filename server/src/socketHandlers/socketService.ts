@@ -2,7 +2,7 @@
 
 import {Server, Socket as BaseSocket} from 'socket.io';
 import {Pool} from 'pg';
-import {Lobby, LobbySettings, OpError, Story, StoryElement} from "../../../shared/sharedTypes";
+import {Lobby, LobbySettings, OpError, SocketEvent, Story, StoryElement} from "../../../shared/sharedTypes";
 
 
 import {onCreateLobby, onGetLobby, onJoinLobby, onLeaveLobby} from "./lobbyHandlers";
@@ -17,52 +17,57 @@ interface Socket extends BaseSocket {
 
 const userSocketMap = new Map<string, BaseSocket>();
 
-const send = (userId: string, event: string, data: any) => {
+const send = (userId: string, event: string, ...args: any[]) => {
     const userSocket = userSocketMap.get(userId);
     if(userSocket) {
-        userSocket.emit(event, data);
+        userSocket.emit(event, ...args);
     }
 }
 
 export const sendLobbyInfo = (userId: string, lobby: (Lobby | null)) => {
-    send(userId, "lobby info", lobby);
+    send(userId, SocketEvent.LOBBY_INFO, lobby);
 }
 
-export const sendError = (userId: string, error: OpError) => {
-    send(userId, "error", error);
+export const sendError = (userId: string, event: SocketEvent, error: OpError) => {
+    send(userId, SocketEvent.ERROR, event, error);
 }
 
 export const sendStory = (userId: string, story: any) => {
-    send(userId, "story", story);
+    send(userId, SocketEvent.STORY, story);
 }
 
-
-export const broadcastUsersSubmitted = (io : Server, lobbyCode: string, usersSubmitted: number) => {
-    broadcast(io, lobbyCode, "users submitted", usersSubmitted);
+export const sendSubmitted = (userId: string, submitted: boolean) => {
+    send(userId, SocketEvent.SUBMITTED, submitted);
 }
+
+export const excludedBroadcastUsersSubmitted = (excludedUserId: string, lobbyCode: string, usersSubmitted: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.USERS_SUBMITTED, usersSubmitted);
+    }}
 
 
 export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) => {
-    broadcast(io, lobbyCode, "lobby info", lobby);
+    broadcast(io, lobbyCode, SocketEvent.LOBBY_INFO, lobby);
 }
 
 export const broadcastLobbySettings = (io: Server, lobbyCode: string, lobbySettings: LobbySettings) => {
-    broadcast(io, lobbyCode, "lobby settings", lobbySettings);
+    broadcast(io, lobbyCode, SocketEvent.LOBBY_SETTINGS, lobbySettings);
 }
 
 export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: string, lobby: Lobby) => {
     const userSocket = userSocketMap.get(excludedUserId);
     if(userSocket) {
-        userSocket.to(lobbyCode).emit("lobby info", lobby);
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_INFO, lobby);
     }
 }
 
 export const broadcastStoryAtPart = (io: Server, lobbyCode: string, storyAndUser: {story: Story, userIndex: number}) => {
-    broadcast(io, lobbyCode, "story at part", storyAndUser);
+    broadcast(io, lobbyCode, SocketEvent.STORY_AT_PART, storyAndUser);
 }
 
 export const broadcastPart = (io: Server, lobbyCode: string, userIndex: number) => {
-    broadcast(io, lobbyCode, "part", userIndex);
+    broadcast(io, lobbyCode, SocketEvent.PART, userIndex);
 }
 
 export const join = (userId: string, room: string) => {
@@ -88,64 +93,64 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
         console.log("a user connected");
         socket.emit("connected");
 
-        socket.on("get lobby", async (userId: string) => {
+        socket.on(SocketEvent.GET_LOBBY, async (userId: string) => {
             socket.userId = userId;
             userSocketMap.set(userId, socket);
-            await onGetLobby(pool, userId);
+            await onGetLobby(SocketEvent.GET_LOBBY, pool, userId);
         });
 
 
-        socket.on("create lobby", async (userId: string, nickname: string) => {
-            await onCreateLobby(io, pool, userId, nickname);
+        socket.on(SocketEvent.CREATE_LOBBY, async (userId: string, nickname: string) => {
+            await onCreateLobby(SocketEvent.CREATE_LOBBY, io, pool, userId, nickname);
         });
 
 
-        socket.on("join lobby", async (userId: string, nickname: string, lobbyCode: string) => {
-            await onJoinLobby(io, pool, userId, nickname, lobbyCode);
+        socket.on(SocketEvent.JOIN_LOBBY, async (userId: string, nickname: string, lobbyCode: string) => {
+            await onJoinLobby(SocketEvent.JOIN_LOBBY, io, pool, userId, nickname, lobbyCode);
         });
 
 
-        socket.on("leave lobby", async (userId: string, lobbyCode: string) => {
-            await onLeaveLobby(io, pool, userId, lobbyCode);
+        socket.on(SocketEvent.LEAVE_LOBBY, async (userId: string, lobbyCode: string) => {
+            await onLeaveLobby(SocketEvent.LEAVE_LOBBY, io, pool, userId, lobbyCode);
         });
 
-        socket.on("submit lobby settings", async (userId: string, lobbyCode: string, lobbySettings: LobbySettings)=> {
+        socket.on(SocketEvent.SUBMIT_LOBBY_SETTINGS, async (userId: string, lobbyCode: string, lobbySettings: LobbySettings)=> {
             await onSubmitLobbySettings(io, pool, userId, lobbyCode, lobbySettings);
         });
 
-        socket.on("start game", async (userId: string, lobbyCode: string) => {
-            await onStartGame(io, pool, userId, lobbyCode);
+        socket.on(SocketEvent.START_GAME, async (userId: string, lobbyCode: string) => {
+            await onStartGame(SocketEvent.START_GAME, io, pool, userId, lobbyCode);
 
         });
 
-        socket.on("submit story elements", async (userId: string, lobbyCode: string, elements: StoryElement[]) => {
-            await onSubmitStoryElements(io, pool, userId, lobbyCode, elements);
+        socket.on(SocketEvent.SUBMIT_STORY_ELEMENTS, async (userId: string, lobbyCode: string, elements: StoryElement[]) => {
+            await onSubmitStoryElements(SocketEvent.SUBMIT_STORY_ELEMENTS, io, pool, userId, lobbyCode, elements);
         });
 
-        socket.on("unsubmit story elements", async (userId: string, lobbyCode: string) => {
-            await onUnsubmitStoryElements(io, pool, userId, lobbyCode);
+        socket.on(SocketEvent.UNSUBMIT_STORY_ELEMENTS, async (userId: string, lobbyCode: string) => {
+            await onUnsubmitStoryElements(SocketEvent.UNSUBMIT_STORY_ELEMENTS, io, pool, userId, lobbyCode);
         });
 
-        socket.on("end game", async (userId: string, lobbyCode: string) => {
-            await onEndGame(io, pool, userId, lobbyCode);
-        });
-
-
-        socket.on("get story", async (userId: string, lobbyCode: string) => {
-            await onGetStory(pool, userId, lobbyCode);
-        });
-
-        socket.on("get story at part", async (userId: string, lobbyCode: string) => {
-            await onGetStoryAtPart(io, pool, userId, lobbyCode);
+        socket.on(SocketEvent.END_GAME, async (userId: string, lobbyCode: string) => {
+            await onEndGame(SocketEvent.END_GAME, io, pool, userId, lobbyCode);
         });
 
 
-        socket.on("next part", async (userId: string, lobbyCode: string) => {
-            await onNextPart(io, pool, userId, lobbyCode);
+        socket.on(SocketEvent.GET_STORY, async (userId: string, lobbyCode: string) => {
+            await onGetStory(SocketEvent.GET_STORY, pool, userId, lobbyCode);
+        });
+
+        socket.on(SocketEvent.GET_STORY_AT_PART, async (userId: string, lobbyCode: string) => {
+            await onGetStoryAtPart(SocketEvent.GET_STORY_AT_PART, io, pool, userId, lobbyCode);
         });
 
 
-        socket.on("disconnect", async () => {
+        socket.on(SocketEvent.NEXT_PART, async (userId: string, lobbyCode: string) => {
+            await onNextPart(SocketEvent.NEXT_PART, io, pool, userId, lobbyCode);
+        });
+
+
+        socket.on(SocketEvent.DISCONNECT, async () => {
             console.log("user disconnected");
             if(socket.userId) {
                 userSocketMap.delete(socket.userId);

@@ -1,15 +1,6 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {
-    ErrorType,
-    Lobby,
-    LobbySettings,
-    LogLevel,
-    OpResult,
-    processOp,
-    TimerSetting,
-    User
-} from "../../../../shared/sharedTypes";
+import {LobbySettings, ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent, User} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {
     dbInsertLobby,
@@ -29,7 +20,7 @@ const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     roundTime: ROUND_MILLISECONDS
 }
 
-export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nickname: string) => {
+export const onCreateLobby = async (event: SocketEvent ,io: Server, pool: Pool, userId: string, nickname: string) => {
     console.log("user " + userId + " sent create lobby request");
 
     const {data: lobby, error, success} = await processOp(() =>
@@ -37,7 +28,7 @@ export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nick
     );
 
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     join(userId, lobby.code);

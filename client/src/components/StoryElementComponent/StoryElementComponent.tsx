@@ -46,40 +46,48 @@ const StoryElementComponent = forwardRef(
         const timeoutRef = useRef<NodeJS.Timeout | null>(null);
         const shouldPlayOnLoad = useRef(false);
 
+        const elementRef = useRef<HTMLDivElement>(null);
+
+
+
         useEffect(() => {
             isPlayingRef.current = isPlaying;
         }, [isPlaying]);
 
-        const play = (tts: boolean) => {
-            console.log('play isPlaying', isPlaying, 'isPlayingRef', isPlayingRef.current, 'element', element);
-            if (isPlaying) return;
-            if (element.type === StoryElementType.Text && tts && element.content.length > 0) {
-                handleSpeak();
-            } else if (element.type === StoryElementType.Audio) {
-                if (audioRef.current) {
-                console.log('playing audio');
+        function handleAudioPlay() {
+            if (audioRef.current) {
                 audioRef.current.play().then(() => {
-                    console.log('audio played');
                     setIsPlaying(true);
                     isPlayingRef.current = true;
                     timeoutRef.current = setTimeout(() => onPlayingEnd && onPlayingEnd(), AUDIO_PLAY_TIMEOUT_MILLISECONDS);
                 }).catch((e) => {
-                    if(e.name === 'NotAllowedError') {
+                    if (e.name === 'NotAllowedError') {
                         alert('Audio playback was prevented by the browser. Please enable audio playback for this website.');
                     }
                     onPlayingEnd && onPlayingEnd();
                 });
-                }else{
-                    shouldPlayOnLoad.current = true;
-                }
+            } else {
+                shouldPlayOnLoad.current = true;
+            }
+        }
+
+        const play = (tts: boolean) => {
+            if (isPlayingRef.current) return;
+            if (element.type === StoryElementType.Text && tts) {
+                handleSpeak();
+            } else if (element.type === StoryElementType.Audio) {
+                handleAudioPlay();
 
             } else if (element.type === StoryElementType.Drawing) {
                 setIsPlaying(true);
+                isPlayingRef.current = true;
                 timeoutRef.current = setTimeout(() => {handlePlayingEnd()}, DRAW_INITIAL_ACTIONS_MILLISECONDS + 500);
-            }
-            else {
+            } else {
+
                 onPlayingEnd && onPlayingEnd();
             }
+            elementRef.current?.scrollIntoView({ behavior: 'smooth' });
+
         }
 
         const stop = () => {
@@ -102,8 +110,6 @@ const StoryElementComponent = forwardRef(
             }
         }
 
-// Call the function when the page loads
-
         const handlePlayingEnd = () => {
             if (isPlayingRef.current) {
                 setIsPlaying(false);
@@ -113,7 +119,7 @@ const StoryElementComponent = forwardRef(
         }
 
         const handleSpeak = () => {
-            if (isPlaying) {
+            if (isPlayingRef.current) {
                 synthRef.current.cancel();
                 if (!synthRef.current.speaking) {
                     // If not, manually call the onend function
@@ -134,6 +140,7 @@ const StoryElementComponent = forwardRef(
                 };
                 synthRef.current.speak(utterance.current);
                 setIsPlaying(true);
+                isPlayingRef.current = true;
             }
         };
 
@@ -181,7 +188,7 @@ const StoryElementComponent = forwardRef(
 
         return (<>
                 {!isHidden &&
-                    <div className="story-element">
+                    <div className="story-element" ref={elementRef}>
                         {renderContent()}
                         {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
                             <button onClick={() => onElementEdit()}>Edit</button>
