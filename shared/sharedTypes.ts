@@ -21,6 +21,8 @@ export enum SocketEvent {
     STORY_AT_PART = 'story at part',
     PART = 'part',
     SUBMITTED = 'submitted',
+    SUBMIT_LOBBY_SETTINGS = 'submit lobby settings',
+    LOBBY_SETTINGS = 'lobby settings',
 }
 
 
