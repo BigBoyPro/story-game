@@ -102,7 +102,7 @@ const StoryUserComponent = forwardRef(
                 {!isHidden &&
                     <div className="story-element"
                      style={{
-                        backgroundImage: `url(./places/${placeImage}.png)`,
+                        backgroundImage: `url(${placeImage})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat'

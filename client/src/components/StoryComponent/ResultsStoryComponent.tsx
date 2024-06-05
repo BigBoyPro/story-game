@@ -54,7 +54,7 @@ function ResultsStoryComponent({
     return (
         <div className="story-page"
              style={{
-                 backgroundImage: `url(./places/${placeImage}.webp)`,
+                 backgroundImage: `url(${placeImage})`,
                  backgroundSize: 'cover',
                  backgroundPosition: 'center',
                  backgroundRepeat: 'no-repeat'
