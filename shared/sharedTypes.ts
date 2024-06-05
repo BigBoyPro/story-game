@@ -2,13 +2,13 @@
 
 export enum PlaceType {
     None = '',
-    Forest = 'forest',
-    Beach = 'beach',
-    ScaryAlley = 'scary_alley',
-    Street = 'street',
-    Bedroom = 'bedroom',
-    HauntedHouse = 'haunted_house',
-    Romantic = 'romantic',
+    Forest = './places/forest.png',
+    Beach = './places/beach.png',
+    ScaryAlley = './places/scary-alley.png',
+    Street = './places/street.png',
+    Bedroom = './places/bedroom.png',
+    HauntedHouse = './places/haunted-house.png',
+    Romantic = './places/romantic-outdoor.png'
 }
 
 
