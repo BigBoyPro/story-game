@@ -1,17 +1,17 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp, Story} from "../../../../shared/sharedTypes";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
 import {dbInsertStory, dbSelectLobby, dbTransaction, dbUpdateUserLastActive} from "../../db";
 import {broadcastLobbyInfo, sendError} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
-export async function onStartGame(io: Server, pool: Pool, userId: string, lobbyCode: string) {
+export async function onStartGame(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
     console.log("user " + userId + " sent start game request");
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     let lobby;
@@ -19,7 +19,7 @@ export async function onStartGame(io: Server, pool: Pool, userId: string, lobbyC
         startGame(pool, userId, lobbyCode)
     ));
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 

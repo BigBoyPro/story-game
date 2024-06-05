@@ -1,9 +1,34 @@
+export enum SocketEvent {
+    CONNECT = 'connect',
+    DISCONNECT = 'disconnect',
+    CREATE_LOBBY = 'create lobby',
+    JOIN_LOBBY = 'join lobby',
+    LEAVE_LOBBY = 'leave lobby',
+    START_GAME = 'start game',
+    SUBMIT_STORY_ELEMENTS = 'submit story elements',
+    UNSUBMIT_STORY_ELEMENTS = 'unsubmit story elements',
+    END_GAME = 'end game',
+    GET_STORY = 'get story',
+    GET_STORY_AT_PART = 'get story at part',
+    NEXT_PART = 'next part',
+    GET_LOBBY = 'get lobby',
+    LOBBY_INFO = 'lobby info',
+    LEFT_LOBBY = 'left lobby',
+    ERROR = 'error',
+    STORY = 'story',
+    GET_STORY_ELEMENTS = 'get story elements',
+    USERS_SUBMITTED = 'users submitted',
+    STORY_AT_PART = 'story at part',
+    PART = 'part',
+    SUBMITTED = 'submitted',
+}
+
 
 export enum AudioName {
-    Scary = "Scary",
-    Romantic = "Romantic",
-    Sad = "Sad",
-    Suspense = "Suspense"
+    Scary = "/audio/Scary.mp3",
+    Romantic = "/audio/Romantic.mp3",
+    Sad = "/audio/Sad.mp3",
+    Suspense = "/audio/Suspense.mp3"
 }
 
 export type User = {
@@ -92,7 +117,7 @@ export enum ErrorType {
     DB_ERROR_INSERT_STORY_ELEMENTS = "DB_ERROR_INSERT_STORY_ELEMENTS",
     DB_ERROR_INSERT_LOBBY = "DB_ERROR_INSERT_LOBBY",
 
-    DB_ERROR_UPSERT_USER = "DB_ERROR_UPDATE_USER",
+    DB_ERROR_UPSERT_USER = "DB_ERROR_UPSERT_USER",
 
     DB_ERROR_UPDATE_USER_LAST_ACTIVE = "DB_ERROR_UPDATE_USER_LAST_ACTIVE",
     DB_ERROR_UPDATE_USER_LOBBY_CODE = "DB_ERROR_UPDATE_USER_LOBBY_CODE",
@@ -122,6 +147,8 @@ export enum ErrorType {
     DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
     NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
     DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
+    DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
+    USER_ALREADY_IN_LOBBY = "USER_ALREADY_IN_LOBBY",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {

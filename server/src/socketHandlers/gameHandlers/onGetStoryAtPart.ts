@@ -1,18 +1,18 @@
 import {Server} from "socket.io";
 import {Pool} from "pg";
-import {ErrorType, LogLevel, OpResult, processOp, Story} from "../../../../shared/sharedTypes";
+import {ErrorType, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
 import {dbSelectLobbyCurrentPart, dbSelectStoryByIndex, dbUpdateUserLastActive} from "../../db";
 import { broadcastStoryAtPart, sendError} from "../socketService";
 
 
-export async function onGetStoryAtPart(io: Server, pool: Pool, userId: string, lobbyCode: string) {
+export async function onGetStoryAtPart(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
     console.log("user " + userId + " sent get story at part request from " + lobbyCode);
     // update user last active
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
@@ -21,7 +21,7 @@ export async function onGetStoryAtPart(io: Server, pool: Pool, userId: string, l
         getStoryAtPart(pool, lobbyCode)
     ));
     if (!success || storyAndUser === undefined) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     broadcastStoryAtPart(io, lobbyCode, storyAndUser);

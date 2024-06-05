@@ -1,20 +1,26 @@
 import './App.css'
 import {useEffect, useState} from "react";
 import {
-    onError, onLobbyInfo, onLeftLobby, requestStory,
-    offError, offLobbyInfo, offLeftLobby, onUsersSubmitted, offUsersSubmitted, userId
+    offError,
+    offLeftLobby,
+    offLobbyInfo, offSubmitted,
+    offUsersSubmitted,
+    onError,
+    onLeftLobby,
+    onLobbyInfo, onSubmitted,
+    onUsersSubmitted,
+    requestStory,
+    userId
 } from "./utils/socketService.ts";
 import {Lobby} from "../../shared/sharedTypes.ts";
 
-import {NavigateFunction, Route} from 'react-router-dom';
+import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
 import LobbyView from "./pages/LobbyView.tsx";
 import JoinView from "./pages/JoinView";
 import HowToPlay from './pages/HowToPlay';
 
 import {LobbyContext} from "./LobbyContext.tsx";
-
-import { createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
 
@@ -71,11 +77,18 @@ function App() {
             }
         });
 
+        onSubmitted((submitted : boolean) => {
+            console.log('Submitted:', submitted);
+            if(lobby) {
+
+                setLobby({...lobby ,usersSubmitted: submitted ? lobby.usersSubmitted + 1 : lobby.usersSubmitted - 1});
+            }
+        });
+
         onUsersSubmitted((usersSubmitted : number) => {
             console.log('Users Submitted:', usersSubmitted);
             if(lobby) {
-                lobby.usersSubmitted = usersSubmitted;
-                setLobby({...lobby});
+                setLobby({...lobby, usersSubmitted});
             }
         });
 
@@ -84,8 +97,9 @@ function App() {
             setLobby(null);
         });
 
-        onError(error => {
-            console.error('Error:', error);
+        onError((event, error) => {
+            console.error('Event: ', event, 'Error: ', error);
+
         });
 
         return () => {
@@ -93,6 +107,7 @@ function App() {
             offError();
             offLeftLobby();
             offUsersSubmitted();
+            offSubmitted();
         }
 
     }, []);

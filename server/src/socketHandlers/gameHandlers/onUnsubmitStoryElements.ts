@@ -1,22 +1,22 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp} from "../../../../shared/sharedTypes";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent} from "../../../../shared/sharedTypes";
 import {
     dbSelectLobby, dbSelectUserReady,
     dbTransaction, dbUpdateLobbyUsersSubmittedDecrement,
     dbUpdateUserLastActive, dbUpdateUserReady
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
-import {broadcastUsersSubmitted, sendError} from "../socketService";
+import {excludedBroadcastUsersSubmitted, sendError, sendSubmitted} from "../socketService";
 
-export async function onUnsubmitStoryElements(io: Server, pool: Pool, userId: string, lobbyCode: string) {
+export async function onUnsubmitStoryElements(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
     console.log("user " + userId + " unsubmitted story elements");
 
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
@@ -25,10 +25,11 @@ export async function onUnsubmitStoryElements(io: Server, pool: Pool, userId: st
         unsubmitStoryElements(pool, userId, lobbyCode)
     ));
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
-    broadcastUsersSubmitted(io, lobbyCode, lobby.usersSubmitted);
+    sendSubmitted(userId, false);
+    excludedBroadcastUsersSubmitted(userId, lobbyCode, lobby.usersSubmitted);
     console.log("story elements unsubmitted by " + userId + " in lobby " + lobbyCode)
 
 }

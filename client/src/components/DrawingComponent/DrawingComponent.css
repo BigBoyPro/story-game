@@ -4,19 +4,15 @@
     display: flex;
     flex-direction: column;
     background-color: white;
-    width: 60vw;
-    height: 60vh;
-    overflow: auto;
 
 }
 
 .drawing-page .canvas-container{
     flex: 1;
     display: flex;
-    border: 1px solid black;
+    border: 0.1rem solid black;
 /*    aspect ratio of 16:9   */
-/*    width: 100vw;*/
-
+    width: 100%;
     aspect-ratio: 16/9;
 }
 
@@ -27,6 +23,33 @@ canvas{
     touch-action: none;
 }
 
-.tools-container{
+.color-button {
+    width: 1rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 0.1rem solid white;
+    text-align: center;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 0 0.1rem #000, 0 0 0 0.1rem #fff;
+}
+
+
+.tools-container {
     z-index: 3;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.colors-container {
+    padding: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2rem, 1fr));
+    grid-auto-flow: row;
+    gap: 1rem;
 }

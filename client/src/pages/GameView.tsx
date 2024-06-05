@@ -4,7 +4,6 @@ import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
 import CrownIcon from '../pages/assets/theCrown.png';
-import StoryComponent from "../components/StoryComponent/StoryComponent.tsx";
 import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 import {
     onStory,
@@ -14,7 +13,7 @@ import {
     offGetStoryElements, unsubmitStoryElements, userId
 } from "../utils/socketService.ts";
 import {Page, redirection} from "../App.tsx";
-
+import GameStoryComponent, {GameStoryComponentHandles} from "../components/StoryComponent/GameStoryComponent.tsx";
 
 function GameView() {
     const navigate = useNavigate();
@@ -22,6 +21,7 @@ function GameView() {
     const user = lobby?.users.find(user => user.id === userId);
     const [story, setStory] = useState<Story | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
+    const storyComponentRef = useRef<GameStoryComponentHandles>(null);
     useEffect(() => {
         redirection(lobby, navigate, Page.Game);
 
@@ -31,9 +31,12 @@ function GameView() {
 
         onGetStoryElements(() => {
             console.log('story elements requested!');
-            handleSaveStoryElements();
+            const e = storyComponentRef.current?.forceSave();
+            if(e && lobby) {
+                console.log('story elements sent!', e);
+                submitStoryElements(lobby.code, e);
+            }
         });
-
 
         return () => {
             offStory();
@@ -108,7 +111,9 @@ function GameView() {
 
                 <div className="game-box">
                   {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
-                  { story && <StoryComponent key={story.id} story={story} isEditable={true}
+                  { story && <GameStoryComponent key={story.id}
+                                    ref={storyComponentRef}
+                                    story={story}
                                     initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
                                     onNewStoryElementsChange={handleNewStoryElementsChange}
                                     onSave={handleSaveStoryElements}

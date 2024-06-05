@@ -1,60 +1,58 @@
-import http from 'http';
-import express from 'express';
-import cors from 'cors';
-import {Server} from 'socket.io';
-import {Pool} from 'pg';
-
-import {setupSocketHandlers} from './socketHandlers/socketService';
 import {inactiveUsersHandler} from "./socketHandlers/inactiveUsersHandler";
+import {Server} from 'socket.io';
 import {resetGames} from "./socketHandlers/gameHandlers/resetGames";
+import {setupSocketHandlers} from "./socketHandlers/socketService";
+import http from "http";
+import express from "express";
+import cors from "cors";
+import {Pool} from "pg";
 
-const INACTIVE_USERS_CHECK_MILLISECONDS = 2 * 60 * 1000;
-
-require('dotenv').config();
+try {
 
 
-const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
+    const INACTIVE_USERS_CHECK_MILLISECONDS = 30 * 60 * 1000;
 
+    require('dotenv').config();
 
-if (!SUPABASE_DATABASE_URL) {
-    throw new Error('SUPABASE_DATABASE_URL must be set');
-}
+    const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
+    const PORT = parseInt(process.env.PORT || "443");
 
-const pool = new Pool({
-    connectionString: SUPABASE_DATABASE_URL
-});
-const app = express();
-const server = http.createServer(app);
-
-app.use(express.json());
-app.use(cors());
-
-const io = new Server(server, {
-    cors: {
-        origin: "*", // replace with your client's origin
-        methods: ["GET", "POST"]
+    if (!SUPABASE_DATABASE_URL) {
+        console.error('SUPABASE_DATABASE_URL is not set');
     }
-});
 
-async function startServer(io: Server, pool: Pool) {
-    await resetGames(io, pool);
-
-    setupSocketHandlers(io, pool);
-
-    server.listen(1234, () => {
-        console.log("Server is running on port 1234");
+    const pool = new Pool({
+        connectionString: SUPABASE_DATABASE_URL
     });
-    console.log('Server listening');
+    const app = express();
+    const server = http.createServer(app);
 
-    setInterval(async () => {
-        await inactiveUsersHandler(io, pool);
-    },  INACTIVE_USERS_CHECK_MILLISECONDS)
-}
+    app.use(express.json());
+    app.use(cors());
+    app.get('/test', (_req, res) => {
+        res.send('Test route accessed!');
+    });
+    const io = new Server(server, {
+        cors: {
+            origin: "*", // replace with your client's origin
+            methods: ["GET", "POST"]
+        }
+    });
+
+    resetGames(io, pool).then(() => {
+        setupSocketHandlers(io, pool);
+        server.listen(PORT, () => {
+            console.log("Server is running on port " + PORT);
+        });
+        module.exports = app;
+        console.log('Server listening');
+        setInterval(async () => {
+            await inactiveUsersHandler(io, pool);
+        }, INACTIVE_USERS_CHECK_MILLISECONDS);
+    });
 
 
-startServer(io, pool).then(() =>
-    console.log('Server started')
-).catch(error => {
+} catch (error) {
     console.error('Error starting server', error);
-    process.exit(1);
-});
+    console.log('Restarting server...');
+}

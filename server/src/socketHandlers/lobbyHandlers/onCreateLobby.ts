@@ -1,10 +1,17 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {Lobby, OpResult, processOp, User} from "../../../../shared/sharedTypes";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent, User} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
-import {dbInsertLobby, dbSelectLobbyCount, dbTransaction, dbUpdateUserLobbyCode, dbUpsertUser} from "../../db";
+import {
+    dbInsertLobby,
+    dbSelectLobbyByHost,
+    dbSelectLobbyCount,
+    dbTransaction,
+    dbUpdateUserLobbyCode,
+    dbUpsertUser
+} from "../../db";
 
-export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nickname: string) => {
+export const onCreateLobby = async (event: SocketEvent ,io: Server, pool: Pool, userId: string, nickname: string) => {
     console.log("user " + userId + " sent create lobby request");
 
     const {data: lobby, error, success} = await processOp(() =>
@@ -12,7 +19,7 @@ export const onCreateLobby = async (io: Server, pool: Pool, userId: string, nick
     );
 
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     join(userId, lobby.code);
@@ -26,8 +33,12 @@ export const createLobby = (pool: Pool, userId: string, nickname: string): Promi
         // upsert user
         const user: User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
 
-        let {success, error} = await dbUpsertUser(client, user);
+        let {success, error} = await dbUpsertUser(client, user, true);
         if (!success) return {success, error};
+
+        let existingLobby;
+        ({success, data: existingLobby, error}  = await dbSelectLobbyByHost(client, userId));
+        if (success && existingLobby) return {success: false, error: { logLevel: LogLevel.Warning, type: ErrorType.USER_ALREADY_IN_LOBBY, error: "User is already in a lobby" }};
 
         // generate unique lobby code
         let lobbyCode;
