@@ -39,7 +39,7 @@ function LobbyView() {
 
                 <div className={"video-background-container"}>
 
-                    <video autoPlay loop muted className={"video-background"}>
+                    <video autoPlay loop muted className={"background"}>
                         <source src="../LobbyView.mp4" type="video/mp4" />
                     </video>
 

@@ -219,7 +219,7 @@ html {
 }
 
 
-.video-background {
+.background {
     position: fixed;
     right: 0;
     bottom: 0;
@@ -231,7 +231,7 @@ html {
     z-index: 0;
 }
 
-.video-background video {
+.background video {
     position: absolute;
     top: 50%;
     left: 50%;

@@ -18,7 +18,7 @@ import GameStoryComponent, {GameStoryComponentHandles} from "../components/Story
 function GameView() {
     const navigate = useNavigate();
     const lobby = useContext(LobbyContext);
-    const user = lobby?.users.find(user => user.id === userId);
+    // const user = lobby?.users.find(user => user.id === userId);
     const [story, setStory] = useState<Story | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
     const storyComponentRef = useRef<GameStoryComponentHandles>(null);
@@ -32,7 +32,7 @@ function GameView() {
         onGetStoryElements(() => {
             console.log('story elements requested!');
             const e = storyComponentRef.current?.forceSave();
-            if(e && lobby) {
+            if (e && lobby) {
                 console.log('story elements sent!', e);
                 submitStoryElements(lobby.code, e);
             }
@@ -75,55 +75,64 @@ function GameView() {
 
 
     return (
-        <div className="game-page">
-            <div className={"video-background-container"}>
+        <>
+            {/*<img src={"GameImage.png"} className={"background"}/>*/}
+            {/**/}
+            <div className="game-page">
 
-                <video autoPlay loop muted className={"video-background"}>
-                    <source src="../GameVideo.mp4" type="video/mp4" />
-                </video>
+                {/*<video autoPlay loop muted className={"video-background"}>*/}
+                {/*    <source src="../GameVideo.mp4" type="video/mp4" />*/}
+                {/*</video>*/}
 
-                <div className="side-bar">
-                    <h2>Players</h2>
-                    {lobby?.users && lobby.users.map(user =>
-                        <div key={user.id} className="user-box">
-                            {(lobby?.hostUserId === user.id) && <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small" />}
-                            {user.nickname}
-                        </div>
-                    )}
-                </div>
-
-                <div className="current-user-bar">
-                    <h2>Current user</h2>
-                    <div className={"current-user"}>
-                        {user?.nickname}
+                <div className={"floating floating-elements"}>
+                    <div className={"timer-box"}>
+                        <h2>Timer</h2>
+                        {lobby?.roundStartAt && lobby?.roundEndAt &&
+                            <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                     </div>
-                </div>
 
-                <div className={"round-box"}>
-                    <h2>Round</h2>
-                    <div className={"round"}>{lobby?.round}/{lobby?.users.length}</div>
-                </div>
 
-                <div className={"timer-box"}>
-                    <h2>Timer</h2>
-                    {lobby?.roundStartAt && lobby?.roundEndAt && <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
+                    <div className={"round-box"}>
+                        <h2>Round</h2>
+                        <div className={"round"}>{lobby?.round}/{lobby?.users.length}</div>
+                    </div>
+
+
                 </div>
 
                 <div className="game-box">
-                  {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
-                  { story && <GameStoryComponent key={story.id}
-                                    ref={storyComponentRef}
-                                    story={story}
-                                    initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
-                                    onNewStoryElementsChange={handleNewStoryElementsChange}
-                                    onSave={handleSaveStoryElements}
-                                    onCancel={handleCancelStoryElements}
+                    {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
+                    {story && <GameStoryComponent key={story.id}
+                                                  ref={storyComponentRef}
+                                                  story={story}
+                                                  initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
+                                                  onNewStoryElementsChange={handleNewStoryElementsChange}
+                                                  onSave={handleSaveStoryElements}
+                                                  onCancel={handleCancelStoryElements}
                     />
-                }
-              </div>
-          </div>
-      </div>
-  );
+                    }
+                </div>
+
+                <div className="floating side-bar-container">
+                    <div className={"spacer"}></div>
+                    <div className="side-bar">
+                        <h2>Players</h2>
+                        <div className="users-box">
+                            {lobby?.users && lobby.users.map(user =>
+                                <div key={user.id} className="user">
+                                    {(lobby?.hostUserId === user.id) &&
+                                        <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small"/>}
+                                    {user.nickname}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </>
+    );
 }
 
 export default GameView;

@@ -2,7 +2,7 @@ import {Story} from "../../../shared/sharedTypes.ts";
 import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
-import './GameView.css';
+// import './ResultsView.css';
 import {
     onEndGame,
     onStoryAtPart,
@@ -67,7 +67,7 @@ function ResultsView() {
     };
 
     return(
-      <div className="game-page">
+      <div className="results-page">
           { lobby && story &&
             <div className="game-box">
                 <h2>Results</h2>

@@ -2,95 +2,101 @@
     z-index: 1;
     flex: 1;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    width: 100%;
+    background-image: url("assets/GameImage.png") ;
+    background-attachment: fixed;
     background-size: cover;
     background-position: center;
 }
+
 .game-box {
-    position: relative;
-    /*top: -2.5rem;*/
+    width: auto;
+    height: auto;
+
+    border: 1px solid #eac3c3;
     z-index: 1;
     padding: 5rem;
     display: flex;
     flex-direction: column;
-    align-items: start;
-    background-color: rgba(169, 110, 45, 0.4);
-    width: auto;
-    min-height: auto;
-    border-radius: 0.8rem;
-    overflow: auto;
 }
-.video-background {
+.background {
     position: fixed;
-    right: 0;
-    bottom: 0;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
     z-index: 0;
+    object-fit: cover;
 }
-.video-background-container {
+/*.video-background-container {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*    position: relative;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*}*/
+
+.crown-icon-small {
+}
+
+.floating{
+    position: sticky;
+
+}
+
+.floating-elements {
+
+    z-index: 1;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100vw;
-    height: 100vh;
+    justify-content: space-evenly;
+}
+
+.side-bar-container {
+    display: grid;
+    place-items: center; /* This will center the child item both vertically and horizontally */
+    height: 100%; /* This will make the .side-bar-container take up the full height of its parent */
+}
+
+.side-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.8rem;
+    text-align: center;
+    /* Remove align-self: center; */
+    max-width: 25rem;
+    width: 100%;
 }
 h2{
     color: #eac3c3;
 }
-.crown-icon-small {
-    display: inline-block;
-    width: 2vw;
-    height: auto;
-    vertical-align: middle;
-    margin-right: 0.5vw;
-}
 
-
-.side-bar {
+.users-box{
     z-index: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
+    display: grid;
     gap: 1rem;
-    background-color: transparent;
-    width:15rem;
-    position: absolute;
-    top: 0;
-    right: 0;
-    align-items: center;
 }
-.user-box, .current-user, .round{
+
+.user, .round{
     z-index: 1;
     background-color: white;
     padding: 1rem;
     font-weight: bold;
     border-radius: 0.8rem;
-    width: 10rem;
-    height: 3rem;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.current-user-bar{
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    background-color: transparent;
-    width:15rem;
-    position: absolute;
-    top: 0;
-    left:0;
-    align-items: center;
-}
+/*.current-user-bar{*/
+/*    z-index: 1;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    padding: 1rem;*/
+/*    gap: 1rem;*/
+/*    background-color: transparent;*/
+/*    width:15rem;*/
+/*    top: 0;*/
+/*    left:0;*/
+/*    align-items: center;*/
+/*}*/
 
 .round-box{
     z-index: 1;
@@ -99,11 +105,6 @@ h2{
     padding: 1rem;
     gap: 1rem;
     background-color: transparent;
-    width:15rem;
-    position: absolute;
-    top: 0;
-    right: 15rem;
-    align-items: center;
 }
 .timer-box{
     z-index: 1;
@@ -112,9 +113,18 @@ h2{
     padding: 1rem;
     gap: 1rem;
     background-color: transparent;
-    width:15rem;
-    position: absolute;
-    top: 0;
-    left:15rem;
     align-items: center;
+}
+
+
+.floating-elements, .side-bar-container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 50%; /* Set the base size to 50% of the parent container */
+}
+
+.game-box {
+    flex-grow: 0; /* .game-box will not grow when the window is enlarged */
+    flex-shrink: 1; /* .game-box will shrink when the window is reduced and the other elements can no longer shrink */
+    flex-basis: 100rem; /* .game-box will take up 500px of the .game-page width */
 }
