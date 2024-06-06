@@ -45,17 +45,17 @@
 }
 .back-button {
     position: absolute;
-    top: 2vh; /* Ajustez cette valeur pour déplacer le bouton vers le bas */
-    left: 2vw; /* Ajustez cette valeur pour déplacer le bouton vers la droite */
-    width: 10px; /* Ajustez cette valeur pour modifier la largeur de l'image */
-    height: 10px; /* Ajustez cette valeur pour modifier la hauteur de l'image */
+    top: 2vh;
+    left: 2vw;
+    width: 10vw;
+    height: 10vh;
 }
 .back-button img {
     width: 7.5vw;
     height: 15vh;
-    transition: transform 0.3s ease-in-out; /* Ajoute une transition douce */
+    transition: transform 0.3s ease-in-out;
 }
 
 .back-button img:hover {
-    transform: scale(1.1); /* Agrandit l'image de 10% lorsque le curseur est dessus */
+    transform: scale(1.1);
 }
