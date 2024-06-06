@@ -1,13 +1,15 @@
 // src/pages/HowToPlay.tsx
 
-//import React from 'react';
+import './HowToPlay.css';
 
 function HowToPlay() {
     return (
-        <div>
-            <h1>How to Play</h1>
-            <p>To play this game, </p>
-            {/* Ajoutez ici le contenu de votre page */}
+        <div className="how-to-play-page">
+            <div className="rules-text">
+                <h1>Rules of the Game</h1>
+                <h2>Here are the rules of the game...</h2>
+                <p> ici on doit écrire les règle du jeu.</p>
+            </div>
         </div>
     );
 }
