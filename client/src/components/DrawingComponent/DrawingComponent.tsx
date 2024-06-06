@@ -6,6 +6,14 @@ import getStroke from "perfect-freehand";
 import {ChromePicker} from "react-color";
 import "./DrawingComponent.css"
 
+// import { FaPencilAlt, FaRegSquare, FaRegCircle, FaEraser, FaFont } from 'react-icons/fa';
+
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencilAlt, faEraser, faFont, faMinus, faHand } from '@fortawesome/free-solid-svg-icons';
+import { faSquare, faCircle } from '@fortawesome/free-regular-svg-icons';
+
+
 import {DRAW_INITIAL_ACTIONS_MILLISECONDS} from "../StoryElementComponent/StoryElementComponent.tsx";
 
 
@@ -1159,63 +1167,64 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                 <>
                     <div className={"tools-container"}>
                         <div>
-                            <input type="radio"
-                                   id="selection"
-                                   checked={tool === AltTool.Selection}
-                                   onChange={() => handleToolChange(AltTool.Selection)}/>
-                            <label htmlFor="Slection">Selection</label>
-                        </div>
-                        <div>
-                            <input type="radio"
-                                   id="line"
-                                   checked={tool === ElementType.Line}
-                                   onChange={() => handleToolChange(ElementType.Line)}/>
-                            <label htmlFor="Line">Line</label>
-                        </div>
-                        <div>
-                            <input type="radio"
-                                   id="rectangle"
-                                   checked={tool === ElementType.Rectangle}
-                                   onChange={() => handleToolChange(ElementType.Rectangle)}/>
-                            <label htmlFor="Rectangle">Rectangle</label>
-                        </div>
-
-                        <div>
-                            <input type="radio"
-                                   id="ellipse"
-                                   checked={tool === ElementType.Ellipse}
-                                   onChange={() => handleToolChange(ElementType.Ellipse)}/>
-                            <label htmlFor="Ellipse">Ellipse</label>
-
-
-                        </div>
-                        <div>
-                            <input type="radio"
-                                   id="text"
-                                   checked={tool === ElementType.Text}
-                                   onChange={() => handleToolChange(ElementType.Text)}/>
-                            <label htmlFor="text">Text</label>
-                        </div>
-                        <div>
-
-                            <input type="radio"
-                                   id="pencil"
-                                   checked={tool === ElementType.Pencil}
-                                   onChange={() => handleToolChange(ElementType.Pencil)}/>
-
-                            <label htmlFor="Pencil">Pencil</label>
-                        </div>
-                        <div>
-                            <input
-                                type="radio"
-                                id="eraser"
-                                checked={tool === ElementType.Eraser}
-                                onChange={() => handleToolChange(ElementType.Eraser)}
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faHand}
+                                className={`icon ${tool === AltTool.Selection? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(AltTool.Selection)}
                             />
-                            <label htmlFor="Eraser">Eraser</label>
-
                         </div>
+                        <div>
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faMinus}
+                                className={`icon ${tool === ElementType.Line ? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(ElementType.Line)}
+                            />
+                        </div>
+                        <div>
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faSquare}
+                                className={`icon ${tool === ElementType.Rectangle ? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(ElementType.Rectangle)}
+                            />
+                        </div>
+                        <div>
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faCircle}
+                                className={`icon ${tool === ElementType.Ellipse ? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(ElementType.Ellipse)}
+                            />
+                        </div>
+                        <div>
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faFont}
+                                className={`icon ${tool === ElementType.Text ? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(ElementType.Text)}
+                            />
+                        </div>
+                        <div>
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faPencilAlt}
+                                className={`icon ${tool === ElementType.Pencil ? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(ElementType.Pencil)}
+                            />
+                        </div>
+                        <div>
+                            <FontAwesomeIcon
+                                size={"2x"}
+                                icon={faEraser}
+                                className={`icon ${tool === ElementType.Eraser ? 'selected-icon' : ''}`}
+                                onClick={() => handleToolChange(ElementType.Eraser)}
+                            />
+                        </div>
+                    </div>
 
+                    <div className={"settings-container"}>
                         <div>
                             <input type="checkbox"
                                    id="fill"
@@ -1226,10 +1235,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         </div>
 
                         <div>
-                            <input id="pencilSize" type="range" min="1" max="100" value={pencilSize}
-                                   onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>
-
-
+                            <input id="pencilSize" type="range" min="1" max="100" value={pencilSize} onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>
                             {tool === ElementType.Text && state == State.Writing && selection && selection.element.point &&
                                 <textarea
                                     ref={textAreaRef}
@@ -1253,8 +1259,6 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 />
                             }
                         </div>
-
-
                     </div>
 
                     <div className={"colors-container"}>
