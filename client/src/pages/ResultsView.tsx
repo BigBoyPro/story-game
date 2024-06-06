@@ -2,7 +2,8 @@ import {Story} from "../../../shared/sharedTypes.ts";
 import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
-// import './ResultsView.css';
+import './ResultsView.css';
+import backgroundImage from '/public/resultsImage.png';
 import {
     onEndGame,
     onStoryAtPart,
@@ -68,10 +69,11 @@ function ResultsView() {
 
     return(
       <div className="results-page">
+          <img src={backgroundImage} alt="Background" style={{position: 'absolute', width: '100%', height: '100%'}} />
           { lobby && story &&
-            <div className="game-box">
+            <div className="game-box-results">
                 <h2>Results</h2>
-                <div className="story-box">
+                <div className="story-box-results">
                     <h3>{story.name}</h3>
                     <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
                                     onPlayingEnd={() => setIsPlaying(false)}
