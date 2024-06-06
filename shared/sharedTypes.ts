@@ -24,11 +24,24 @@ export enum SocketEvent {
 }
 
 
-export enum AudioName {
-    Scary = "/audio/Scary.mp3",
-    Romantic = "/audio/Romantic.mp3",
-    Sad = "/audio/Sad.mp3",
-    Suspense = "/audio/Suspense.mp3"
+
+export enum PlaceType {
+    None = '',
+    Forest = 'places/forest.png',
+    Beach = 'places/beach.png',
+    ScaryAlley = 'places/scary-alley.png',
+    Street = 'places/street.png',
+    Bedroom = 'places/bedroom.png',
+    HauntedHouse = 'places/haunted-house.png',
+    Romantic = 'places/romantic-outdoor.png'
+}
+
+
+export enum AudioType {
+    Scary = "audio/Scary.mp3",
+    Romantic = "audio/Romantic.mp3",
+    Sad = "audio/Sad.mp3",
+    Suspense = "audio/Suspense.mp3"
 }
 
 export type User = {
@@ -72,7 +85,8 @@ export enum StoryElementType{
     Text = 'text',
     Image = 'image',
     Drawing = 'drawing',
-    Audio = 'audio'
+    Audio = 'audio',
+    Place = "place"
 }
 
 

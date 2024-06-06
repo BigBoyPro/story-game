@@ -83,8 +83,7 @@ const StoryElementComponent = forwardRef(
                 isPlayingRef.current = true;
                 timeoutRef.current = setTimeout(() => {handlePlayingEnd()}, DRAW_INITIAL_ACTIONS_MILLISECONDS + 500);
             } else {
-
-                onPlayingEnd && onPlayingEnd();
+                setTimeout(() => {onPlayingEnd && onPlayingEnd()}, 500);
             }
             elementRef.current?.scrollIntoView({ behavior: 'smooth' });
 
@@ -117,6 +116,7 @@ const StoryElementComponent = forwardRef(
                 onPlayingEnd && onPlayingEnd();
             }
         }
+
 
         const handleSpeak = () => {
             if (isPlayingRef.current) {
@@ -154,7 +154,9 @@ const StoryElementComponent = forwardRef(
             switch (element.type) {
                 case StoryElementType.Empty:
                     return <div/>;
-                case StoryElementType.Text:
+                case StoryElementType.Place:
+                return <div/>
+            case StoryElementType.Text:
                     const textArea = <textarea value={element.content}
                                                onChange={(e) => handleContentChange(e.target.value)}
                                                disabled={!isEditable}/>;
