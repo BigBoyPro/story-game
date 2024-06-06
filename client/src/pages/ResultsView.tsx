@@ -81,9 +81,9 @@ function ResultsView() {
                 </div>
                 { !isPlaying &&
                     ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
-                    <button onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
+                    <button className={"button"} onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
                     :
-                    <button onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>)
+                    <button className={"button"} onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>)
                 }
             </div>
           }
