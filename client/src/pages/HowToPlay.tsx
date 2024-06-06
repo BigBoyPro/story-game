@@ -27,7 +27,7 @@ function HowToPlay() {
     return (
         <div className="how-to-play-page">
             <Link to="/" className="back-button">
-                <img src="../../public/BackButtonBack1.png" alt="Back Button" />
+                <img src="../../public/backHowToPlay.png" alt="Back Button" />
             </Link>
             <div className="rules-text">
                 <h1>Rules of the Game</h1>

@@ -51,6 +51,11 @@
     height: 10px; /* Ajustez cette valeur pour modifier la hauteur de l'image */
 }
 .back-button img {
-    width: 7.5vw; /* Ajustez cette valeur pour modifier la largeur de l'image */
-    height: 15vh; /* Ajustez cette valeur pour modifier la hauteur de l'image */
+    width: 7.5vw;
+    height: 15vh;
+    transition: transform 0.3s ease-in-out; /* Ajoute une transition douce */
+}
+
+.back-button img:hover {
+    transform: scale(1.1); /* Agrandit l'image de 10% lorsque le curseur est dessus */
 }
