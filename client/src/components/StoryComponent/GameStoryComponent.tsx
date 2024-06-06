@@ -9,6 +9,17 @@ import DrawingComponent, {DrawingAction} from "../DrawingComponent/DrawingCompon
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
 
 
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+
+import { faImages } from '@fortawesome/free-solid-svg-icons'
+import { faMusic } from '@fortawesome/free-solid-svg-icons'
+import { faFont } from '@fortawesome/free-solid-svg-icons'
+import { faPaintBrush } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+
+
+
+
 
 export interface GameStoryComponentHandles {
     forceSave: () => StoryElement[];
@@ -253,7 +264,14 @@ const GameStoryComponent = forwardRef(
                                         <div key={value}
                                              className={`element-type-option ${selectedType === value ? 'selected' : ''}`}
                                              onClick={() => handleTypeSelect(value)}>
-                                            {value.charAt(0).toUpperCase() + value.slice(1)}
+                                            {/*{value.charAt(0).toUpperCase() + value.slice(1)}*/}
+                                            {value ==StoryElementType.Image  && <FontAwesomeIcon icon={faImages} size="2x" />}
+                                            {value ==StoryElementType.Audio  && <FontAwesomeIcon icon={faMusic} size="2x" />}
+                                            {value ==StoryElementType.Text  && <FontAwesomeIcon icon={faFont} size="2x" />}
+                                            {value ==StoryElementType.Drawing && <FontAwesomeIcon icon={faPaintBrush} size="2x" />}
+
+
+
                                         </div>
                                     ))}
 
@@ -281,8 +299,10 @@ const GameStoryComponent = forwardRef(
 
                                 </div>
 
-                                <div className="side-button-container">
-                                    <button onClick={handleElementAdd} className={"add-button"}>Add</button>
+                                <div className="add-button-container">
+                                    <button onClick={handleElementAdd} className={"add-button"} >
+                                        <FontAwesomeIcon icon={faPlus} size="2x"/>
+                                    </button>
                                 </div>
 
 

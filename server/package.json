@@ -29,10 +29,12 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
     "pg": "^8.11.5",
+    "react-bootstrap": "^2.10.2",
     "shuffle-seed": "^1.1.6",
     "socket.io": "^4.7.5"
   }
