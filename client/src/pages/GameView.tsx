@@ -101,7 +101,7 @@ function GameView() {
                 </div>
 
                 <div className="game-box">
-                    {lobby?.round && lobby.round > 1 && <h3>here should be the previous player's prompt</h3>}
+                    {lobby?.round && lobby.round > 1}
                     {story && <GameStoryComponent key={story.id}
                                                   ref={storyComponentRef}
                                                   story={story}

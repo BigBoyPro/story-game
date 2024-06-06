@@ -8,6 +8,8 @@ import {uploadImage} from "../../utils/imageAPI.ts";
 import DrawingComponent, {DrawingAction} from "../DrawingComponent/DrawingComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
 
+
+
 export interface GameStoryComponentHandles {
     forceSave: () => StoryElement[];
 }
@@ -211,6 +213,13 @@ const GameStoryComponent = forwardRef(
             setSelectedElementIndex(null);
         }
 
+        const [selectedType, setSelectedType] = useState<StoryElementType | null>(null);
+
+        const handleTypeSelect = (type: StoryElementType) => {
+            setSelectedType(type);
+            handleTypeChange(type);
+        };
+
         return (
             <div className="story-page">
                 {hasSubmitted || !isDrawing ?
@@ -235,9 +244,19 @@ const GameStoryComponent = forwardRef(
                         />
 
                         {!hasSubmitted ?
+
                             <>
-                                <div className="side-button-container">
-                                    <button onClick={handleElementAdd}>+</button>
+
+                                <div className="element-type-container">
+                                    {Object.values(StoryElementType).map((value) => (
+                                        value !== StoryElementType.Empty &&
+                                        <div key={value}
+                                             className={`element-type-option ${selectedType === value ? 'selected' : ''}`}
+                                             onClick={() => handleTypeSelect(value)}>
+                                            {value.charAt(0).toUpperCase() + value.slice(1)}
+                                        </div>
+                                    ))}
+
                                     <input type="file" ref={inputRef} accept="image/*" hidden={true}
                                            onAbort={handleAddElementAbort}
                                            onChange={
@@ -245,18 +264,8 @@ const GameStoryComponent = forwardRef(
                                                    const file = event.target.files ? event.target.files[0] : undefined;
                                                    if (file) await addImageElement(file)
                                                }
-                                           }/>
-
-                                    <select value={type}
-                                            onChange={event => {
-                                                handleTypeChange(event.target.value as StoryElementType)
-                                            }}>
-                                        {Object.values(StoryElementType).map((value) => (
-                                            value !== StoryElementType.Empty &&
-                                            <option key={value}
-                                                    value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
-                                        ))}
-                                    </select>
+                                           }
+                                    />
 
                                     {type === StoryElementType.Audio &&
                                         <select value={audio}
@@ -270,12 +279,19 @@ const GameStoryComponent = forwardRef(
                                         </select>
                                     }
 
-
                                 </div>
 
-                                <button disabled={storyElements.length === 0} onClick={handleFinish}>
-                                    Finish
-                                </button>
+                                <div className="side-button-container">
+                                    <button onClick={handleElementAdd} className={"add-button"}>Add</button>
+                                </div>
+
+
+
+                                <div className={"finish-button-container"}>
+                                    <button disabled={storyElements.length === 0} onClick={handleFinish}>
+                                        Finish
+                                    </button>
+                                </div>
                             </>
                             :
                             <button onClick={() => handleCancel()}>Cancel</button>

@@ -22,3 +22,31 @@
     gap: 1rem;
     justify-content: flex-start;
 }
+
+
+.element-type-container {
+    display: flex;
+    gap: 1rem;
+}
+
+.element-type-option {
+    background: radial-gradient(circle, rgba(121, 218, 231, 0.56) 0%, rgb(84, 188, 211) 100%);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    width: 6.25rem;
+    height: 3.125rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.element-type-option.selected {
+    background-color: #4375f5;
+    color: #fff;
+}
+
+.add-button{
+    right:0;
+    margin-left: auto;
+}
