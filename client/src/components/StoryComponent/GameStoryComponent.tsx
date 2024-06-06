@@ -12,6 +12,18 @@ export interface GameStoryComponentHandles {
     forceSave: () => StoryElement[];
 }
 
+const createStoryElement = (index: number, storyId: number , round: number, type: StoryElementType, content: string): StoryElement => {
+    return {
+        index,
+        userId,
+        storyId,
+        round,
+        type,
+        content
+    };
+};
+
+
 const GameStoryComponent = forwardRef(
     function GameStoryComponent({
         story,
@@ -37,7 +49,7 @@ const GameStoryComponent = forwardRef(
         const forceSave = (): StoryElement[] => {
             const newStoryElements = [...storyElements];
             if (lobby && isDrawing && selectedElementIndex === null) {
-                const drawingElement = createStoryElement(newStoryElements.length,lobby.round, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+                const drawingElement = createStoryElement(newStoryElements.length,lobby.round, story.id, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
                 if (drawingElement) newStoryElements.push(drawingElement);
             }
             return newStoryElements;
@@ -53,7 +65,7 @@ const GameStoryComponent = forwardRef(
                     for (let i = 0; i < elements.length; i++) {
                         elements[i].index++;
                     }
-                    const newElement = createStoryElement(0, lobby.round, StoryElementType.Place, PlaceType.None);
+                    const newElement = createStoryElement(0, story.id, lobby.round, StoryElementType.Place, PlaceType.None);
                     if (newElement)
                         elements.unshift(newElement);
 
@@ -89,7 +101,7 @@ const GameStoryComponent = forwardRef(
             {
                placeElement.content = placeImage;
                const updatedElements = [...storyElements];
-               updatedElements[placeElement.index]=placeElement;
+               updatedElements[placeElement.index] =placeElement;
                setStoryElements(updatedElements);
             }
 
@@ -130,25 +142,16 @@ const GameStoryComponent = forwardRef(
             }
         }
 
-        const createStoryElement = (index: number, round: number, type: StoryElementType, content: string): StoryElement => {
-            return {
-                index: index,
-                userId: userId,
-                storyId: story.id,
-                round: round,
-                type,
-                content
-            };
-        };
+
 
         const addStoryElement = (round: number, type: StoryElementType, content: string) => {
-            setStoryElements((prevElements) => [...prevElements, createStoryElement(prevElements.length, round, type, content)]);
+            setStoryElements((prevElements) => [...prevElements, createStoryElement(prevElements.length, story.id, round, type, content)]);
         }
 
         const updateElement = (index: number, round: number, type: StoryElementType, content: string) => {
             setStoryElements((prevElements) => {
                 const updatedStoryElements = [...prevElements];
-                updatedStoryElements[index] = createStoryElement(index, round, type, content);
+                updatedStoryElements[index] = createStoryElement(index, story.id, round, type, content);
                 return updatedStoryElements;
             });
         };

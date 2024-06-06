@@ -53,7 +53,6 @@ const StoryUserComponent = forwardRef(
         }, [elements]);
 
 
-
         useImperativeHandle(ref, () => ({
             play,
             stop
@@ -66,7 +65,7 @@ const StoryUserComponent = forwardRef(
             }
             return storyElementComponentRefs.current;
         };
-        const [playingEndedIndex, setPlayingEndedIndex] = useState(shownElementIndex-1)
+        const [playingEndedIndex, setPlayingEndedIndex] = useState(shownElementIndex - 1)
 
         const play = (tts: boolean, autoPlay: boolean) => {
             autoPlayRef.current = autoPlay;
@@ -98,7 +97,6 @@ const StoryUserComponent = forwardRef(
 
         const handlePlayingEnd = (index: number) => {
             if (isPlayingRef.current && autoPlayRef.current && index < elements.length - 1) {
-                console.log("playing ended", index);
                 setTimeout(() => {
                     setPlayingEndedIndex(index)
                 }, 500);
@@ -119,37 +117,40 @@ const StoryUserComponent = forwardRef(
             <>
                 {!isHidden &&
                     <div className="story-element"
-                     style={{
-                        backgroundImage: `url(${placeImage})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat'
-                    }}>
+                         style={{
+                             backgroundImage: `url(${placeImage})`,
+                             backgroundSize: 'cover',
+                             backgroundPosition: 'center',
+                             backgroundRepeat: 'no-repeat'
+                         }}>
                         {!isEditable && elements.length > 0 &&
                             <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
                         }
-                        {elements.map((element) => (
-                            <StoryElementComponent key={element.index}
-                                                   ref={(node) => {
-                                                       const map = getStoryElementComponentsMap();
-                                                       if (node) {
-                                                           map.set(element.index, node);
-                                                       } else {
-                                                           map.delete(element.index);
-                                                       }
+                        {elements.map((element) => {
+                            return (
+                                <StoryElementComponent key={element.index}
+                                                       ref={(node) => {
+                                                           const map = getStoryElementComponentsMap();
+                                                           if (node) {
+                                                               map.set(element.index, node);
+                                                           } else {
+                                                               map.delete(element.index);
+                                                           }
 
-                                                   }}
-                                                   element={element}
-                                                   isHidden={!isEditable && onPlayingEnd && (element.index > shownElementIndex)}
-                                                   isEditable={isEditable}
-                                                   onElementChange={onElementChange ? (newElement) => onElementChange(element.index, newElement) : undefined}
-                                                   onElementDelete={onElementDelete ? () => onElementDelete(element.index) : undefined}
-                                                   onElementEdit={onElementEdit ? () => onElementEdit(element.index) : undefined}
-                                                   isLast={element.index === elements.length - 1}
-                                                   onUp={() => onUp ? onUp(element.index) : undefined}
-                                                   onDown={() => onDown ? onDown(element.index) : undefined}
-                                                   onPlayingEnd={() => handlePlayingEnd(element.index)}/>
-                        ))}
+                                                       }}
+                                                       element={element}
+                                                       isHidden={(!isEditable && onPlayingEnd && (element.index > shownElementIndex))
+                                                           || element.type === StoryElementType.Place || element.type === StoryElementType.Empty}
+                                                       isEditable={isEditable}
+                                                       onElementChange={onElementChange ? (newElement) => onElementChange(element.index, newElement) : undefined}
+                                                       onElementDelete={onElementDelete ? () => onElementDelete(element.index) : undefined}
+                                                       onElementEdit={onElementEdit ? () => onElementEdit(element.index) : undefined}
+                                                       isLast={element.index === elements.length - 1}
+                                                       onUp={() => onUp ? onUp(element.index) : undefined}
+                                                       onDown={() => onDown ? onDown(element.index) : undefined}
+                                                       onPlayingEnd={() => handlePlayingEnd(element.index)}/>
+                            );
+                        })}
                     </div>
                 }
             </>

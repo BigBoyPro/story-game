@@ -83,8 +83,7 @@ const StoryElementComponent = forwardRef(
                 isPlayingRef.current = true;
                 timeoutRef.current = setTimeout(() => {handlePlayingEnd()}, DRAW_INITIAL_ACTIONS_MILLISECONDS + 500);
             } else {
-
-                onPlayingEnd && onPlayingEnd();
+                setTimeout(() => {onPlayingEnd && onPlayingEnd()}, 500);
             }
             elementRef.current?.scrollIntoView({ behavior: 'smooth' });
 
