@@ -12,8 +12,6 @@ export interface GameStoryComponentHandles {
     forceSave: () => StoryElement[];
 }
 
-
-
 const GameStoryComponent = forwardRef(
     function GameStoryComponent({
         story,
@@ -23,10 +21,10 @@ const GameStoryComponent = forwardRef(
         onCancel,
     }: {
         story: Story,
-        initialNewStoryElements?: StoryElement[],
-        onNewStoryElementsChange?: (newNewStoryElements: StoryElement[]) => void,
-        onSave?: () => void,
-        onCancel?: () => void,
+        initialNewStoryElements: StoryElement[],
+        onNewStoryElementsChange: (newNewStoryElements: StoryElement[]) => void,
+        onSave: () => void,
+        onCancel: () => void,
     }, ref: React.Ref<GameStoryComponentHandles>) {
         useImperativeHandle(ref, () => ({
             forceSave,
@@ -35,22 +33,11 @@ const GameStoryComponent = forwardRef(
     ));
     const [placeImage, setPlaceImage] = useState(PlaceType.None);
 
-    const createStoryElement = (index: number, type: StoryElementType, content: string): StoryElement | undefined => {
-        if (!lobby) return;
-        return {
-            index: index,
-            userId: userId,
-            storyId: story.id,
-            round: lobby.round,
-            type,
-            content
-        };
-    };
 
         const forceSave = (): StoryElement[] => {
             const newStoryElements = [...storyElements];
-            if (isDrawing && selectedElementIndex === null) {
-                const drawingElement = createStoryElement(newStoryElements.length, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+            if (lobby && isDrawing && selectedElementIndex === null) {
+                const drawingElement = createStoryElement(newStoryElements.length,lobby.round, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
                 if (drawingElement) newStoryElements.push(drawingElement);
             }
             return newStoryElements;
@@ -58,14 +45,15 @@ const GameStoryComponent = forwardRef(
 
         const lobby = useContext(LobbyContext);
         const [storyElements, setStoryElements] = useState<StoryElement[]>
-            (() => {
+            (() : StoryElement[] => {
+                if(!lobby) return [];
                 const elements = initialNewStoryElements;
                 const placeElement = elements.find((e) => e.type === StoryElementType.Place);
                 if (!placeElement) {
                     for (let i = 0; i < elements.length; i++) {
                         elements[i].index++;
                     }
-                    const newElement = createStoryElement(0, StoryElementType.Place, PlaceType.None);
+                    const newElement = createStoryElement(0, lobby.round, StoryElementType.Place, PlaceType.None);
                     if (newElement)
                         elements.unshift(newElement);
 
@@ -90,7 +78,7 @@ const GameStoryComponent = forwardRef(
 
         const inputRef = useRef<HTMLInputElement>(null);
 
-        
+
         onNewStoryElementsChange && useEffect(() => {
             onNewStoryElementsChange(storyElements);
         }, [storyElements]);
@@ -103,12 +91,11 @@ const GameStoryComponent = forwardRef(
                const updatedElements = [...storyElements];
                updatedElements[placeElement.index]=placeElement;
                setStoryElements(updatedElements);
-            }          
-            
+            }
+
         },[placeImage]
         );
 
-        
         const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
             drawingActionsRef.current = newActions;
         };
@@ -121,47 +108,49 @@ const GameStoryComponent = forwardRef(
             setAudio(newAudio);
         };
 
-
-
-
         const handleElementAdd = () => {
             setSelectedElementIndex(null);
             if (lobby) {
-                console.log("adding new element", type)
                 if (type == StoryElementType.Image) {
                     inputRef.current?.click();
                 } else if (type == StoryElementType.Audio) {
                     if (!audio) return;
                     const audioURL = `${audio}`;
-                    addStoryElement(StoryElementType.Audio, audioURL);
+                    addStoryElement(lobby.round, StoryElementType.Audio, audioURL);
 
                 } else if (type == StoryElementType.Drawing) {
                     drawingActionsRef.current = [];
                     setIsDrawing(true);
                 } else if (type == StoryElementType.Text) {
                     // add new element to the story
-                    console.log("adding new text element")
-                    addStoryElement(StoryElementType.Text, "");
+                    addStoryElement(lobby.round, StoryElementType.Text, "");
                 } else if (type == StoryElementType.Place) {
-                    addStoryElement(StoryElementType.Place, placeImage)
+                    addStoryElement(lobby.round, StoryElementType.Place, placeImage)
                 }
             }
         }
 
-       
+        const createStoryElement = (index: number, round: number, type: StoryElementType, content: string): StoryElement => {
+            return {
+                index: index,
+                userId: userId,
+                storyId: story.id,
+                round: round,
+                type,
+                content
+            };
+        };
 
-        const addStoryElement = (type: StoryElementType, content: string) => {
-            const newElement = createStoryElement(storyElements.length, type, content);
-            if (newElement) setStoryElements([...storyElements, newElement]);
+        const addStoryElement = (round: number, type: StoryElementType, content: string) => {
+            setStoryElements((prevElements) => [...prevElements, createStoryElement(prevElements.length, round, type, content)]);
         }
 
-        const updateElement = (index: number, type: StoryElementType, content: string) => {
-            const newElement = createStoryElement(index, type, content);
-            if (newElement) {
-                const updatedStoryElements = [...storyElements];
-                updatedStoryElements[index] = newElement;
-                setStoryElements(updatedStoryElements);
-            }
+        const updateElement = (index: number, round: number, type: StoryElementType, content: string) => {
+            setStoryElements((prevElements) => {
+                const updatedStoryElements = [...prevElements];
+                updatedStoryElements[index] = createStoryElement(index, round, type, content);
+                return updatedStoryElements;
+            });
         };
 
         const addImageElement = async (file: File) => {
@@ -169,40 +158,39 @@ const GameStoryComponent = forwardRef(
             const fileURL = await uploadImage(file);
             if (!fileURL) return;
             if (selectedElementIndex !== null) {
-                updateElement(selectedElementIndex, StoryElementType.Image, fileURL);
+                updateElement(selectedElementIndex, lobby.round, StoryElementType.Image, fileURL);
                 setSelectedElementIndex(null);
             } else {
-                addStoryElement(StoryElementType.Image, fileURL);
+                addStoryElement(lobby.round, StoryElementType.Image, fileURL);
             }
         };
-
-
 
         const AddDrawingElement = () => {
             if (!lobby) return;
             setIsDrawing(false);
             if (selectedElementIndex !== null) {
-                updateElement(selectedElementIndex, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+                updateElement(selectedElementIndex, lobby.round, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
                 setSelectedElementIndex(null);
             } else {
-                addStoryElement(StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+                addStoryElement(lobby.round, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
             }
             drawingActionsRef.current = [];
         };
 
         const handleElementChange = (index: number, storyElement: StoryElement) => {
-            const updatedStoryElements = [...storyElements];
-            updatedStoryElements[index] = storyElement;
-            setStoryElements(updatedStoryElements);
+            if(!lobby) return;
+            updateElement(index, lobby.round, storyElement.type, storyElement.content);
         };
 
         const handleElementDelete = (index: number): void => {
-            const updatedStoryElements = [...storyElements];
-            updatedStoryElements.splice(index, 1);
-            for (let i = index; i < updatedStoryElements.length; i++) {
-                updatedStoryElements[i].index--;
-            }
-            setStoryElements(updatedStoryElements);
+            setStoryElements((prevElements) => {
+                const updatedStoryElements = [...prevElements];
+                updatedStoryElements.splice(index, 1);
+                for (let i = index; i < updatedStoryElements.length; i++) {
+                    updatedStoryElements[i].index--;
+                }
+                return updatedStoryElements
+            });
         };
 
         const handleElementEdit = (index: number): void => {
@@ -231,24 +219,29 @@ const GameStoryComponent = forwardRef(
         };
         const handleElementUp = (index: number) => {
             if (index === 0) return;
-            const updatedStoryElements = [...storyElements];
-            const temp = updatedStoryElements[index];
-            updatedStoryElements[index] = updatedStoryElements[index - 1];
-            updatedStoryElements[index - 1] = temp;
-            updatedStoryElements[index].index++;
-            updatedStoryElements[index - 1].index--;
-            setStoryElements(updatedStoryElements);
+
+            setStoryElements((prevElements) => {
+                const updatedStoryElements = [...prevElements];
+                const temp = updatedStoryElements[index];
+                updatedStoryElements[index] = updatedStoryElements[index - 1];
+                updatedStoryElements[index - 1] = temp;
+                updatedStoryElements[index].index++;
+                updatedStoryElements[index - 1].index--;
+                return updatedStoryElements;
+            });
         };
 
         const handleElementDown = (index: number) => {
             if (index === storyElements.length - 1) return;
-            const updatedStoryElements = [...storyElements];
-            const temp = updatedStoryElements[index];
-            updatedStoryElements[index] = updatedStoryElements[index + 1];
-            updatedStoryElements[index + 1] = temp;
-            updatedStoryElements[index].index--;
-            updatedStoryElements[index + 1].index++;
-            setStoryElements(updatedStoryElements);
+            setStoryElements((prevElements) => {
+                const updatedStoryElements = [...prevElements];
+                const temp = updatedStoryElements[index];
+                updatedStoryElements[index] = updatedStoryElements[index + 1];
+                updatedStoryElements[index + 1] = temp;
+                updatedStoryElements[index].index--;
+                updatedStoryElements[index + 1].index++;
+                return updatedStoryElements;
+            });
         };
 
 
@@ -259,8 +252,7 @@ const GameStoryComponent = forwardRef(
         }
 
         return (
-            <div className="story-page"
-            >
+            <div className="story-page">
                 {hasSubmitted || !isDrawing ?
                     <>
                         <select onChange={(event) => setPlaceImage(event.target.value as PlaceType)}>

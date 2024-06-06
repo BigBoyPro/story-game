@@ -3,7 +3,7 @@ import {Pool} from "pg";
 import {inactiveUsersHandler} from "../inactiveUsersHandler";
 import {dbSelectLobbiesActive} from "../../db";
 import {onRestartRound} from "./roundHandler";
-import {processOp} from "../../../../shared/sharedTypes";
+import {processOp, SocketEvent} from "../../../../shared/sharedTypes";
 
 export async function resetGames(io: Server, pool: Pool ){
     await inactiveUsersHandler(io, pool);

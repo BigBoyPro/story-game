@@ -1,16 +1,16 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {Lobby, OpResult, processOp, User} from "../../../../shared/sharedTypes";
+import {Lobby, OpResult, processOp, SocketEvent, User} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateUserLobbyCode, dbUpsertUser} from "../../db";
 
-export const onJoinLobby = async (io: Server, pool: Pool, userId: string, nickname: string, lobbyCode: string) => {
+export const onJoinLobby = async (event: SocketEvent, io: Server, pool: Pool, userId: string, nickname: string, lobbyCode: string) => {
     console.log("user " + userId + "sent join lobby:" + lobbyCode + " request");
 
     const {data: lobby, error, success} = await processOp(() =>
         joinLobby(pool, userId, nickname, lobbyCode));
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
     join(userId, lobby.code);

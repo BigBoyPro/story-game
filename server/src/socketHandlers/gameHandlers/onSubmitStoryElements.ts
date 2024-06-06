@@ -1,6 +1,14 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp, StoryElement} from "../../../../shared/sharedTypes";
+import {
+    ErrorType,
+    Lobby,
+    LogLevel,
+    OpResult,
+    processOp,
+    SocketEvent,
+    StoryElement
+} from "../../../../shared/sharedTypes";
 import {
     dbSelectLobby, dbSelectUserReady,
     dbTransaction,
@@ -8,18 +16,18 @@ import {
     dbUpdateUserLastActive, dbUpdateUserReady, dbUpsertleteStoryElements
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
-import {broadcastUsersSubmitted, sendError} from "../socketService";
+import {excludedBroadcastUsersSubmitted, sendError, sendSubmitted} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
 
-export async function onSubmitStoryElements(io: Server, pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]) {
+export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]) {
     console.log("user " + userId + " sent submit story elements");
 
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
@@ -28,11 +36,12 @@ export async function onSubmitStoryElements(io: Server, pool: Pool, userId: stri
         submitStoryElements(pool, userId, lobbyCode, elements)
     ));
     if (!success || !lobby) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
-    broadcastUsersSubmitted(io, lobbyCode, lobby.usersSubmitted);
+    sendSubmitted(userId, true);
+    excludedBroadcastUsersSubmitted(userId, lobbyCode, lobby.usersSubmitted);
     console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
 
     if (lobby.usersSubmitted >= lobby.users.length) {

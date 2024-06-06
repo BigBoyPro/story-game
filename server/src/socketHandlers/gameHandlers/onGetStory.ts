@@ -1,17 +1,17 @@
 import {Pool} from "pg";
-import {ErrorType, LogLevel, OpResult, processOp, Story} from "../../../../shared/sharedTypes";
+import {ErrorType, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
 import {dbSelectLobby, dbSelectStoryWithIndex, dbUpdateUserLastActive} from "../../db";
 import {sendError, sendStory} from "../socketService";
 import {isUserInLobby, storyIndexForUser} from "../../utils/utils";
 
-export async function onGetStory(pool: Pool, userId: string, lobbyCode: string) {
+export async function onGetStory(event: SocketEvent, pool: Pool, userId: string, lobbyCode: string) {
     console.log("user " + userId + " sent get story request");
 
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
@@ -20,7 +20,7 @@ export async function onGetStory(pool: Pool, userId: string, lobbyCode: string) 
         getStory(pool, userId, lobbyCode)
     ));
     if (!success || !story) {
-        error && sendError(userId, error);
+        error && sendError(userId, event, error);
         return;
     }
 
