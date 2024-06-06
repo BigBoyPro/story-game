@@ -13,10 +13,10 @@ export enum PlaceType {
 
 
 export enum AudioType {
-    Scary = "Scary",
-    Romantic = "Romantic",
-    Sad = "Sad",
-    Suspense = "Suspense"
+    Scary = "./audio/Scary.mp3",
+    Romantic = "./audio/Romantic.mp3",
+    Sad = "./audio/Sad.mp3",
+    Suspense = "./audio/Suspense.mp3"
 }
 
 export type User = {

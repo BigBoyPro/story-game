@@ -1,6 +1,6 @@
 import React, {createRef, useEffect, useRef, useState} from "react";
 import "./StoryComponent.css"
-import {PlaceType, Story, StoryElementType} from "../../../../shared/sharedTypes.ts";
+import {Story} from "../../../../shared/sharedTypes.ts";
 import StoryUserComponent, {StoryUserComponentHandles} from "../StoryUserComponent/StoryUserComponent.tsx";
 import {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
@@ -21,12 +21,10 @@ function ResultsStoryComponent({
     const [isPlaying, setIsPlaying] = useState(false);
     const alreadyPlayedRef = useRef(false);
     const [canPlay, setCanPlay] = useState(!autoPlay);
-    const [placeImage, setPlaceImage] = useState((story.elements.find(element => element.type === StoryElementType.Place)?.content as PlaceType) || PlaceType.None);
 
     const storyUserElementComponentRefs = useRef<StoryUserComponentHandles[]>([]);
     useEffect(() => {
         storyUserElementComponentRefs.current = story.elements.map((_, i) => storyUserElementComponentRefs.current[i] ?? createRef<StoryElementComponentHandles>());
-        setPlaceImage((story.elements.find(element => element.type === StoryElementType.Place)?.content as PlaceType) || PlaceType.None);
     }, [story]);
     useEffect(() => {
         alreadyPlayedRef.current = false;
@@ -52,13 +50,7 @@ function ResultsStoryComponent({
     }
 
     return (
-        <div className="story-page"
-             style={{
-                 backgroundImage: `url(${placeImage})`,
-                 backgroundSize: 'cover',
-                 backgroundPosition: 'center',
-                 backgroundRepeat: 'no-repeat'
-             }}>
+        <div className="story-page">
             <div>
                 <label htmlFor="autoPlay">Auto Play</label>
                 <input type="checkbox" checked={autoPlay}

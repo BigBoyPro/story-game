@@ -132,7 +132,7 @@ const GameStoryComponent = forwardRef(
                     inputRef.current?.click();
                 } else if (type == StoryElementType.Audio) {
                     if (!audio) return;
-                    const audioURL = `/audio/${audio}.mp3`;
+                    const audioURL = `${audio}`;
                     addStoryElement(StoryElementType.Audio, audioURL);
 
                 } else if (type == StoryElementType.Drawing) {
