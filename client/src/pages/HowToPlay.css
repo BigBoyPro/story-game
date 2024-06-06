@@ -43,3 +43,19 @@
 .rules-text h1, .rules-text h2, .rules-text p {
     /*padding-left: 10%; /* Ajustez cette valeur pour déplacer le texte vers la droite */
 }
+.back-button {
+    position: absolute;
+    top: 2vh; /* Ajustez cette valeur pour déplacer le bouton vers le bas */
+    left: 2vw; /* Ajustez cette valeur pour déplacer le bouton vers la droite */
+    width: 10px; /* Ajustez cette valeur pour modifier la largeur de l'image */
+    height: 10px; /* Ajustez cette valeur pour modifier la hauteur de l'image */
+}
+.back-button img {
+    width: 7.5vw;
+    height: 15vh;
+    transition: transform 0.3s ease-in-out; /* Ajoute une transition douce */
+}
+
+.back-button img:hover {
+    transform: scale(1.1); /* Agrandit l'image de 10% lorsque le curseur est dessus */
+}
