@@ -16,6 +16,7 @@ import { faMusic } from '@fortawesome/free-solid-svg-icons'
 import { faFont } from '@fortawesome/free-solid-svg-icons'
 import { faPaintBrush } from '@fortawesome/free-solid-svg-icons'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
+// import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
 
 
 
@@ -97,6 +98,7 @@ const GameStoryComponent = forwardRef(
 
         const [type, setType] = useState<StoryElementType>(StoryElementType.Text);
         const [audio, setAudio] = useState<AudioType>(AudioType.Scary);
+
         const [selectedElementIndex, setSelectedElementIndex] = useState<number | null>(null);
 
         const drawingActionsRef = useRef<DrawingAction[]>([]);
@@ -278,14 +280,21 @@ const GameStoryComponent = forwardRef(
             <div className="story-page">
                 {hasSubmitted || !isDrawing ?
                     <>
-                        <select onChange={(event) => setPlaceImage(event.target.value as PlaceType)}>
-                            {Object.values(PlaceType).map((value, index) => (
-                                <option key={value}
-                                    value={value}>
-                                    {Object.keys(PlaceType)[index]}
-                                </option>
-                            ))}
-                        </select>
+                        <div className={"place-selector-container"}>
+                            <select className={"place-selector"} onChange={(event) => setPlaceImage(event.target.value as PlaceType)}>
+                                {Object.values(PlaceType).map((value, index) => {
+                                    const key = Object.keys(PlaceType)[index];
+                                    const displayText = key === 'None' ? 'Choose a place' : key;
+                                    return (
+                                        <option key={value}
+                                                value={value}>
+                                            {displayText}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </div>
+
 
                         {getStoryElementsForEachUser(story.elements, false).map((elements, index) => {
                             return (
@@ -313,19 +322,17 @@ const GameStoryComponent = forwardRef(
                                 <div className="element-type-container">
                                     {Object.values(StoryElementType).map((value) => (
                                         value !== StoryElementType.Empty &&
+                                        value !== StoryElementType.Place &&
                                         <div key={value}
                                              className={`element-type-option ${selectedType === value ? 'selected' : ''}`}
                                              onClick={() => handleTypeSelect(value)}>
-                                            {/*{value.charAt(0).toUpperCase() + value.slice(1)}*/}
                                             {value ==StoryElementType.Image  && <FontAwesomeIcon icon={faImages} size="2x" />}
                                             {value ==StoryElementType.Audio  && <FontAwesomeIcon icon={faMusic} size="2x" />}
                                             {value ==StoryElementType.Text  && <FontAwesomeIcon icon={faFont} size="2x" />}
                                             {value ==StoryElementType.Drawing && <FontAwesomeIcon icon={faPaintBrush} size="2x" />}
-
-
-
                                         </div>
                                     ))}
+
 
                                     <input type="file" ref={inputRef} accept="image/*" hidden={true}
                                            onAbort={handleAddElementAbort}
@@ -338,14 +345,18 @@ const GameStoryComponent = forwardRef(
                                     />
 
                                     {type === StoryElementType.Audio &&
-                                        <select value={audio}
-                                            onChange={event => {
-                                                handleAudioChange(event.target.value as AudioType)
-                                            }}>
-                                            {Object.values(AudioType).map((value) => (
-                                                <option key={value}
-                                                    value={value}>{value}</option>
-                                            ))}
+                                        <select className={"audio-selector"} value={audio}
+                                                onChange={event => {
+                                                    handleAudioChange(event.target.value as AudioType)
+                                                }}>
+                                            {Object.values(AudioType).map((value) => {
+                                                const audioName = value.split('/').pop(); // Obtenez le nom de l'audio sans le chemin d'accès
+                                                const audioNameWithoutExtension = audioName?.replace('.mp3', ''); // Enlevez l'extension .mp3
+                                                return (
+                                                    <option key={value}
+                                                            value={value}>{audioNameWithoutExtension}</option> // Affichez le nom de l'audio sans le chemin d'accès et sans l'extension .mp3
+                                                );
+                                            })}
                                         </select>
                                     }
 
@@ -360,7 +371,7 @@ const GameStoryComponent = forwardRef(
 
 
                                 <div className={"finish-button-container"}>
-                                    <button disabled={storyElements.length === 0} onClick={handleFinish}>
+                                    <button className={"finish-button"} disabled={storyElements.length === 0} onClick={handleFinish}>
                                         Finish
                                     </button>
                                 </div>
