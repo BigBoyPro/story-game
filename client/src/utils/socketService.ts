@@ -38,7 +38,7 @@ const MAX_RETRIES = 5;
 // Event Listeners:
 
 socket.on(SocketEvent.CONNECT, () => {
-    socket.emit(SocketEvent.GET_LOBBY, userId);
+    sendRequest(SocketEvent.GET_LOBBY, userId)
     console.log('connected to server');
 });
 
@@ -227,7 +227,7 @@ export const canRequest = (event: SocketEvent, args: any[]): boolean => {
     const coexistingEvents = eventsThatCanCoexist.get(event);
     if (coexistingEvents) {
         for (const [ongoingEvent] of ongoingRequests.entries()) {
-            if (!coexistingEvents.includes(ongoingEvent)) {
+            if (!coexistingEvents.includes(ongoingEvent) && ongoingEvent !== SocketEvent.GET_LOBBY) {
                 console.log(`Cannot request event ${event} because event ${ongoingEvent} is ongoing.`);
                 return false;
             }
@@ -238,7 +238,7 @@ export const canRequest = (event: SocketEvent, args: any[]): boolean => {
 }
 
 
-export const request = (event: SocketEvent, ...args: any[]) => {
+export const sendRequest = (event: SocketEvent, ...args: any[]) => {
     if (!canRequest(event, args)) return;
     // Emit the event to the server with the provided arguments
     socket.emit(event, ...args);
@@ -259,43 +259,43 @@ export const request = (event: SocketEvent, ...args: any[]) => {
     }
 }
 export const requestJoinLobby = (nickname: string, lobbyCode: string) => {
-    request(SocketEvent.JOIN_LOBBY, userId, nickname, lobbyCode);
+    sendRequest(SocketEvent.JOIN_LOBBY, userId, nickname, lobbyCode);
 }
 
 export const requestCreateLobby = (nickname: string) => {
-    request(SocketEvent.CREATE_LOBBY, userId, nickname);
+    sendRequest(SocketEvent.CREATE_LOBBY, userId, nickname);
 }
 
 export const requestStartGame = (lobbyCode: string) => {
-    request(SocketEvent.START_GAME, userId, lobbyCode);
+    sendRequest(SocketEvent.START_GAME, userId, lobbyCode);
 }
 
 export const requestStory = (lobbyCode: string) => {
-    request(SocketEvent.GET_STORY, userId, lobbyCode);
+    sendRequest(SocketEvent.GET_STORY, userId, lobbyCode);
 }
 
 export const requestNextPart = (lobbyCode: string) => {
-    request(SocketEvent.NEXT_PART, userId, lobbyCode);
+    sendRequest(SocketEvent.NEXT_PART, userId, lobbyCode);
 }
 
 export const requestGetStoryAtPart = (lobbyCode: string) => {
-    request(SocketEvent.GET_STORY_AT_PART, userId, lobbyCode);
+    sendRequest(SocketEvent.GET_STORY_AT_PART, userId, lobbyCode);
 }
 
 export const requestEndGame = (lobbyCode: string) => {
-    request(SocketEvent.END_GAME, userId, lobbyCode);
+    sendRequest(SocketEvent.END_GAME, userId, lobbyCode);
 }
 
 export const requestLeaveLobby = (lobbyCode: string) => {
-    request(SocketEvent.LEAVE_LOBBY, userId, lobbyCode);
+    sendRequest(SocketEvent.LEAVE_LOBBY, userId, lobbyCode);
 }
 
 export const submitStoryElements = (lobbyCode: string, elements: StoryElement[]) => {
-    request(SocketEvent.SUBMIT_STORY_ELEMENTS, userId, lobbyCode, elements);
+    sendRequest(SocketEvent.SUBMIT_STORY_ELEMENTS, userId, lobbyCode, elements);
 }
 
 export const unsubmitStoryElements = (lobbyCode: string) => {
-    request(SocketEvent.UNSUBMIT_STORY_ELEMENTS, userId, lobbyCode);
+    sendRequest(SocketEvent.UNSUBMIT_STORY_ELEMENTS, userId, lobbyCode);
 }
 
 export const submitLobbySettings = (lobbyCode: string, lobbySettings: LobbySettings) => {
