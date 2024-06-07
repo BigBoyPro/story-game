@@ -18,7 +18,7 @@ import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, 
 
 import LobbyView from "./pages/LobbyView.tsx";
 import JoinView from "./pages/JoinView";
-import HowToPlay from './pages/HowToPlay';
+import HowToPlayView from './pages/HowToPlayView.tsx';
 
 import {LobbyContext} from "./LobbyContext.tsx";
 import GameView from "./pages/GameView.tsx";
@@ -40,7 +40,7 @@ const router = createBrowserRouter(
             <Route path={Page.Lobby} element={<LobbyView/>}/>
             <Route path={Page.Game} element={<GameView/>}/>
             <Route path={Page.Results} element={<ResultsView/>}/>
-            <Route path={Page.HowToPlay} element={<HowToPlay/>}/>
+            <Route path={Page.HowToPlay} element={<HowToPlayView/>}/>
         </>
     )
 );
