@@ -3,12 +3,13 @@
 
 import { Link } from 'react-router-dom';
 import './HowToPlayView.css';
+import backButtonIcon from '../assets/icons/backButton.png';
 
 function HowToPlayView() {
     return (
         <div className="how-to-play-page">
             <Link to="/" className="back-button">
-                <img src="../assets/icons/backHowToPlay.png" alt="Back Button" />
+                <img src={backButtonIcon} alt="Back Button" />
             </Link>
             <div className="rules-text">
                 <h1>Rules of the Game</h1>
