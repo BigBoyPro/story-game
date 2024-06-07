@@ -38,7 +38,7 @@ export const createLobby = (pool: Pool, userId: string, nickname: string): Promi
 
         let existingLobby;
         ({success, data: existingLobby, error}  = await dbSelectLobbyByHost(client, userId));
-        if (success && existingLobby) return {success: false, error: { logLevel: LogLevel.Error, type: ErrorType.USER_ALREADY_IN_LOBBY, error: "User is already in a lobby" }};
+        if (success && existingLobby) return {success: false, error: { logLevel: LogLevel.Warning, type: ErrorType.USER_ALREADY_IN_LOBBY, error: "User is already in a lobby" }};
 
         // generate unique lobby code
         let lobbyCode;
