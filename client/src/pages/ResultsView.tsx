@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
-import backgroundImage from '/public/resultsImage.png';
+import backgroundImage from "../assets/backgrounds/ResultsView.png";
 import {
     onEndGame,
     onStoryAtPart,
