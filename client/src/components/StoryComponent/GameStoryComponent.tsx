@@ -350,11 +350,11 @@ const GameStoryComponent = forwardRef(
                                                     handleAudioChange(event.target.value as AudioType)
                                                 }}>
                                             {Object.values(AudioType).map((value) => {
-                                                const audioName = value.split('/').pop(); // Obtenez le nom de l'audio sans le chemin d'accès
-                                                const audioNameWithoutExtension = audioName?.replace('.mp3', ''); // Enlevez l'extension .mp3
+                                                const audioName = value.split('/').pop();
+                                                const audioNameWithoutExtension = audioName?.replace('.mp3', '');
                                                 return (
                                                     <option key={value}
-                                                            value={value}>{audioNameWithoutExtension}</option> // Affichez le nom de l'audio sans le chemin d'accès et sans l'extension .mp3
+                                                            value={value}>{audioNameWithoutExtension}</option>
                                                 );
                                             })}
                                         </select>
