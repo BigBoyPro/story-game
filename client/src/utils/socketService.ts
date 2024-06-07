@@ -26,7 +26,7 @@ const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.NEXT_PART, [SocketEvent.STORY_AT_PART, SocketEvent.PART]],
     [SocketEvent.GET_STORY_AT_PART, [SocketEvent.STORY_AT_PART]],
     [SocketEvent.END_GAME, [SocketEvent.LOBBY_INFO]],
-    [SocketEvent.LEAVE_LOBBY, [SocketEvent.LEFT_LOBBY, SocketEvent.LOBBY_INFO]],
+    [SocketEvent.LEAVE_LOBBY, [SocketEvent.LEFT_LOBBY]],
     [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]],
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]]
 ]);
