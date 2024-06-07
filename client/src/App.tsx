@@ -118,7 +118,6 @@ function App() {
       <>
           <LobbyContext.Provider value={lobby}>
               <RouterProvider router={router}/>
-              {/*<footer>i'm foot</footer>*/}
           </LobbyContext.Provider>
       </>
   )
