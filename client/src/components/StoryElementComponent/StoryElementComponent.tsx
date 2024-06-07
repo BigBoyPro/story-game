@@ -162,6 +162,7 @@ const StoryElementComponent = forwardRef(
                 return <div/>
             case StoryElementType.Text:
                     const textArea = <textarea value={element.content}
+                                               className="chat-bubble"
                                                onChange={(e) => handleContentChange(e.target.value)}
                                                disabled={!isEditable}/>;
                     if (isEditable) {
