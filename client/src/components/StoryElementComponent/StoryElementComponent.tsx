@@ -197,7 +197,7 @@ const StoryElementComponent = forwardRef(
                         }
                         {isEditable && onElementDelete && <button onClick={() => onElementDelete()}>Delete</button>}
                         <div>
-                            {isEditable && onUp && element.index !== 0 &&
+                            {isEditable && onUp && element.index > 1 &&
                                 <button onClick={onUp}>Up</button>
                             }
                             {isEditable && onDown && !isLast &&
