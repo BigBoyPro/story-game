@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
-import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:443";
 console.log('connecting to server at', SERVER_URL);
@@ -69,32 +69,12 @@ export const offLeftLobby = () => {
     socket.off(SocketEvent.LEFT_LOBBY);
 }
 
-
-const errorsThatShouldReload = [
-    ErrorType.USER_ALREADY_IN_LOBBY,
-    ErrorType.USER_NOT_IN_LOBBY,
-    ErrorType.LOBBY_NOT_FOUND,
-    ErrorType.USER_NOT_HOST,
-    ErrorType.USER_NOT_SUBMITTED,
-    ErrorType.STORY_NOT_FOUND,
-    ErrorType.STORY_BY_INDEX_NOT_FOUND,
-    ErrorType.STORY_INDEX_OUT_OF_BOUNDS,
-    ErrorType.PART_IS_NULL,
-];
-
-
 export const onError = (callback: (event: SocketEvent, error: OpError) => void) => {
     socket.on(SocketEvent.ERROR, (event, error) => {
+        callback(event, error);
 
         // If the error level is Error, retry the request after a delay
         if (error.logLevel === LogLevel.Error) {
-
-            if(errorsThatShouldReload.includes(error.type)){
-                setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
-                return;
-            }
-
-
             const requestInfo = ongoingRequests.get(event);
             if (requestInfo) {
                 if (requestInfo.retryCount < MAX_RETRIES) {
@@ -110,9 +90,6 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
                 console.log(`No request info found for event ${event}.`);
             }
         }
-
-        callback(event, error);
-
     });
 }
 
