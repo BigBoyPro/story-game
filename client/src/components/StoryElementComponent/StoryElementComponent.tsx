@@ -2,7 +2,7 @@ import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts"
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
 import LanguageDetect from "languagedetect";
-
+import './StoryElementComponent.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faArrowUp, faArrowDown, faTrashAlt, faEdit} from '@fortawesome/free-solid-svg-icons'
@@ -198,15 +198,15 @@ const StoryElementComponent = forwardRef(
                         {renderContent()}
                         <div className={"buttons-container"}>
                             {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
-                                <button onClick={() => onElementEdit()}><FontAwesomeIcon icon={faEdit} /></button>
+                                <button className={"button"} onClick={() => onElementEdit()}><FontAwesomeIcon icon={faEdit} /></button>
                             }
-                            {isEditable && onElementDelete && <button onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} color={"#FF6347"} /></button>}
+                            {isEditable && onElementDelete && <button className={"button"} onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} color={"#FF6347"} /></button>}
 
                             {isEditable && onUp && element.index !== 0 &&
-                                <button onClick={onUp}><FontAwesomeIcon icon={faArrowUp} /></button>
+                                <button className={"button"} onClick={onUp}><FontAwesomeIcon icon={faArrowUp} /></button>
                             }
                             {isEditable && onDown && !isLast &&
-                                <button onClick={onDown}><FontAwesomeIcon icon={faArrowDown} /></button>
+                                <button className={"button"} onClick={onDown}><FontAwesomeIcon icon={faArrowDown} /></button>
                             }
                         </div>
                     </div>

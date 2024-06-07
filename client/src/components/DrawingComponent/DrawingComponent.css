@@ -47,6 +47,8 @@ canvas{
     align-items: center;
     justify-content: space-evenly;
     background-color: rgba(79, 27, 27, 0.25);
+    border-radius: 50%;
+    height:6rem;
 }
 
 .colors-container {
@@ -61,11 +63,37 @@ canvas{
 
 .settings-container{
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.5rem;
     padding: 0.5rem;
     background-color: transparent;
+    justify-content: space-between;
 
+}
+
+.buttons{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+}
+
+.draw-buttons-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+}
+
+.element-buttons-container{
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
 }
 
 .selected-icon {
@@ -79,3 +107,6 @@ canvas{
 .icon:hover {
     transform: scale(1.2);
 }
+
+
+

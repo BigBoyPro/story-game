@@ -86,7 +86,6 @@
     border-radius: 0.8rem;
     background-color: transparent;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-
 }
 .add-button:hover , .finish-button:hover{
     transform: scale(1.05);
@@ -101,12 +100,15 @@
 }
 
 .place-selector, .audio-selector {
+    background-color: rgba(9, 5, 5, 0.54);
+    color: #fff;
+
     transition: all 0.3s ease-in-out;
     font-size: 16px;
     padding: 10px;
     border-radius: 5px;
-    background-color: #ab8e93;
-    color: #333;
+    /*background-color: #ab8e93;*/
+    /*color: #333;*/
     width: 200px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }

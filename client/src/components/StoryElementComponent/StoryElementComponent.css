@@ -1,6 +1,38 @@
-.buttons-container{
-    justify-content: space-between;
+.story-element {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: transparent;
+    justify-content: center;
+    align-items: center;
+}
+
+.buttons-container{
+    justify-content: space-evenly;
+    display: flex;
+    gap: 0.5rem;
     flex-direction: row;
+}
+
+.button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(58, 31, 31); /* Couleur de fond du bouton */
+    color: #fff; /* Couleur du texte du bouton */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.button:hover:not(:disabled) {
+    background-color: #007BFF; /* Couleur de fond du bouton lors du survol */
 }

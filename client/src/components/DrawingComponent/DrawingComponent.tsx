@@ -10,7 +10,7 @@ import "./DrawingComponent.css"
 
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt, faEraser, faFont, faMinus, faHand } from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt, faEraser, faFont, faMinus, faHand, faFill,faUndo, faRedo, faTimes, faSave  } from '@fortawesome/free-solid-svg-icons';
 import { faSquare, faCircle } from '@fortawesome/free-regular-svg-icons';
 
 
@@ -1160,6 +1160,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         }, 10);
     };
 
+
+
 // ---------------------------------------------------------------------------------------------------------------------
     return (
         <div className={"drawing-page"}>
@@ -1168,6 +1170,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                     <div className={"tools-container"}>
                         <div>
                             <FontAwesomeIcon
+                                title="Select"
                                 size={"2x"}
                                 icon={faHand}
                                 className={`icon ${tool === AltTool.Selection? 'selected-icon' : ''}`}
@@ -1176,6 +1179,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         </div>
                         <div>
                             <FontAwesomeIcon
+                                title="Line"
                                 size={"2x"}
                                 icon={faMinus}
                                 className={`icon ${tool === ElementType.Line ? 'selected-icon' : ''}`}
@@ -1185,6 +1189,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         <div>
                             <FontAwesomeIcon
                                 size={"2x"}
+                                title="Square"
                                 icon={faSquare}
                                 className={`icon ${tool === ElementType.Rectangle ? 'selected-icon' : ''}`}
                                 onClick={() => handleToolChange(ElementType.Rectangle)}
@@ -1192,6 +1197,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         </div>
                         <div>
                             <FontAwesomeIcon
+                                title="Circle"
                                 size={"2x"}
                                 icon={faCircle}
                                 className={`icon ${tool === ElementType.Ellipse ? 'selected-icon' : ''}`}
@@ -1200,6 +1206,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         </div>
                         <div>
                             <FontAwesomeIcon
+                                title="Text"
                                 size={"2x"}
                                 icon={faFont}
                                 className={`icon ${tool === ElementType.Text ? 'selected-icon' : ''}`}
@@ -1208,6 +1215,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         </div>
                         <div>
                             <FontAwesomeIcon
+                                title="Pencil"
                                 size={"2x"}
                                 icon={faPencilAlt}
                                 className={`icon ${tool === ElementType.Pencil ? 'selected-icon' : ''}`}
@@ -1216,6 +1224,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         </div>
                         <div>
                             <FontAwesomeIcon
+                                title="Eraser"
                                 size={"2x"}
                                 icon={faEraser}
                                 className={`icon ${tool === ElementType.Eraser ? 'selected-icon' : ''}`}
@@ -1226,16 +1235,27 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
                     <div className={"settings-container"}>
                         <div>
-                            <input type="checkbox"
-                                   id="fill"
-                                   disabled={tool !== ElementType.Rectangle && tool !== ElementType.Ellipse}
-                                   checked={fill}
-                                   onChange={(event) => setFill(event.currentTarget.checked)}/>
-                            <label htmlFor="Fill">Fill</label>
+                            <label htmlFor="fill">
+                                <FontAwesomeIcon
+                                    title="Fill"
+                                    icon={faFill}
+                                    size={"2x"}
+                                    className={`icon ${fill && (tool === ElementType.Rectangle || tool === ElementType.Ellipse) ? 'selected-icon' : ''}`}
+                                />
+                                <input type="checkbox"
+                                       id="fill"
+                                       style={{ display: 'none' }}
+                                       disabled={tool !== ElementType.Rectangle && tool !== ElementType.Ellipse}
+                                       checked={fill}
+                                       onChange={(event) => setFill(event.currentTarget.checked)}
+                                />
+                            </label>
                         </div>
 
                         <div>
+
                             <input id="pencilSize" type="range" min="1" max="100" value={pencilSize} onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>
+
                             {tool === ElementType.Text && state == State.Writing && selection && selection.element.point &&
                                 <textarea
                                     ref={textAreaRef}
@@ -1317,15 +1337,17 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             </div>
             {isEditable &&
                 <>
-                    <div>
-                        <button onClick={undo}>Undo</button>
-                        <button onClick={redo}>Redo</button>
-                    </div>
-                    <div>
-                    <button onClick={onCancel}>Cancel</button>
-                    <button onClick={onSave}>Save Drawing</button>
-                    </div>
+                    <div className={"buttons"}>
+                        <div className={"draw-buttons-container"} >
+                            <button onClick={undo} className={"button"}><FontAwesomeIcon icon={faUndo} title="Undo" size="2x" className="icone" /></button>
+                            <button onClick={redo} className={"button"}><FontAwesomeIcon icon={faRedo} title="Redo" size="2x" className="icone" /></button>
+                        </div>
 
+                        <div className={"element-buttons-container"}>
+                            <button onClick={onCancel} className={"button"}><FontAwesomeIcon icon={faTimes} title="Cancel" size="2x" className="icone" /></button>
+                            <button onClick={onSave} className={"button"}><FontAwesomeIcon icon={faSave} title="Save" size="2x" className="icone" /></button>
+                        </div>
+                    </div>
                 </>
             }
         </div>
