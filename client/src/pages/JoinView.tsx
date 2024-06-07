@@ -1,13 +1,11 @@
 import React, {useContext, useEffect, useState} from "react";
 import {requestCreateLobby, requestJoinLobby} from "../utils/socketService.ts";
-import StoryGameLogo from "../assets/logos/logo.svg?react";
-import playButtonIcon from "../assets/icons/playButton.png"
-import helpButtonIcon from "../assets/icons/helpButton.png";
-import JoinVideo from "../assets/backgrounds/JoinView.mp4";
+import StoryGameLogo from "../assets/logo.svg?react";
+import playButtonIcon from "../assets/playButton.png";
+import helpButtonIcon from "../assets/helpButton.png";
 import {useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
 import {Page, redirection} from "../App.tsx";
-import "./JoinView.css";
 
 
 function JoinView() {
@@ -44,7 +42,7 @@ function JoinView() {
         <>
             <video autoPlay loop muted
                    className={"background"}>
-                <source src={JoinVideo} type="video/mp4" />
+                <source src="../JoinView.mp4" type="video/mp4" />
             </video>
             <header>
                 <button type="button" className={"button-3d-icon button-3d-icon--help"} onClick={handleHelpClick}>

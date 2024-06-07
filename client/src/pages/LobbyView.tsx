@@ -4,8 +4,7 @@ import {requestLeaveLobby, requestStartGame, userId} from "../utils/socketServic
 import {useNavigate} from "react-router-dom";
 import {Page, redirection} from "../App.tsx";
 import './LobbyView.css';
-import CrownIcon from "../assets/icons/theCrown.png"
-import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
+import CrownIcon from '../pages/assets/theCrown.png';
 
 
 
@@ -41,7 +40,7 @@ function LobbyView() {
                 <div className={"video-background-container"}>
 
                     <video autoPlay loop muted className={"background"}>
-                        <source src={LobbyVideo} type="video/mp4" />
+                        <source src="../LobbyView.mp4" type="video/mp4" />
                     </video>
 
                     {/*<div className={"main-box-lobby"}>*/}

@@ -1,14 +1,14 @@
 
-// src/pages/HowToPlayView.tsx
+// src/pages/HowToPlay.tsx
 
 import { Link } from 'react-router-dom';
-import './HowToPlayView.css';
+import './HowToPlay.css';
 
-function HowToPlayView() {
+function HowToPlay() {
     return (
         <div className="how-to-play-page">
             <Link to="/" className="back-button">
-                <img src="../assets/icons/backHowToPlay.png" alt="Back Button" />
+                <img src="../../public/backHowToPlay.png" alt="Back Button" />
             </Link>
             <div className="rules-text">
                 <h1>Rules of the Game</h1>
@@ -19,4 +19,4 @@ function HowToPlayView() {
     );
 }
 
-export default HowToPlayView;
+export default HowToPlay;

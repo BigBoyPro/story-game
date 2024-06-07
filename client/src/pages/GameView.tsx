@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
-import CrownIcon from '../assets/icons/theCrown.png';
+import CrownIcon from '../pages/assets/theCrown.png';
 import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 import {
     onStory,
@@ -76,12 +76,12 @@ function GameView() {
 
     return (
         <>
-            {/*<img src={"GameView.png"} className={"background"}/>*/}
+            {/*<img src={"GameImage.png"} className={"background"}/>*/}
             {/**/}
             <div className="game-page">
 
                 {/*<video autoPlay loop muted className={"video-background"}>*/}
-                {/*    <source src="../GameView.mp4" type="video/mp4" />*/}
+                {/*    <source src="../GameVideo.mp4" type="video/mp4" />*/}
                 {/*</video>*/}
 
                 <div className={"floating floating-elements"}>

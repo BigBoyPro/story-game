@@ -3,7 +3,7 @@
     flex: 1;
     display: flex;
     width: 100%;
-    background-image: url("../assets/backgrounds/GameView.png") ;
+    background-image: url("assets/GameImage.png") ;
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
