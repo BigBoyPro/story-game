@@ -6,8 +6,13 @@ import {Page, redirection} from "../App.tsx";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
 import './LobbyView.css';
-import LeaveIcon from "../assets/icons/LeaveIcon.svg?react";
-import PlayIcon from "../assets/icons/PlayIcon.svg?react";
+// import LeaveIcon from "../assets/icons/LeaveIcon.svg?react";
+// import PlayIcon from "../assets/icons/PlayIcon.svg?react";
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlay, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+
+
 
 function LobbyView() {
     const lobby = useContext(LobbyContext);
@@ -45,7 +50,7 @@ function LobbyView() {
                 <div className={"lobby-box"}>
                     <div className={"lobby-box__header"}>
                         <button className={"lobby-box__header_button"} onClick={handleBack} title="Leave Lobby">
-                            <LeaveIcon/>
+                            <FontAwesomeIcon icon={faRightFromBracket} size="2x" />
                         </button>
                     </div>
                     <div className={"lobby-info"}>
@@ -82,7 +87,7 @@ function LobbyView() {
                     <div className="lobby-play-button">
                         <button className={"button-play"} onClick={handleStartGame}
                                 disabled={lobby?.hostUserId !== userId}>
-                            <PlayIcon />
+                            <FontAwesomeIcon icon={faPlay} size="3x" />
                         </button>
                     </div>
                 </div>
