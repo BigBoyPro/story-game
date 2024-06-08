@@ -47,20 +47,20 @@ function JoinView() {
                 <source src={JoinVideo} type="video/mp4" />
             </video>
             <header>
-                <button type="button" className={"button-3d-icon button-3d-icon--help"} onClick={handleHelpClick}>
+                <button type="button" className={"join__button-3d button-3d-icon--help"} onClick={handleHelpClick}>
                     <img src={helpButtonIcon} alt="Help Button"/>
                 </button>
             </header>
             <div className={"main-page"}>
 
-                <div className={"main-box"}>
+                <div className={"join-box"}>
                     <form onSubmit={(event) => handleSubmit(event)}>
                         <StoryGameLogo className={"join__logo"} />
                         <input onChange={(event) => setNickname(event.target.value)}
                                type="text" placeholder="Nickname" className="join__input"/>
                         <input onChange={(event) => setLobbyCode(event.target.value)}
                                type="text" placeholder="Optional Lobby Code" className="join__input"/>
-                        <button type="submit" className={"button-3d-icon button-3d-icon--play"}>
+                        <button type="submit" className={"join__button-3d button-3d-icon--play"}>
                             <img src={playButtonIcon} alt="Play Button"/>
                         </button>
                     </form>

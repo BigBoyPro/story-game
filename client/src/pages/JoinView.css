@@ -1,4 +1,40 @@
-.button-3d-icon{
+
+.join-box {
+    z-index: 1;
+    width: 60%;
+    height: 60%;
+    background-color: transparent;
+    border: 1px solid #000000;
+}
+@media (max-width: 600px), (max-height: 600px) {
+    .join-box {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.join-box form{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.join-box h1 {
+    font-size: 3.2rem;
+    color: #4f1b1b;
+}
+.join__logo {
+    max-width:70%;
+    max-height: 60%;
+    object-fit: contain;
+
+}
+
+
+.join__button-3d{
     aspect-ratio: 1/1;
     background: transparent;
     border-radius: 50%;
@@ -20,19 +56,19 @@
 }
 
 
-.button-3d-icon img{
+.join__button-3d img{
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-.button-3d-icon:hover {
+.join__button-3d:hover {
     background: transparent;
     border: none;
     transform: scale(1.1);
     transition: transform 0.2s ease-in-out;
 }
-.button-3d-icon:focus {
+.join__button-3d:focus {
     transform: scale(0.8);
     transition: transform 0.2s ease;
 }

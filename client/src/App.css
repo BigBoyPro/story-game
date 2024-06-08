@@ -7,49 +7,16 @@ header {
 
 .main-page {
     height: 100%;
-    z-index: 1;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background-color: transparent;
-}
-
-.main-box {
-    z-index: 1;
-    width: 60%;
-    height: 60%;
-    border-radius: 0.8rem;
-    background-color: transparent;
-}
-@media (max-width: 600px), (max-height: 600px) {
-    .main-box {
-        width: 100%;
-        height: 100%;
-    }
-}
-
-.main-box form{
     width: 100%;
-    height: 100%;
+    z-index: 1;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    background-color: transparent;
 }
 
-.join__logo {
-    max-width:70%;
-    max-height: 60%;
-    object-fit: contain;
 
-}
 
-.main-box h1 {
-    font-size: 3.2rem;
-    color: #4f1b1b;
-}
 
 input{
     color: white;
@@ -77,6 +44,8 @@ button:hover {
 
 .background {
     position: fixed;
+    width: 100%;
+    height: 100%;
     right: 0;
     bottom: 0;
     top: 0;

@@ -1,72 +1,105 @@
 .game-page {
     z-index: 1;
-    flex: 1;
     display: flex;
     width: 100%;
+    height: 100%;
     background-image: url("../assets/backgrounds/GameView.png") ;
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
 }
 
+.floating-elements, .users {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 50%; /* Set the base size to 50% of the parent container */
+}
+
 .game-box {
-    width: auto;
-    height: auto;
+    flex-grow: 0; /* .game-box will not grow when the window is enlarged */
+    flex-shrink: 1; /* .game-box will shrink when the window is reduced and the other elements can no longer shrink */
+    flex-basis: 75%; /* .game-box will take up 500px of the .game-page width */
+    min-width: 40rem;
+}
+.game-box {
     border: 1px solid #eac3c3;
     z-index: 1;
     padding: 5rem;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    height: 100%;
 }
-.background {
-    position: fixed;
-    z-index: 0;
-    object-fit: cover;
-}
-
-.crown-icon-small {
+.game-page h2{
+    font-size: 110%;
+    color: #DB9494;
+    font-weight: bold;
 }
 
 .floating{
     position: sticky;
-
 }
 
 .floating-elements {
-
+    border: black 1px solid;
     z-index: 1;
     display: flex;
     justify-content: space-evenly;
+    flex-wrap: wrap;
+    align-content: flex-start; /* Add this line */
+}
+.round{
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    background-color: transparent;
+    align-items: center;
+
 }
 
-.side-bar-container {
-    display: grid;
-    place-items: center;
-    height: 100%;
+.round__text{
+    width: 10rem;
+    text-align: center;
+    z-index: 1;
+    background-color: white;
+    padding: 1rem;
+    font-weight: bold;
+    border-radius: 0.8rem;
 }
 
-.side-bar {
+.timer{
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    background-color: transparent;
+    align-items: center;
+}
+
+
+.users {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
     border-radius: 0.8rem;
     text-align: center;
-    /* Remove align-self: center; */
-    max-width: 25rem;
     width: 100%;
-}
-h2{
-    color: #eac3c3;
+    align-items: center;
 }
 
-.users-box{
+
+.users__list{
+    max-width: 25rem;
+    width: 100%;
     z-index: 1;
     display: grid;
     gap: 1rem;
 }
 
-.user, .round{
+.user{
     z-index: 1;
     background-color: white;
     padding: 1rem;
@@ -76,46 +109,4 @@ h2{
     justify-content: center;
     align-items: center;
 }
-/*.current-user-bar{*/
-/*    z-index: 1;*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    padding: 1rem;*/
-/*    gap: 1rem;*/
-/*    background-color: transparent;*/
-/*    width:15rem;*/
-/*    top: 0;*/
-/*    left:0;*/
-/*    align-items: center;*/
-/*}*/
 
-.round-box{
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    background-color: transparent;
-}
-.timer-box{
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    background-color: transparent;
-    align-items: center;
-}
-
-
-.floating-elements, .side-bar-container {
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: 50%; /* Set the base size to 50% of the parent container */
-}
-
-.game-box {
-    flex-grow: 0; /* .game-box will not grow when the window is enlarged */
-    flex-shrink: 1; /* .game-box will shrink when the window is reduced and the other elements can no longer shrink */
-    flex-basis: 100rem; /* .game-box will take up 500px of the .game-page width */
-}
