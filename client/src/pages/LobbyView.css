@@ -1,165 +1,192 @@
-.main-page-lobby {
-    z-index: 1;
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background-size: cover;
-    background-position: center;
-}
-
-.main-box-lobby {
+.lobby-box {
     position: relative;
-    top: -40px;
-    z-index: 1;
-    padding: 5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    padding: 1rem;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 5 / 4;
     background-color: transparent;
-    width: 60rem;
-    border-radius: 0.8rem;
-}
-
-.background {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: 0;
-}
-.video-background-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.centered-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: -8%;
-    left: 0;
-    width: 100%;
-    height: 100%;
     flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
-.info-container {
+/*we want the lobby-box to be sticked to the display in the background image*/
+@media (max-aspect-ratio: 16/9) {
+    .lobby-box {
+        max-width: calc(48vh * 5 / 4);
+        max-height: 48%;
+    }
+}
+
+@media (min-aspect-ratio: 16/9) {
+    .lobby-box {
+        max-width: 34%;
+        max-height: calc(34vw * 4 / 5);
+    }
+}
+
+
+.lobby-box__header {
+    z-index: 3;
+    position: absolute; /* Change this from relative to absolute */
+    top: 0; /* Add this */
+    right: 0;/* Change this from fixed to relative */
+    flex: 1.5;
+    min-height: 2.4rem;
     display: flex;
+    flex-direction: row-reverse;
     justify-content: space-between;
     align-items: center;
-    width: 35%;
-    flex-direction: row;
-    margin: 0 auto;
+    color: black;
+    align-self: flex-start; /* Add this */
+    margin-left: auto; /* Add this */
 }
 
-.lobby-code-container {
-    max-width: 100%;
-    flex: 1;
-    margin-right: 0.5rem;
-}
-.player-list-container {
-    max-width: 100%;
-    flex: 1;
-    margin-left: 0.5rem;
-}
 
-.lobby-code-title, .players-title {
-    color: #104480;
-    font-size: 1.5vw;
-    margin-bottom: 1rem;
-}
-
-.lobby-code-text{
-    font-size: 1vw;
-    color: #000000;
-    padding: 1vw;
-    margin: 5px auto;
-    border-radius: 20px;
-    width: 40%;
-    height:1vh;
-}
-
-.players-text{
-    font-size: 1vw;
-    color: #000000;
-    background-color: inherit;
-    height: 40px;
-    line-height: 40px;
-    width: 50%;
-    height: 3.5vh;
-    line-height: 3.5vh;
+.lobby-box__header_button {
+    max-height: 100%;
+    aspect-ratio: 1/1;
+    /*background: radial-gradient(circle, rgba(121, 218, 231, 0.56) 0%, rgb(84, 188, 211) 100%);*/
+    /*background-color: #8eb3d7;*/
+    background-color: transparent;
+    padding: 0.5rem;
+    /*border-radius: 0.5rem;*/
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 5px auto;
-    border-radius: 20px;
-    padding: 0;
-
-}
-.player-list {
-    list-style-type: none;
-    padding-left: 0;
-    font-size: 1.5vw;
 }
 
-
-.back-button-box {
-    z-index: 1;
-}
-.play-button-box {
-    z-index: 1;
+.lobby-box__header_button:hover {
+    background-color: transparent;
+    transform: scale(1.1);
 }
 
-.button-play {
-    background-color: #1c6458;
+.lobby-info {
+    flex: 14;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    overflow: hidden;
+}
+.lobby-info__title {
+    font-weight: bold;
+    font-size: 110%;
+}
+.lobby-info__title--sidebar {
     color: white;
-    padding: 1vw 2vw;
-    border: none;
-    border-radius: 1vw;
-    font-size: 1.5vw;
-    cursor: pointer;
+}
+.lobby-info__title--settings {
+    color: black;
+}
+
+.sidebar {
+    background: #344560;
+    border-radius: 1rem;
+    margin: 1rem;
+    height: 100%;
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
     box-shadow: 0 0.6vw 1vw rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease, background-color 0.3s ease;
-    position: relative;
+    color: white;
+    overflow: auto;
 }
 
-.button-play:hover {
-    background-color: #1c6458;
-    transform: translateY(-0.3vw);
+.lobby-code {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    z-index: 2;
+}
+.lobby-players {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    overflow: auto;
 }
 
-.button-back{
-background-color: #1c6458;
-color: white;
-padding: 1vw 2vw;
-border: none;
-border-radius: 1vw;
-font-size: 1.5vw;
-cursor: pointer;
-box-shadow: 0 0.6vw 1vw rgba(0, 0, 0, 0.15);
-transition: transform 0.3s ease, background-color 0.3s ease;
-position: relative;
+.players__list {
+    width: 100%;
+    list-style-type: none;
+    display: grid;
+    grid-template-rows: repeat(auto-fill, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
 }
-.button-back:hover {
-    background-color: #1c6458;
-    transform: translateY(-0.3vw);
+
+.player{
+    display: flex;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border-radius: 25rem;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .crown-icon-small {
-    display: inline-block;
-    width: 2vw;
-    height: auto;
-    vertical-align: middle;
-    margin-right: 0.5vw;
+    width: 2.5rem;
 }
+
+.lobby-settings {
+    height: 100%;
+    flex: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    z-index: 2;
+    overflow: auto;
+}
+
+.lobby-settings__list {
+    width: 100%;
+    list-style-type: none;
+    display: grid;
+    grid-template-rows: repeat(auto-fill, 1fr);
+    gap: 0.5rem;
+}
+
+
+.lobby-play-button{
+    min-width: 0;
+    width: 50%;
+    margin: auto;
+    flex: 1.5;
+    min-height: 2.4rem;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+}
+
+.button-play {
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    background-color: #43BA9EDD;
+    border: none;
+    box-shadow: 0 0.6vw 1vw rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button-play:hover {
+    background-color: #43BA9E;
+    transform: scale(1.1);
+
+}
+

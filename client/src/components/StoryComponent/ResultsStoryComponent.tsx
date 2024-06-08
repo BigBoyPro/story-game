@@ -1,8 +1,12 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef} from "react";
 import "./StoryComponent.css"
+
 import {Story} from "../../../../shared/sharedTypes.ts";
 import StoryUserComponent, {StoryUserComponentHandles} from "../StoryUserComponent/StoryUserComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons';
+import {LobbyContext} from "../../LobbyContext.tsx";
 
 
 function ResultsStoryComponent({
@@ -14,10 +18,8 @@ function ResultsStoryComponent({
     shownUserIndex: number,
     onPlayingEnd: () => void
 }) {
-
-    const [autoPlay, setAutoPlay] = useState(true);
-    const [tts, setTTS] = useState(true);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const lobby = useContext(LobbyContext);
+    // const [isPlaying, setIsPlaying] = useState(false);
     const alreadyPlayedRef = useRef(false);
 
     const storyUserComponentRefs = useRef(new Map<number, StoryUserComponentHandles>());
@@ -34,53 +36,47 @@ function ResultsStoryComponent({
 
     useEffect(() => {
         alreadyPlayedRef.current = false;
-        setIsPlaying(false);
-        if(autoPlay){
-            handlePlay(shownUserIndex);
-        }
+        // setIsPlaying(false);
+        handlePlay(shownUserIndex);
     }, [story, shownUserIndex]);
 
     const handlePlayingEnd = () => {
         if(!alreadyPlayedRef.current && onPlayingEnd) onPlayingEnd();
         alreadyPlayedRef.current = true;
-        setIsPlaying(false);
+        // setIsPlaying(false);
     };
+
 
     const handlePlay = (index: number) => {
-        setIsPlaying(true);
-        getStoryUserComponentsMap().get(index)?.play(tts, true);
+        if(!lobby) return;
+        // setIsPlaying(true);
+        getStoryUserComponentsMap().get(index)?.play(lobby.lobbySettings.withTextToSpeech, true);
     };
 
-    const handleStop = (index: number) => {
-        getStoryUserComponentsMap().get(index)?.stop();
-    }
+    // const handleStop = (index: number) => {
+    //     getStoryUserComponentsMap().get(index)?.stop();
+    // }
 
     return (
         <div className="story-page">
-            <div>
-                <label htmlFor="autoPlay">Auto Play</label>
-                <input type="checkbox" checked={autoPlay}
-                       onChange={(event) => setAutoPlay(event.target.checked)}/>
-            </div>
-            <div>
-                <label htmlFor="tts">TTS</label>
-                <input type="checkbox" checked={tts}
-                       onChange={(event) => setTTS(event.target.checked)}/>
-            </div>
 
             {getStoryElementsForEachUser(story.elements).map((elements, index) => {
 
-
                 return (
                     <React.Fragment key={index}>
-                        {index === shownUserIndex && !autoPlay &&
-                            (!isPlaying ?
-                                    <button onClick={() => handlePlay(index)}>Play</button>
-                                    :
-                                    <button onClick={() => handleStop(index)}>Stop</button>
-                            )
-                        }
-                        <StoryUserComponent elements={elements}
+                        {/*{index === shownUserIndex && !autoPlay &&*/}
+                        {/*    (!isPlaying ?*/}
+                        {/*            <button onClick={() => handlePlay(index)}>*/}
+                        {/*                <FontAwesomeIcon icon={faPlay} size="2x" />*/}
+                        {/*            </button>*/}
+                        {/*            :*/}
+                        {/*            <button onClick={() => handleStop(index)}>*/}
+                        {/*                <FontAwesomeIcon icon={faStop} size="2x" />*/}
+                        {/*            </button>*/}
+                        {/*    )*/}
+                        {/*}*/}
+                        <StoryUserComponent key={shownUserIndex}
+                            elements={elements}
                                             isEditable={false}
                                             ref={(node) => {
                                                 const map = getStoryUserComponentsMap();

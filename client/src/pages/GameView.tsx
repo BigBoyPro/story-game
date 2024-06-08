@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './GameView.css';
-import CrownIcon from '../pages/assets/theCrown.png';
+import CrownIcon from '../assets/icons/theCrown.png';
 import TimerComponent from "../components/TimerComponent/TimerComponent.tsx";
 import {
     onStory,
@@ -76,57 +76,43 @@ function GameView() {
 
     return (
         <>
-            {/*<img src={"GameImage.png"} className={"background"}/>*/}
-            {/**/}
             <div className="game-page">
-
-                {/*<video autoPlay loop muted className={"video-background"}>*/}
-                {/*    <source src="../GameVideo.mp4" type="video/mp4" />*/}
-                {/*</video>*/}
-
                 <div className={"floating floating-elements"}>
-                    <div className={"timer-box"}>
+                    <div className={"timer"}>
                         <h2>Timer</h2>
                         {lobby?.roundStartAt && lobby?.roundEndAt &&
                             <TimerComponent start={lobby.roundStartAt} end={lobby.roundEndAt}/>}
                     </div>
-
-
-                    <div className={"round-box"}>
+                    <div className={"round"}>
                         <h2>Round</h2>
-                        <div className={"round"}>{lobby?.round}/{lobby?.users.length}</div>
+                        <p className={"round__text"}>{lobby?.round}/{lobby?.users.length}</p>
                     </div>
-
-
                 </div>
-
                 <div className="game-box">
                     {lobby?.round && lobby.round > 1}
-                    {story && <GameStoryComponent key={story.id}
-                                                  ref={storyComponentRef}
-                                                  story={story}
-                                                  initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
-                                                  onNewStoryElementsChange={handleNewStoryElementsChange}
-                                                  onSave={handleSaveStoryElements}
-                                                  onCancel={handleCancelStoryElements}
-                    />
+                    {story &&
+                        <GameStoryComponent key={story.id}
+                                            ref={storyComponentRef}
+                                            story={story}
+                                            initialNewStoryElements={story.elements.filter(element => element.userId === userId)}
+                                            onNewStoryElementsChange={handleNewStoryElementsChange}
+                                            onSave={handleSaveStoryElements}
+                                            onCancel={handleCancelStoryElements}
+                        />
                     }
                 </div>
 
-                <div className="floating side-bar-container">
-                    <div className={"spacer"}></div>
-                    <div className="side-bar">
-                        <h2>Players</h2>
-                        <div className="users-box">
-                            {lobby?.users && lobby.users.map(user =>
-                                <div key={user.id} className="user">
-                                    {(lobby?.hostUserId === user.id) &&
-                                        <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small"/>}
-                                    {user.nickname}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                <div className="floating users">
+                    <h2>Players</h2>
+                    <ul className="users__list">
+                        {lobby?.users && lobby.users.map(user =>
+                            <li key={user.id} className="user">
+                                {(lobby?.hostUserId === user.id) &&
+                                    <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small"/>}
+                                {user.nickname}
+                            </li>
+                        )}
+                    </ul>
                 </div>
 
 

@@ -1,9 +1,10 @@
 import io from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
-import {Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement, TimerSetting} from "../../../shared/sharedTypes.ts";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:443";
 console.log('connecting to server at', SERVER_URL);
+
 
 const socket = io(SERVER_URL)
 
@@ -26,7 +27,7 @@ const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.NEXT_PART, [SocketEvent.STORY_AT_PART, SocketEvent.PART]],
     [SocketEvent.GET_STORY_AT_PART, [SocketEvent.STORY_AT_PART]],
     [SocketEvent.END_GAME, [SocketEvent.LOBBY_INFO]],
-    [SocketEvent.LEAVE_LOBBY, [SocketEvent.LEFT_LOBBY]],
+    [SocketEvent.LEAVE_LOBBY, [SocketEvent.LEFT_LOBBY, SocketEvent.LOBBY_INFO]],
     [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]],
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]]
 ]);
@@ -69,12 +70,32 @@ export const offLeftLobby = () => {
     socket.off(SocketEvent.LEFT_LOBBY);
 }
 
+
+const errorsThatShouldReload = [
+    ErrorType.USER_ALREADY_IN_LOBBY,
+    ErrorType.USER_NOT_IN_LOBBY,
+    ErrorType.LOBBY_NOT_FOUND,
+    ErrorType.USER_NOT_HOST,
+    ErrorType.USER_NOT_SUBMITTED,
+    ErrorType.STORY_NOT_FOUND,
+    ErrorType.STORY_BY_INDEX_NOT_FOUND,
+    ErrorType.STORY_INDEX_OUT_OF_BOUNDS,
+    ErrorType.PART_IS_NULL,
+];
+
+
 export const onError = (callback: (event: SocketEvent, error: OpError) => void) => {
     socket.on(SocketEvent.ERROR, (event, error) => {
-        callback(event, error);
 
         // If the error level is Error, retry the request after a delay
         if (error.logLevel === LogLevel.Error) {
+
+            if(errorsThatShouldReload.includes(error.type)){
+                setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
+                return;
+            }
+
+
             const requestInfo = ongoingRequests.get(event);
             if (requestInfo) {
                 if (requestInfo.retryCount < MAX_RETRIES) {
@@ -90,6 +111,9 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
                 console.log(`No request info found for event ${event}.`);
             }
         }
+
+        callback(event, error);
+
     });
 }
 
@@ -126,6 +150,100 @@ export const onSubmitted = (callback: (submitted: boolean) => void) => {
 export const offSubmitted = () => {
     socket.off(SocketEvent.SUBMITTED);
 }
+
+export const onLobbyMaxPlayers = (callback: (maxPlayers: number) => void) => {
+    socket.on(SocketEvent.LOBBY_MAX_PLAYERS, (maxPlayers) => {
+        callback(maxPlayers);
+    });
+}
+
+export const offLobbyMaxPlayers = () => {
+    socket.off(SocketEvent.LOBBY_MAX_PLAYERS);
+}
+
+export const onLobbySeePrevStoryPart = (callback: (seePrevStoryPart: boolean) => void) => {
+    socket.on(SocketEvent.LOBBY_SEE_PREV_STORY_PART, (seePrevStoryPart) => {
+        callback(seePrevStoryPart);
+    });
+}
+
+export const offLobbySeePrevStoryPart = () => {
+    socket.off(SocketEvent.LOBBY_SEE_PREV_STORY_PART);
+}
+
+export const onLobbyWithTextToSpeech = (callback: (withTextToSpeech: boolean) => void) => {
+    socket.on(SocketEvent.LOBBY_WITH_TEXT_TO_SPEECH, (withTextToSpeech) => {
+        callback(withTextToSpeech);
+    });
+}
+
+export const offLobbyWithTextToSpeech = () => {
+    socket.off(SocketEvent.LOBBY_WITH_TEXT_TO_SPEECH);
+}
+
+export const onLobbyMaxTexts = (callback: (maxTexts: number) => void) => {
+    socket.on(SocketEvent.LOBBY_MAX_TEXTS, (maxTexts) => {
+        callback(maxTexts);
+    });
+}
+
+export const offLobbyMaxTexts = () => {
+    socket.off(SocketEvent.LOBBY_MAX_PLAYERS);
+}
+
+export const onLobbyMaxAudios = (callback: (maxAudios: number) => void) => {
+    socket.on(SocketEvent.LOBBY_MAX_AUDIOS, (maxAudios) => {
+        callback(maxAudios);
+    });
+}
+
+export const offLobbyMaxAudios = () => {
+    socket.off(SocketEvent.LOBBY_MAX_AUDIOS);
+}
+
+export const onLobbyMaxImages = (callback: (maxAudios: number) => void) => {
+    socket.on(SocketEvent.LOBBY_MAX_IMAGES, (maxImages) => {
+        callback(maxImages);
+    });
+}
+
+export const offLobbyMaxImages = () => {
+    socket.off(SocketEvent.LOBBY_MAX_IMAGES);
+}
+
+
+export const onLobbyMaxDrawings = (callback: (maxDrawings: number) => void) => {
+    socket.on(SocketEvent.LOBBY_MAX_IMAGES, (maxDrawings) => {
+        callback(maxDrawings);
+    });
+}
+
+export const offLobbyMaxDrawings = () => {
+    socket.off(SocketEvent.LOBBY_MAX_DRAWINGS);
+}
+
+
+export const onLobbyTimerSetting = (callback: (TimerSetting: TimerSetting) => void) => {
+    socket.on(SocketEvent.LOBBY_TIMER_SETTING, (timerSetting) => {
+        callback(timerSetting);
+    });
+}
+
+export const offLobbyTimerSetting = () => {
+    socket.off(SocketEvent.LOBBY_TIMER_SETTING);
+}
+
+
+export const onLobbyRoundSeconds = (callback: (roundSeconds: number) => void) => {
+    socket.on(SocketEvent.LOBBY_ROUND_SECONDS, (maxImages) => {
+        callback(maxImages);
+    });
+}
+
+export const offLobbyRoundSeconds = () => {
+    socket.off(SocketEvent.LOBBY_MAX_IMAGES);
+}
+
 
 export const onUsersSubmitted = (callback: (usersSubmitted: number) => void) => {
     socket.on(SocketEvent.USERS_SUBMITTED, usersSubmitted => {
@@ -176,6 +294,15 @@ const eventsThatCanBeInfinitelyRetried = [
     SocketEvent.GET_LOBBY,
     SocketEvent.GET_STORY,
     SocketEvent.GET_STORY_AT_PART,
+    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
+    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
+    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
+    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
+    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
+    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
+    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
+    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
+    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS,
     // Add other events that can be retried infinitely
 ];
 
@@ -184,6 +311,23 @@ const eventsThatCanVerifyArgs = [
     SocketEvent.CREATE_LOBBY,
     // Add other events that are allowed to verify their arguments
 ];
+
+const eventsCoexistWithEveryEvent = [
+    SocketEvent.GET_LOBBY,
+    SocketEvent.GET_STORY,
+    SocketEvent.GET_STORY_AT_PART,
+    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
+    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
+    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
+    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
+    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
+    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
+    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
+    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
+    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS
+];
+
+
 const eventsThatCanCoexist = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
@@ -216,7 +360,7 @@ export const canRequest = (event: SocketEvent, args: any[]): boolean => {
     const coexistingEvents = eventsThatCanCoexist.get(event);
     if (coexistingEvents) {
         for (const [ongoingEvent] of ongoingRequests.entries()) {
-            if (!coexistingEvents.includes(ongoingEvent) && ongoingEvent !== SocketEvent.GET_LOBBY) {
+            if (!coexistingEvents.includes(ongoingEvent) && !eventsCoexistWithEveryEvent.includes(ongoingEvent)) {
                 console.log(`Cannot request event ${event} because event ${ongoingEvent} is ongoing.`);
                 return false;
             }
@@ -287,3 +431,35 @@ export const unsubmitStoryElements = (lobbyCode: string) => {
     sendRequest(SocketEvent.UNSUBMIT_STORY_ELEMENTS, userId, lobbyCode);
 }
 
+export const submitLobbyMaxPlayers = (lobbyCode: string, maxPlayers: number) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS, userId, lobbyCode, maxPlayers);
+}
+export const submitLobbySeePrevStoryPart = (lobbyCode: string, seePrevStoryPart: boolean) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART, userId, lobbyCode, seePrevStoryPart);
+}
+export const submitLobbyWithTextToSpeech = (lobbyCode: string, withTextToSpeech: boolean) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH, userId, lobbyCode, withTextToSpeech);
+}
+export const submitLobbyMaxTexts = (lobbyCode: string, maxTexts: number) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_MAX_TEXTS, userId, lobbyCode, maxTexts);
+}
+
+export const submitLobbyMaxAudios = (lobbyCode: string, maxAudios: number) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS, userId, lobbyCode, maxAudios);
+}
+
+export const submitLobbyMaxImages = (lobbyCode: string, maxImages: number) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_MAX_IMAGES, userId, lobbyCode, maxImages);
+}
+
+export const submitLobbyMaxDrawings = (lobbyCode: string, maxDrawings: number) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS, userId, lobbyCode, maxDrawings);
+}
+
+export const submitLobbyTimerSetting = (lobbyCode: string, timerSetting: TimerSetting) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_TIMER_SETTING, userId, lobbyCode, timerSetting);
+}
+
+export const submitLobbyRoundSeconds = (lobbyCode: string, roundSeconds: number) => {
+    sendRequest(SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS, userId, lobbyCode, roundSeconds);
+}

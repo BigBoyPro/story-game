@@ -1,5 +1,14 @@
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, Story, StoryElement, User} from "../../shared/sharedTypes";
+import {
+    ErrorType,
+    Lobby,
+    LogLevel,
+    OpResult,
+    Story,
+    StoryElement,
+    TimerSetting,
+    User
+} from "../../shared/sharedTypes";
 
 
 export const dbTransaction = async <T>(pool: Pool, callback: (client: PoolClient) => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -8,11 +17,11 @@ export const dbTransaction = async <T>(pool: Pool, callback: (client: PoolClient
     const result = await callback(clientRes.data);
     if (result.success) {
         const commitRes = await dbCommitTransaction(clientRes.data);
-        if(!commitRes.success) return {success: false, error: commitRes.error};
+        if (!commitRes.success) return {success: false, error: commitRes.error};
         return result
     } else {
         const rollbackRes = await dbRollbackTransaction(clientRes.data);
-        if(!rollbackRes.success) return {success: false, error: rollbackRes.error};
+        if (!rollbackRes.success) return {success: false, error: rollbackRes.error};
         return result;
     }
 }
@@ -40,7 +49,7 @@ const dbCommitTransaction = async (client: PoolClient): Promise<OpResult<null>> 
         await client.query('COMMIT');
         client.release();
         return {success: true};
-    } catch (error){
+    } catch (error) {
         return {
             success: false,
             error: {
@@ -56,7 +65,7 @@ const dbRollbackTransaction = async (client: PoolClient): Promise<OpResult<null>
         await client.query('ROLLBACK');
         client.release();
         return {success: true};
-    } catch (error){
+    } catch (error) {
         return {
             success: false,
             error: {
@@ -106,7 +115,7 @@ export const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), storyIndex
                 success: false,
                 error: {
                     type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Story not found by index"
                 }
             };
@@ -143,7 +152,12 @@ const dbSelectUsersInLobby = async (db: (Pool | PoolClient), lobbyCode: string):
                                     WHERE lobby_code = $1
                                     ORDER BY created_at`, [lobbyCode]);
         const data = res.rows;
-        const users = data.map(row => ({id: row.id, nickname: row.nickname, lobbyCode: row.lobby_code, ready: row.ready}));
+        const users = data.map(row => ({
+            id: row.id,
+            nickname: row.nickname,
+            lobbyCode: row.lobby_code,
+            ready: row.ready
+        }));
         return {success: true, data: users};
     } catch (error) {
         return {
@@ -234,14 +248,14 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
                 success: false,
                 error: {
                     type: ErrorType.LOBBY_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Lobby not found"
                 }
             };
         }
         const usersRes = await dbSelectUsersInLobby(db, lobbyCode);
         if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
-        const lobby : Lobby = {
+        const lobby: Lobby = {
             code: lobbyCode,
             hostUserId: data[0].host_user_id,
             round: data[0].round,
@@ -250,7 +264,18 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
             roundEndAt: data[0].round_end_at ? new Date(data[0].round_end_at) : null,
             users: usersRes.data,
             currentStoryIndex: data[0].current_story_index,
-            currentUserIndex: data[0].current_user_index
+            currentUserIndex: data[0].current_user_index,
+            lobbySettings: {
+                maxPlayers: data[0].max_players,
+                seePrevStoryPart: data[0].see_prev_story_part,
+                withTextToSpeech: data[0].with_text_to_speech,
+                maxTexts: data[0].max_texts,
+                maxAudios: data[0].max_audios,
+                maxImages: data[0].max_images,
+                maxDrawings: data[0].max_drawings,
+                timerSetting: data[0].timer_setting,
+                roundSeconds: data[0].round_seconds
+            }
         };
         return {success: true, data: lobby};
     } catch (error) {
@@ -265,7 +290,10 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
     }
 }
 
-export const dbSelectLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCode: string, lock = false): Promise<OpResult<{storyIndex: (number | null), userIndex: (number | null)}>> => {
+export const dbSelectLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCode: string, lock = false): Promise<OpResult<{
+    storyIndex: (number | null),
+    userIndex: (number | null)
+}>> => {
     try {
         const res = await db.query(`SELECT current_story_index, current_user_index
                                     FROM lobbies
@@ -277,7 +305,7 @@ export const dbSelectLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
                 success: false,
                 error: {
                     type: ErrorType.LOBBY_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Lobby not found"
                 }
             };
@@ -307,7 +335,7 @@ export const dbSelectLobbiesActive = async (db: (Pool | PoolClient)): Promise<Op
                                     WHERE round != 0`);
         const data = res.rows;
         // get users for each lobby
-        const lobbies : Lobby[] = [];
+        const lobbies: Lobby[] = [];
         for (const lobby of data) {
             const {data: users, error, success} = await dbSelectUsersInLobby(db, lobby.code);
             if (!success || !users) return {success: false, error: error};
@@ -320,7 +348,18 @@ export const dbSelectLobbiesActive = async (db: (Pool | PoolClient)): Promise<Op
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: users,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: {
+                    maxPlayers: data[0].max_players,
+                    seePrevStoryPart: data[0].see_prev_story_part,
+                    withTextToSpeech: data[0].with_text_to_speech,
+                    maxTexts: data[0].max_texts,
+                    maxAudios: data[0].max_audios,
+                    maxImages: data[0].max_images,
+                    maxDrawings: data[0].max_drawings,
+                    timerSetting: data[0].timer_setting,
+                    roundSeconds: data[0].round_seconds
+                }
             });
         }
         return {success: true, data: lobbies};
@@ -335,7 +374,7 @@ export const dbSelectLobbiesActive = async (db: (Pool | PoolClient)): Promise<Op
         };
     }
 
-    
+
 }
 
 export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: string, index: number): Promise<OpResult<Story>> => {
@@ -350,7 +389,7 @@ export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: s
                 success: false,
                 error: {
                     type: ErrorType.STORY_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Story not found"
                 }
             };
@@ -377,13 +416,40 @@ export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: s
         };
     }
 };
+export const dbSelectUsersAll = async (db: (Pool | PoolClient)): Promise<OpResult<User[]>> => {
+    try {
+        const res = await db.query(`SELECT *
+                                    FROM public.users`);
+        const data = res.rows;
+        const users: User[] = data.map(row => ({
+            id: row.id,
+            nickname: row.nickname,
+            lobbyCode: row.lobby_code,
+            lastActive: row.last_active,
+            ready: row.ready
+        }));
+        return {success: true, data: users};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_USERS_ALL,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+
+}
+
+
 export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: number): Promise<OpResult<User[]>> => {
     try {
         const res = await db.query(`SELECT *
                                     FROM public.users
                                     WHERE NOW() - last_active > INTERVAL '${seconds}' SECOND`);
         const data = res.rows;
-        const users : User[] = data.map(row => ({
+        const users: User[] = data.map(row => ({
             id: row.id,
             nickname: row.nickname,
             lobbyCode: row.lobby_code,
@@ -444,7 +510,7 @@ export const dbSelectUserReady = async (db: (Pool | PoolClient), userId: string,
                 success: false,
                 error: {
                     type: ErrorType.USER_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "User not found"
                 }
             };
@@ -499,7 +565,7 @@ export const dbSelectStoryIdByIndex = async (db: (Pool | PoolClient), lobbyCode:
                 success: false,
                 error: {
                     type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Story not found by index"
                 }
             };
@@ -522,9 +588,9 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
     try {
         const res = await db.query(`SELECT *
                                     FROM lobbies
-                                    WHERE host_user_id = ANY($1)`, [Array.from(userIds)]);
+                                    WHERE host_user_id = ANY ($1)`, [Array.from(userIds)]);
         const data = res.rows;
-        const lobbies : Lobby[] = [];
+        const lobbies: Lobby[] = [];
         for (const lobby of data) {
             const usersRes = await dbSelectUsersInLobby(db, lobby.code);
             if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
@@ -537,7 +603,18 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: usersRes.data,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: {
+                    maxPlayers: data[0].max_players,
+                    seePrevStoryPart: data[0].see_prev_story_part,
+                    withTextToSpeech: data[0].with_text_to_speech,
+                    maxTexts: data[0].max_texts,
+                    maxAudios: data[0].max_audios,
+                    maxImages: data[0].max_images,
+                    maxDrawings: data[0].max_drawings,
+                    timerSetting: data[0].timer_setting,
+                    roundSeconds: data[0].round_seconds
+                }
             });
         }
         return {success: true, data: lobbies};
@@ -560,7 +637,7 @@ export const dbLockRowLobby = async (db: PoolClient, lobbyCode: string): Promise
         await db.query(`SELECT
                         FROM lobbies
                         WHERE code = $1
-                        FOR UPDATE`, [lobbyCode]);
+                            FOR UPDATE`, [lobbyCode]);
         return {success: true};
     } catch (error) {
         return {
@@ -596,7 +673,7 @@ export const dbInsertStory = async (db: (Pool | PoolClient), story: Story): Prom
 export const dbInsertStoryElements = async (db: (Pool | PoolClient), elements: StoryElement[]): Promise<OpResult<null>> => {
     try {
         const query = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
-                       VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ');
+        VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ');
         await db.query(query, elements.flatMap(element => [element.index, element.userId, element.storyId, element.round, element.type, element.content]));
         return {success: true};
     } catch (error) {
@@ -614,15 +691,26 @@ export const dbInsertStoryElements = async (db: (Pool | PoolClient), elements: S
 
 export const dbUpsertleteStoryElements = async (db: (Pool | PoolClient), elements: StoryElement[]): Promise<OpResult<null>> => {
     try {
-        if(elements.length === 0) return {success: false, error: {type: ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE, logLevel: LogLevel.Warning, error: "No elements to upsert"}};
+        if (elements.length === 0) return {
+            success: false,
+            error: {
+                type: ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE,
+                logLevel: LogLevel.Warning,
+                error: "No elements to upsert"
+            }
+        };
         // Delete query
-        const deleteQuery = `DELETE FROM story_elements WHERE index >= $1 AND story_id = $2 AND user_id = $3`;
+        const deleteQuery = `DELETE
+                             FROM story_elements
+                             WHERE index >= $1
+                               AND story_id = $2
+                               AND user_id = $3`;
         await db.query(deleteQuery, [elements.length, elements[0].storyId, elements[0].userId]);
 
         // Existing insert query
         const insertQuery = `INSERT INTO story_elements (index, user_id, story_id, round, type, content)
-                       VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ')
-                       + ` ON CONFLICT (index, user_id, story_id)
+                VALUES ` + elements.map((_element, index) => `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`).join(', ')
+            + ` ON CONFLICT (index, user_id, story_id)
                        DO UPDATE SET type = EXCLUDED.type, content = EXCLUDED.content`;
         await db.query(insertQuery, elements.flatMap(element => [element.index, element.userId, element.storyId, element.round, element.type, element.content]));
 
@@ -641,9 +729,11 @@ export const dbUpsertleteStoryElements = async (db: (Pool | PoolClient), element
 }
 export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Promise<OpResult<null>> => {
     try {
-        await db.query(`INSERT INTO lobbies (code, host_user_id, round, users_submitted, round_start_at, round_end_at)
-                        VALUES ($1, $2, $3, $4, $5, $6)`,
-            [lobby.code, lobby.hostUserId, lobby.round, lobby.usersSubmitted, lobby.roundStartAt, lobby.roundEndAt]);
+        await db.query(`INSERT INTO lobbies (code, host_user_id, round, users_submitted, round_start_at, round_end_at,
+                                             max_players, see_prev_story_part, with_text_to_speech, max_texts,
+                                             max_audios, max_images, max_drawings, timer_setting, round_seconds)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+            [lobby.code, lobby.hostUserId, lobby.round, lobby.usersSubmitted, lobby.roundStartAt, lobby.roundEndAt, lobby.lobbySettings.maxPlayers, lobby.lobbySettings.seePrevStoryPart, lobby.lobbySettings.withTextToSpeech, lobby.lobbySettings.maxTexts, lobby.lobbySettings.maxAudios, lobby.lobbySettings.maxImages, lobby.lobbySettings.maxDrawings, lobby.lobbySettings.timerSetting, lobby.lobbySettings.roundSeconds]);
         return {success: true};
     } catch (error) {
         return {
@@ -655,6 +745,7 @@ export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Prom
             }
         }
     }
+
 }
 export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = false): Promise<OpResult<null>> => {
     try {
@@ -666,7 +757,9 @@ export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = f
                                                        last_active = NOW()`, [user.id, user.nickname, user.ready, user.lobbyCode]);
         if (lock) {
             // Lock the row
-            await db.query(`SELECT FROM public.users WHERE id = $1 FOR UPDATE`, [user.id]);
+            await db.query(`SELECT
+                            FROM public.users
+                            WHERE id = $1 FOR UPDATE`, [user.id]);
         }
 
         return {success: true};
@@ -745,7 +838,7 @@ export const dbUpdateUsersReady = async (db: (Pool | PoolClient), userIds: strin
     try {
         await db.query(`UPDATE public.users
                         SET ready = $1
-                        WHERE id = ANY($2)`, [ready, userIds]);
+                        WHERE id = ANY ($2)`, [ready, userIds]);
         return {success: true};
     } catch (error) {
         return {
@@ -838,9 +931,9 @@ export const dbUpdateLobbyUsersSubmitted = async (db: (Pool | PoolClient), lobby
 export const dbUpdateLobbyRound = async (db: (Pool | PoolClient), lobbyCode: string, round: number, roundStartAt: (Date | null), roundEndAt: (Date | null)): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET round = $1,
+                        SET round          = $1,
                             round_start_at = $2,
-                            round_end_at = $3
+                            round_end_at   = $3
                         WHERE code = $4`, [round, roundStartAt, roundEndAt, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -859,7 +952,7 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
     try {
         await db.query(`UPDATE lobbies
                         SET current_story_index = $1,
-                            current_user_index = $2
+                            current_user_index  = $2
                         WHERE code = $3`, [storyIndex, userIndex, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -874,12 +967,181 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
     }
 }
 
+export const dbUpdateLobbyMaxPlayers = async (db: (Pool | PoolClient), lobbyCode: string, maxPlayers: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_players = $1
+                        WHERE code = $2`, [maxPlayers, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_PLAYERS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbySeePrevStoryPart = async (db: (Pool | PoolClient), lobbyCode: string, seePrevStoryPart: boolean): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET see_prev_story_part = $1
+                        WHERE code = $2`, [seePrevStoryPart, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_SEE_PREV_STORY_PART,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyWithTextToSpeech = async (db: (Pool | PoolClient), lobbyCode: string, withTextToSpeech: boolean): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET with_text_to_speech = $1
+                        WHERE code = $2`, [withTextToSpeech, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_WITH_TEXT_TO_SPEECH,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyMaxTexts = async (db: (Pool | PoolClient), lobbyCode: string, maxTexts: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_texts = $1
+                        WHERE code = $2`, [maxTexts, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_TEXTS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+export const dbUpdateLobbyMaxAudios = async (db: (Pool | PoolClient), lobbyCode: string, maxAudios: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_audios = $1
+                        WHERE code = $2`, [maxAudios, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_AUDIOS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyMaxImages = async (db: (Pool | PoolClient), lobbyCode: string, maxImages: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_images = $1
+                        WHERE code = $2`, [maxImages, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_IMAGES,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyMaxDrawings = async (db: (Pool | PoolClient), lobbyCode: string, maxDrawings: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_drawings= $1
+                        WHERE code = $2`, [maxDrawings, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_DRAWINGS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyTimerSetting = async (db: (Pool | PoolClient), lobbyCode: string, timerSetting: TimerSetting): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET timer_setting = $1
+                        WHERE code = $2`, [timerSetting, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_TIMER_SETTING,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyRoundSeconds = async (db: (Pool | PoolClient), lobbyCode: string, roundSeconds: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET round_seconds = $1
+                        WHERE code = $2`, [roundSeconds, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_ROUND_SECONDS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
 
 export const dbDeleteUsers = async (db: (Pool | PoolClient), userIds: string[]): Promise<OpResult<null>> => {
     try {
         await db.query(`DELETE
                         FROM public.users
-                        WHERE id = ANY($1)`, [userIds]);
+                        WHERE id = ANY ($1)`, [userIds]);
         return {success: true};
     } catch (error) {
         return {
@@ -917,7 +1179,7 @@ export const dbDeleteLobbies = async (db: (Pool | PoolClient), lobbyCodes: strin
     try {
         await db.query(`DELETE
                         FROM lobbies
-                        WHERE code = ANY($1)`, [lobbyCodes]);
+                        WHERE code = ANY ($1)`, [lobbyCodes]);
         return {success: true};
     } catch (error) {
         return {

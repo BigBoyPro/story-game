@@ -236,29 +236,26 @@ const GameStoryComponent = forwardRef(
             setSelectedElementIndex(null);
         };
         const handleElementUp = (index: number) => {
-            if (index === 0) return;
+            if (index <= 1) return;
 
             setStoryElements((prevElements) => {
                 const updatedStoryElements = [...prevElements];
                 const temp = updatedStoryElements[index];
                 updatedStoryElements[index] = updatedStoryElements[index - 1];
                 updatedStoryElements[index - 1] = temp;
-                updatedStoryElements[index].index++;
-                updatedStoryElements[index - 1].index--;
-                return updatedStoryElements;
+                return updatedStoryElements.map((element, index) => ({ ...element, index }));
             });
         };
 
         const handleElementDown = (index: number) => {
-            if (index === storyElements.length - 1) return;
+            if (index >= storyElements.length - 1) return;
+
             setStoryElements((prevElements) => {
                 const updatedStoryElements = [...prevElements];
                 const temp = updatedStoryElements[index];
                 updatedStoryElements[index] = updatedStoryElements[index + 1];
                 updatedStoryElements[index + 1] = temp;
-                updatedStoryElements[index].index--;
-                updatedStoryElements[index + 1].index++;
-                return updatedStoryElements;
+                return updatedStoryElements.map((element, index) => ({ ...element, index }));
             });
         };
 
@@ -350,11 +347,11 @@ const GameStoryComponent = forwardRef(
                                                     handleAudioChange(event.target.value as AudioType)
                                                 }}>
                                             {Object.values(AudioType).map((value) => {
-                                                const audioName = value.split('/').pop(); // Obtenez le nom de l'audio sans le chemin d'accès
-                                                const audioNameWithoutExtension = audioName?.replace('.mp3', ''); // Enlevez l'extension .mp3
+                                                const audioName = value.split('/').pop();
+                                                const audioNameWithoutExtension = audioName?.replace('.mp3', '');
                                                 return (
                                                     <option key={value}
-                                                            value={value}>{audioNameWithoutExtension}</option> // Affichez le nom de l'audio sans le chemin d'accès et sans l'extension .mp3
+                                                            value={value}>{audioNameWithoutExtension}</option>
                                                 );
                                             })}
                                         </select>

@@ -2,10 +2,12 @@ import {StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts"
 import DrawingComponent from "../DrawingComponent/DrawingComponent.tsx";
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
 import LanguageDetect from "languagedetect";
-
+import './StoryElementComponent.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faArrowUp, faArrowDown, faTrashAlt, faEdit} from '@fortawesome/free-solid-svg-icons'
+import { faVolumeHigh, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+
 
 export interface StoryElementComponentHandles {
     play: (tts: boolean) => void;
@@ -57,6 +59,17 @@ const StoryElementComponent = forwardRef(
         useEffect(() => {
             isPlayingRef.current = isPlaying;
         }, [isPlaying]);
+
+
+        // La zone de texte grandit si on écrit un grand texte sur la page GameView
+        useEffect(() => {
+            const textareaElement = document.querySelector('textarea');
+            if (textareaElement) {
+                textareaElement.style.height = 'auto';
+                textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+            }
+        }, [element.content]);
+
 
         function handleAudioPlay() {
             if (audioRef.current) {
@@ -162,6 +175,7 @@ const StoryElementComponent = forwardRef(
                 return <div/>
             case StoryElementType.Text:
                     const textArea = <textarea value={element.content}
+                                               className="chat-bubble"
                                                onChange={(e) => handleContentChange(e.target.value)}
                                                disabled={!isEditable}/>;
                     if (isEditable) {
@@ -170,7 +184,7 @@ const StoryElementComponent = forwardRef(
 
                         return <>
                             {textArea}
-                            <button onClick={handleSpeak}>{isPlaying ? 'Stop' : 'Play'}</button>
+                            <button onClick={handleSpeak}>{isPlaying ? <FontAwesomeIcon icon={faVolumeMute} size="2x" /> : <FontAwesomeIcon icon={faVolumeHigh} size="2x" />}</button>
                         </>
 
                     }
@@ -198,15 +212,15 @@ const StoryElementComponent = forwardRef(
                         {renderContent()}
                         <div className={"buttons-container"}>
                             {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
-                                <button onClick={() => onElementEdit()}><FontAwesomeIcon icon={faEdit} /></button>
+                                <button className={"button"} onClick={() => onElementEdit()}><FontAwesomeIcon icon={faEdit} /></button>
                             }
-                            {isEditable && onElementDelete && <button onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} color={"#FF6347"} /></button>}
+                            {isEditable && onElementDelete && <button className={"button"} onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} className={"fa-trash-alt"} /></button>}
 
-                            {isEditable && onUp && element.index !== 0 &&
-                                <button onClick={onUp}><FontAwesomeIcon icon={faArrowUp} /></button>
+                            {isEditable && onUp && element.index > 1 &&
+                                <button className={"button"} onClick={onUp}><FontAwesomeIcon icon={faArrowUp} /></button>
                             }
                             {isEditable && onDown && !isLast &&
-                                <button onClick={onDown}><FontAwesomeIcon icon={faArrowDown} /></button>
+                                <button className={"button"} onClick={onDown}><FontAwesomeIcon icon={faArrowDown} /></button>
                             }
                         </div>
                     </div>

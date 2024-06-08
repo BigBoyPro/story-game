@@ -1,0 +1,61 @@
+.how-to-play-page {
+    width: 100vw;
+    height: 100vh;
+    background-image: url("../assets/backgrounds/HowToPlayView.png");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.rules-text {
+    color: #090505;
+    font-size: 1.5em;
+    padding: 10vh;
+    margin: 10% 10%;
+    text-align: center;
+}
+
+.rules-text h2 {
+    color: brown;
+    font-size: 1em;
+    padding: 5vh;
+    margin: 10% 10%;
+}
+
+.rules-text h1 {
+    margin-top: 1%;
+    margin-bottom: 0.5em;
+    margin-right: 2%;
+}
+
+.rules-text h2 {
+    margin-top: 0.5em; /* Réduisez l'espace au-dessus du h2 */
+    margin-bottom: 1em; /* Augmentez l'espace sous le h2 */
+}
+
+.rules-text p {
+    margin-top: 1em; /* Augmentez l'espace au-dessus du p */
+    color : brown;
+}
+.rules-text h1, .rules-text h2, .rules-text p {
+    /*padding-left: 10%; /* Ajustez cette valeur pour déplacer le texte vers la droite */
+}
+.back-button {
+    position: absolute;
+    top: 2vh;
+    left: 2vw;
+    width: 10vw;
+    height: 10vh;
+}
+.back-button img {
+    width: 7.5vw;
+    height: 15vh;
+    transition: transform 0.3s ease-in-out;
+}
+
+.back-button img:hover {
+    transform: scale(1.1);
+}

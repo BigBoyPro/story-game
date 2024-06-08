@@ -21,8 +21,26 @@ export enum SocketEvent {
     STORY_AT_PART = 'story at part',
     PART = 'part',
     SUBMITTED = 'submitted',
-}
+    SUBMIT_LOBBY_MAX_PLAYERS = 'submit lobby max players',
+    SUBMIT_LOBBY_SEE_PREV_STORY_PART = 'submit lobby see prev story part',
+    SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH = 'submit lobby with text to speech',
+    SUBMIT_LOBBY_MAX_TEXTS = 'submit lobby max texts',
+    SUBMIT_LOBBY_MAX_AUDIOS = 'submit lobby max audios',
+    SUBMIT_LOBBY_MAX_IMAGES = 'submit lobby max images',
+    SUBMIT_LOBBY_MAX_DRAWINGS = 'submit lobby max drawings',
+    SUBMIT_LOBBY_TIMER_SETTING = 'submit lobby timer setting',
+    SUBMIT_LOBBY_ROUND_SECONDS = 'submit lobby round seconds',
+    LOBBY_MAX_PLAYERS = "LOBBY_MAX_PLAYERS",
+    LOBBY_SEE_PREV_STORY_PART = "LOBBY_SEE_PREV_STORY_PART",
+    LOBBY_WITH_TEXT_TO_SPEECH = "LOBBY_WITH_TEXT_TO_SPEECH",
+    LOBBY_MAX_TEXTS = "LOBBY_MAX_TEXTS",
+    LOBBY_MAX_AUDIOS = "LOBBY_MAX_AUDIOS",
+    LOBBY_MAX_IMAGES = "LOBBY_MAX_IMAGES",
+    LOBBY_MAX_DRAWINGS = "LOBBY_MAX_DRAWINGS",
+    LOBBY_TIMER_SETTING = "LOBBY_TIMER_SETTING",
+    LOBBY_ROUND_SECONDS = "LOBBY_ROUND_SECONDS",
 
+}
 
 
 export enum PlaceType {
@@ -38,10 +56,10 @@ export enum PlaceType {
 
 
 export enum AudioType {
-    Scary = "audio/Scary.mp3",
-    Romantic = "audio/Romantic.mp3",
-    Sad = "audio/Sad.mp3",
-    Suspense = "audio/Suspense.mp3"
+    Scary = "audios/Scary.mp3",
+    Romantic = "audios/Romantic.mp3",
+    Sad = "audios/Sad.mp3",
+    Suspense = "audios/Suspense.mp3"
 }
 
 export type User = {
@@ -50,6 +68,23 @@ export type User = {
     lobbyCode: (string | null);
     ready: boolean;
 };
+
+export enum TimerSetting {
+    DYNAMIC = "dynamic",
+    NORMAL = "normal"
+}
+
+export type LobbySettings = {
+    maxPlayers: number;            // nb of players
+    seePrevStoryPart: boolean;     // display mod
+    withTextToSpeech: boolean;     // text to speech mod
+    maxTexts: number;              // number of input
+    maxAudios: number;             // number of input
+    maxImages: number;             // number of input
+    maxDrawings: number;           // number of input
+    timerSetting: TimerSetting;    // dynamic or not
+    roundSeconds: number;          // config of the timer
+}
 
 export type Lobby = {
     code: string;
@@ -61,6 +96,8 @@ export type Lobby = {
     roundEndAt: (Date | null);
     currentStoryIndex: (number | null);
     currentUserIndex: (number | null);
+    // Lobby parameters
+    lobbySettings: LobbySettings;
 };
 
 export type Story = {
@@ -116,6 +153,10 @@ export enum ErrorType {
     STORY_NOT_FOUND = "STORY_NOT_FOUND",
     STORY_BY_INDEX_NOT_FOUND = "STORY_BY_INDEX_NOT_FOUND",
     STORY_INDEX_OUT_OF_BOUNDS = "STORY_INDEX_OUT_OF_BOUNDS",
+    USER_ALREADY_IN_LOBBY = "USER_ALREADY_IN_LOBBY",
+    PART_IS_NULL = "PART_IS_NULL",
+    NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
+    USER_NOT_SUBMITTED = "USER_NOT_SUBMITTED",
 
     DB_ERROR_SELECT_STORY_ELEMENTS = "DB_ERROR_SELECT_STORY_ELEMENTS",
     DB_ERROR_SELECT_STORY = "DB_ERROR_SELECT_STORY",
@@ -139,6 +180,17 @@ export enum ErrorType {
     DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED = "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED",
     DB_ERROR_UPDATE_LOBBY_ROUND = "DB_ERROR_UPDATE_LOBBY_ROUND",
 
+    //DB_ERROR_UPDATE_LOBBY_SETTINGS
+    DB_ERROR_UPDATE_LOBBY_MAX_PLAYERS = "DB_ERROR_UPDATE_LOBBY_MAX_PLAYERS",
+    DB_ERROR_UPDATE_LOBBY_SEE_PREV_STORY_PART = "DB_ERROR_UPDATE_LOBBY_SEE_PREV_STORY_PART",
+    DB_ERROR_UPDATE_LOBBY_WITH_TEXT_TO_SPEECH = "DB_ERROR_UPDATE_LOBBY_WITH_TEXT_TO_SPEECH",
+    DB_ERROR_UPDATE_LOBBY_MAX_TEXTS = "DB_ERROR_UPDATE_LOBBY_MAX_TEXTS",
+    DB_ERROR_UPDATE_LOBBY_MAX_AUDIOS = "DB_ERROR_UPDATE_LOBBY_MAX_AUDIOS",
+    DB_ERROR_UPDATE_LOBBY_MAX_IMAGES = "DB_ERROR_UPDATE_LOBBY_MAX_IMAGES",
+    DB_ERROR_UPDATE_LOBBY_MAX_DRAWINGS = "DB_ERROR_UPDATE_LOBBY_MAX_DRAWINGS",
+    DB_ERROR_UPDATE_LOBBY_TIMER_SETTING = "DB_ERROR_UPDATE_LOBBY_TIMER_SETTING",
+    DB_ERROR_UPDATE_LOBBY_ROUND_SECONDS = "DB_ERROR_UPDATE_LOBBY_ROUND_SECONDS",
+
     DB_ERROR_DELETE_LOBBY = "DB_ERROR_DELETE_LOBBY",
     DB_ERROR_DELETE_STORIES = "DB_ERROR_DELETE_STORIES",
     DB_ERROR_BEGIN = "DB_ERROR_BEGIN",
@@ -149,20 +201,16 @@ export enum ErrorType {
     DB_ERROR_SELECT_USERS_COUNT = "DB_ERROR_SELECT_USERS_COUNT",
     DB_ERROR_SELECT_LOBBY_CURRENT_PART = "DB_ERROR_SELECT_LOBBY_CURRENT_PART",
     DB_ERROR_UPDATE_LOBBY_CURRENT_PART = "DB_ERROR_UPDATE_LOBBY_CURRENT_PART",
-    PART_IS_NULL = "PART_IS_NULL",
     DB_ERROR_LOCK_ROW_LOBBY = "DB_ERROR_LOCK_ROW_LOBBY",
-    DB_ERROR_SELECT_LOBBIES = "DB_ERROR_SELECT_LOBBIES",
     DB_ERROR_DELETE_LOBBIES = "DB_ERROR_DELETE_LOBBIES",
     DB_ERROR_DELETE_USERS = "DB_ERROR_DELETE_USERS",
     DB_ERROR_SELECT_USER_READY = "DB_ERROR_SELECT_USER_READY",
     DB_ERROR_UPDATE_USER_READY = "DB_ERROR_UPDATE_USER_READY",
-    USER_NOT_SUBMITTED = "USER_NOT_SUBMITTED",
     DB_ERROR_UPSERTLETE_STORY_ELEMENTS = "DB_ERROR_UPSERTLETE_STORY_ELEMENTS",
     DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
-    NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
     DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
     DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
-    USER_ALREADY_IN_LOBBY = "USER_ALREADY_IN_LOBBY",
+    DB_ERROR_SELECT_USERS_ALL = "DB_ERROR_SELECT_USERS_ALL",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -181,4 +229,15 @@ export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promi
         }
     }
     return res;
+}
+export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
+    maxPlayers: 8,
+    seePrevStoryPart: false,
+    withTextToSpeech: false,
+    maxTexts: 10,
+    maxAudios: 10,
+    maxImages: 10,
+    maxDrawings: 10,
+    timerSetting: TimerSetting.NORMAL,
+    roundSeconds: 15 * 60
 }

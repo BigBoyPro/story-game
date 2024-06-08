@@ -3,11 +3,11 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: white;
+    background-color: transparent;
 
 }
 
-.drawing-page .canvas-container{
+.canvas-container{
     flex: 1;
     display: flex;
     border: 0.1rem solid black;
@@ -24,7 +24,7 @@ canvas{
 }
 
 .color-button {
-    width: 1rem;
+    width: 2rem;
     height: 2rem;
     border-radius: 50%;
     cursor: pointer;
@@ -44,6 +44,11 @@ canvas{
     flex-direction: row;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
+    justify-content: space-evenly;
+    background-color: rgba(79, 27, 27, 0.25);
+    border-radius: 50%;
+    height:6rem;
 }
 
 .colors-container {
@@ -52,4 +57,56 @@ canvas{
     grid-template-columns: repeat(auto-fill, minmax(2rem, 1fr));
     grid-auto-flow: row;
     gap: 1rem;
+    background-color: transparent;
+
 }
+
+.settings-container{
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+    justify-content: space-between;
+
+}
+
+.buttons{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+}
+
+.draw-buttons-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+}
+
+.element-buttons-container{
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+}
+
+.selected-icon {
+    color: #4881b0;
+}
+
+.icon {
+    transition: transform 0.3s ease;
+}
+
+.icon:hover {
+    transform: scale(1.2);
+}
+
+
+

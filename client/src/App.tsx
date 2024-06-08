@@ -18,11 +18,27 @@ import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, 
 
 import LobbyView from "./pages/LobbyView.tsx";
 import JoinView from "./pages/JoinView";
-import HowToPlay from './pages/HowToPlay';
+import HowToPlayView from './pages/HowToPlayView.tsx';
 
 import {LobbyContext} from "./LobbyContext.tsx";
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
+
+
+export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
+    let nextPage: Page = Page.Join;
+    if (lobby && lobby.users.find(user => user.id === userId)) {
+        if (lobby.round == 0) {
+            nextPage = Page.Lobby;
+        } else if(lobby.round > 0){
+            nextPage = Page.Game;
+        } else if(lobby.round < 0){
+            nextPage = Page.Results;
+        }
+    }
+    if(nextPage !== currentPage) navigate(nextPage);
+}
+
 
 export enum Page {
     Join = "/",
@@ -40,24 +56,11 @@ const router = createBrowserRouter(
             <Route path={Page.Lobby} element={<LobbyView/>}/>
             <Route path={Page.Game} element={<GameView/>}/>
             <Route path={Page.Results} element={<ResultsView/>}/>
-            <Route path={Page.HowToPlay} element={<HowToPlay/>}/>
+            <Route path={Page.HowToPlay} element={<HowToPlayView/>}/>
         </>
     )
 );
 
-export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
-    let nextPage: Page = Page.Join;
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
-            nextPage = Page.Lobby;
-        } else if(lobby.round > 0){
-            nextPage = Page.Game;
-        } else if(lobby.round < 0){
-            nextPage = Page.Results;
-        }
-    }
-    if(nextPage !== currentPage) navigate(nextPage);
-}
 
 
 function App() {
@@ -118,7 +121,6 @@ function App() {
       <>
           <LobbyContext.Provider value={lobby}>
               <RouterProvider router={router}/>
-              {/*<footer>i'm foot</footer>*/}
           </LobbyContext.Provider>
       </>
   )
