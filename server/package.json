@@ -2,10 +2,11 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.ts",
+  "main": "dist/server/src/server.js",
   "scripts": {
+    "build": "tsc",
     "dev": "nodemon --exec ts-node ./src/server.ts",
-    "start": "ts-node ./src/server.ts"
+    "start": "node dist/server/src/server.js"
   },
   "repository": {
     "type": "git",
