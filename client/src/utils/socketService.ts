@@ -3,7 +3,7 @@ import {v4 as uuidv4} from 'uuid';
 import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement, TimerSetting} from "../../../shared/sharedTypes.ts";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost";
-const SERVER_PORT = import.meta.env.VITE_SERVER_PORT || 3000;
+const SERVER_PORT = import.meta.env.VITE_SERVER_PORT || 443;
 
 console.log('connecting to server at', SERVER_URL + ':' + SERVER_PORT);
 
