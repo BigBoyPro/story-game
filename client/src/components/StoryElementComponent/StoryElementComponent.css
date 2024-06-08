@@ -45,7 +45,7 @@
     font-size: 16px;
     max-width: 80%;
     margin: 10px 0;
-    background-color: #f1f0f0;
+    background-color: #d5c2c2;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     resize: none;
     outline: none;
@@ -69,6 +69,15 @@
 
 .fa-trash-alt {
     color: #FF0000;
+}
+
+
+.story-element textarea {
+    height: auto;
+    overflow-y: hidden;
+    resize: none;
+    padding: 10px;
+    font-size: 16px;
 }
 
 

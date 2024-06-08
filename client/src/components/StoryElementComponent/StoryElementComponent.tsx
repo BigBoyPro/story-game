@@ -60,6 +60,17 @@ const StoryElementComponent = forwardRef(
             isPlayingRef.current = isPlaying;
         }, [isPlaying]);
 
+
+        // La zone de texte grandit si on écrit un grand texte sur la page GameView
+        useEffect(() => {
+            const textareaElement = document.querySelector('textarea');
+            if (textareaElement) {
+                textareaElement.style.height = 'auto';
+                textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+            }
+        }, [element.content]);
+
+
         function handleAudioPlay() {
             if (audioRef.current) {
                 audioRef.current.play().then(() => {
