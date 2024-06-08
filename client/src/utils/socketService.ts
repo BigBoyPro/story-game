@@ -311,6 +311,23 @@ const eventsThatCanVerifyArgs = [
     SocketEvent.CREATE_LOBBY,
     // Add other events that are allowed to verify their arguments
 ];
+
+const eventsCoexistWithEveryEvent = [
+    SocketEvent.GET_LOBBY,
+    SocketEvent.GET_STORY,
+    SocketEvent.GET_STORY_AT_PART,
+    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
+    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
+    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
+    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
+    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
+    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
+    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
+    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
+    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS
+];
+
+
 const eventsThatCanCoexist = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
@@ -343,7 +360,7 @@ export const canRequest = (event: SocketEvent, args: any[]): boolean => {
     const coexistingEvents = eventsThatCanCoexist.get(event);
     if (coexistingEvents) {
         for (const [ongoingEvent] of ongoingRequests.entries()) {
-            if (!coexistingEvents.includes(ongoingEvent) && ongoingEvent !== SocketEvent.GET_LOBBY) {
+            if (!coexistingEvents.includes(ongoingEvent) && !eventsCoexistWithEveryEvent.includes(ongoingEvent)) {
                 console.log(`Cannot request event ${event} because event ${ongoingEvent} is ongoing.`);
                 return false;
             }

@@ -50,7 +50,6 @@ function ResultsStoryComponent({
     const handlePlay = (index: number) => {
         if(!lobby) return;
         // setIsPlaying(true);
-        console.log('Playing', index);
         getStoryUserComponentsMap().get(index)?.play(lobby.lobbySettings.withTextToSpeech, true);
     };
 
@@ -76,7 +75,8 @@ function ResultsStoryComponent({
                         {/*            </button>*/}
                         {/*    )*/}
                         {/*}*/}
-                        <StoryUserComponent elements={elements}
+                        <StoryUserComponent key={shownUserIndex}
+                            elements={elements}
                                             isEditable={false}
                                             ref={(node) => {
                                                 const map = getStoryUserComponentsMap();
