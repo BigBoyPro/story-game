@@ -10,7 +10,6 @@ import {
 
 import {storyIndexForUser} from "../../utils/utils";
 
-const ROUND_MILLISECONDS = 15 * 60 * 1000;
 const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
@@ -102,7 +101,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         // set round start time now + 2 seconds for the users to receive the lobby info before the round starts
         const shiftedNow = Date.now() + 2 * 1000;
         let roundStartTime: (Date | null) = new Date(shiftedNow);
-        let roundEndTime: (Date | null) = new Date(shiftedNow + ROUND_MILLISECONDS);
+        let roundEndTime: (Date | null) = new Date(shiftedNow + lobby.lobbySettings.roundSeconds);
 
         if (newLobbyRound > lobby.users.length) {
             newLobbyRound = -1;
@@ -161,7 +160,7 @@ const restartRound = (pool: Pool, lobby: Lobby) => {
         // set round start time now + 2 seconds for the users to receive the lobby info before the round starts
         const shiftedNow = Date.now() + 2 * 1000;
         let roundStartTime: (Date | null) = new Date(shiftedNow);
-        let roundEndTime: (Date | null) = new Date(shiftedNow + ROUND_MILLISECONDS);
+        let roundEndTime: (Date | null) = new Date(shiftedNow + lobby.lobbySettings.roundSeconds);
 
         //lock the lobby row
         ({error, success} = await dbLockRowLobby(client, lobby.code));

@@ -1,5 +1,14 @@
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, Story, StoryElement, User} from "../../shared/sharedTypes";
+import {
+    ErrorType,
+    Lobby,
+    LogLevel,
+    OpResult,
+    Story,
+    StoryElement,
+    TimerSetting,
+    User
+} from "../../shared/sharedTypes";
 
 
 export const dbTransaction = async <T>(pool: Pool, callback: (client: PoolClient) => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -250,7 +259,18 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
             roundEndAt: data[0].round_end_at ? new Date(data[0].round_end_at) : null,
             users: usersRes.data,
             currentStoryIndex: data[0].current_story_index,
-            currentUserIndex: data[0].current_user_index
+            currentUserIndex: data[0].current_user_index,
+            lobbySettings: {
+                maxPlayers: data[0].max_players,
+                seePrevStoryPart: data[0].see_prev_story_part,
+                withTextToSpeech: data[0].with_text_to_speech,
+                maxTexts: data[0].max_texts,
+                maxAudios: data[0].max_audios,
+                maxImages: data[0].max_images,
+                maxDrawings: data[0].max_drawings,
+                timerSetting: data[0].timer_setting,
+                roundSeconds: data[0].round_seconds
+            }
         };
         return {success: true, data: lobby};
     } catch (error) {
@@ -320,7 +340,18 @@ export const dbSelectLobbiesActive = async (db: (Pool | PoolClient)): Promise<Op
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: users,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: {
+                    maxPlayers: data[0].max_players,
+                    seePrevStoryPart: data[0].see_prev_story_part,
+                    withTextToSpeech: data[0].with_text_to_speech,
+                    maxTexts: data[0].max_texts,
+                    maxAudios: data[0].max_audios,
+                    maxImages: data[0].max_images,
+                    maxDrawings: data[0].max_drawings,
+                    timerSetting: data[0].timer_setting,
+                    roundSeconds: data[0].round_seconds
+                }
             });
         }
         return {success: true, data: lobbies};
@@ -537,7 +568,18 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
                 users: usersRes.data,
                 currentStoryIndex: lobby.current_story_index,
-                currentUserIndex: lobby.current_user_index
+                currentUserIndex: lobby.current_user_index,
+                lobbySettings: {
+                    maxPlayers: data[0].max_players,
+                    seePrevStoryPart: data[0].see_prev_story_part,
+                    withTextToSpeech: data[0].with_text_to_speech,
+                    maxTexts: data[0].max_texts,
+                    maxAudios: data[0].max_audios,
+                    maxImages: data[0].max_images,
+                    maxDrawings: data[0].max_drawings,
+                    timerSetting: data[0].timer_setting,
+                    roundSeconds: data[0].round_seconds
+                }
             });
         }
         return {success: true, data: lobbies};
@@ -867,6 +909,175 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
             success: false,
             error: {
                 type: ErrorType.DB_ERROR_UPDATE_LOBBY_CURRENT_PART,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+export const dbUpdateLobbyMaxPlayers = async (db: (Pool | PoolClient), lobbyCode: string, maxPlayers: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_players = $1,
+                        WHERE code = $2`, [maxPlayers, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_PLAYERS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbySeePrevStoryPart = async (db: (Pool | PoolClient), lobbyCode: string, seePrevStoryPart: boolean): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET see_prev_story_part = $1,
+                        WHERE code = $2`, [seePrevStoryPart, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_SEE_PREV_STORY_PART,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyWithTextToSpeech = async (db: (Pool | PoolClient), lobbyCode: string, withTextToSpeech: boolean): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET with_text_to_speech = $1,
+                        WHERE code = $2`, [withTextToSpeech, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_WITH_TEXT_TO_SPEECH,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyMaxTexts = async (db: (Pool | PoolClient), lobbyCode: string, maxTexts: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_texts = $1,
+                        WHERE code = $2`, [maxTexts, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_TEXTS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+export const dbUpdateLobbyMaxAudios = async (db: (Pool | PoolClient), lobbyCode: string, maxAudios: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_audios = $1,
+                        WHERE code = $2`, [maxAudios, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_AUDIOS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyMaxImages = async (db: (Pool | PoolClient), lobbyCode: string, maxImages: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_images = $1,
+                        WHERE code = $2`, [maxImages, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_IMAGES,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyMaxDrawings = async (db: (Pool | PoolClient), lobbyCode: string, maxDrawings: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET max_drawings= $1,
+                        WHERE code = $2`, [maxDrawings, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_MAX_DRAWINGS,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyTimerSetting = async (db: (Pool | PoolClient), lobbyCode: string, timerSetting: TimerSetting): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET timer_setting = $1,
+                        WHERE code = $2`, [timerSetting, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_TIMER_SETTING,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        }
+    }
+}
+
+
+export const dbUpdateLobbyRoundSeconds = async (db: (Pool | PoolClient), lobbyCode: string, roundSeconds: number): Promise<OpResult<null>> => {
+    try {
+        await db.query(`UPDATE lobbies
+                        SET round_seconds = $1,
+                        WHERE code = $2`, [roundSeconds, lobbyCode]);
+        return {success: true};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_UPDATE_LOBBY_ROUND_SECONDS,
                 logLevel: LogLevel.Error,
                 error: error
             }

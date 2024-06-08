@@ -2,13 +2,30 @@
 
 import {Server, Socket as BaseSocket} from 'socket.io';
 import {Pool} from 'pg';
-import {Lobby, OpError, SocketEvent, Story, StoryElement} from "../../../shared/sharedTypes";
+import {
+    Lobby,
+    OpError,
+    SocketEvent,
+    Story,
+    StoryElement,
+    TimerSetting
+} from "../../../shared/sharedTypes";
 
 
 import {onCreateLobby, onGetLobby, onJoinLobby, onLeaveLobby} from "./lobbyHandlers";
 import {onEndGame, onGetStory, onNextPart, onStartGame, onSubmitStoryElements} from "./gameHandlers";
 import {onGetStoryAtPart} from "./gameHandlers";
 import {onUnsubmitStoryElements} from "./gameHandlers/onUnsubmitStoryElements";
+import {onSubmitLobbyMaxPlayers} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyMaxPlayers";
+import {onSubmitLobbySeePrevStoryPart} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbySeePrevStoryPart";
+import {onSubmitLobbyWithTextToSpeech} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyWithTextToSpeech";
+import {onSubmitLobbyMaxTexts} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyMaxTexts";
+import {onSubmitLobbyMaxAudios} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyMaxAudios";
+import {onSubmitLobbyMaxImages} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyMaxImages";
+import {onSubmitLobbyTimerSetting} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyTimerSetting";
+import {onSubmitLobbyMaxDrawings} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyMaxDrawings";
+import {onSubmitLobbyRoundSeconds} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyRoundSeconds";
+
 
 interface Socket extends BaseSocket {
     userId?: string;
@@ -49,6 +66,39 @@ export const excludedBroadcastUsersSubmitted = (excludedUserId: string, lobbyCod
 export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) => {
     broadcast(io, lobbyCode, SocketEvent.LOBBY_INFO, lobby);
 }
+
+/*export const broadcastLobbySettings = (io: Server, lobbyCode: string, lobbySettings: LobbySettings) => {
+    broadcast(io, lobbyCode, SocketEvent.LOBBY_SETTINGS, lobbySettings);
+}*/
+
+export const broadcastLobbyMaxPlayers = (io: Server, lobbyCode: string, maxPlayers: number) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS, maxPlayers);
+}
+export const broadcastLobbySeePrevStoryPart = (io: Server, lobbyCode: string, seePrevStoryPart: boolean) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART, seePrevStoryPart);
+}
+export const broadcastLobbyWithTextToSpeech = (io: Server, lobbyCode: string, withTextToSpeech: boolean) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH, withTextToSpeech);
+}
+export const broadcastLobbyMaxTexts = (io: Server, lobbyCode: string, maxTexts: number) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_TEXTS, maxTexts);
+}
+export const broadcastLobbyMaxAudios = (io: Server, lobbyCode: string, maxAudios: number) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS, maxAudios);
+}
+export const broadcastLobbyMaxImages = (io: Server, lobbyCode: string, maxImages: number) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_IMAGES, maxImages);
+}
+export const broadcastLobbyMaxDrawings = (io: Server, lobbyCode: string, maxDrawings: number) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS, maxDrawings);
+}
+export const broadcastLobbyTimerSetting = (io: Server, lobbyCode: string, timerSetting: TimerSetting) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_TIMER_SETTING, timerSetting);
+}
+export const broadcastLobbyRoundSeconds = (io: Server, lobbyCode: string, roundSeconds: number) => {
+    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS, roundSeconds);
+}
+
 
 export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: string, lobby: Lobby) => {
     const userSocket = userSocketMap.get(excludedUserId);
@@ -109,6 +159,45 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
             await onLeaveLobby(SocketEvent.LEAVE_LOBBY, io, pool, userId, lobbyCode);
         });
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS, async (userId: string, lobbyCode: string, maxPlayers: number)=> {
+            await onSubmitLobbyMaxPlayers(io, pool, userId, lobbyCode, maxPlayers);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART, async (userId: string, lobbyCode: string, seePrevStoryPart: boolean)=> {
+            await onSubmitLobbySeePrevStoryPart(io, pool, userId, lobbyCode, seePrevStoryPart);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH, async (userId: string, lobbyCode: string, withTextToSpeech: boolean)=> {
+            await onSubmitLobbyWithTextToSpeech(io, pool, userId, lobbyCode, withTextToSpeech);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_MAX_TEXTS, async (userId: string, lobbyCode: string, maxTexts: number)=> {
+            await onSubmitLobbyMaxTexts(io, pool, userId, lobbyCode, maxTexts);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS, async (userId: string, lobbyCode: string, maxAudios: number)=> {
+            await onSubmitLobbyMaxAudios(io, pool, userId, lobbyCode, maxAudios);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_MAX_IMAGES, async (userId: string, lobbyCode: string, maxImages: number)=> {
+            await onSubmitLobbyMaxImages(io, pool, userId, lobbyCode, maxImages);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS, async (userId: string, lobbyCode: string, maxDrawings: number)=> {
+            await onSubmitLobbyMaxDrawings(io, pool, userId, lobbyCode, maxDrawings);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_TIMER_SETTING, async (userId: string, lobbyCode: string, timerSetting: TimerSetting)=> {
+            await onSubmitLobbyTimerSetting(io, pool, userId, lobbyCode, timerSetting);
+        });
+
+        socket.on(SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS, async (userId: string, lobbyCode: string, roundSeconds: number)=> {
+            await onSubmitLobbyRoundSeconds(io, pool, userId, lobbyCode, roundSeconds);
+        });
+
+        //--------------------------------------------------------------------------------------------------------------
 
         socket.on(SocketEvent.START_GAME, async (userId: string, lobbyCode: string) => {
             await onStartGame(SocketEvent.START_GAME, io, pool, userId, lobbyCode);
