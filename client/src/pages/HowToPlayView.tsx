@@ -3,7 +3,7 @@
 
 import { Link } from 'react-router-dom';
 import './HowToPlayView.css';
-import backButtonIcon from '../assets/icons/backButton.png';
+import backButtonIcon from '../assets/icons/backHowToPlay.png';
 
 function HowToPlayView() {
     return (
