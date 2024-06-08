@@ -1,16 +1,29 @@
 .lobby-box {
-    max-width: 90%;
-    max-height: 48%;
+    width: 100%;
     height: 100%;
-    min-width: 20rem;
-    min-height: 16rem;
-    aspect-ratio: 5/4;
+    aspect-ratio: 5 / 4;
     background-color: transparent;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     gap: 1rem;
 }
+
+/*we want the lobby-box to be sticked to the display in the background image*/
+@media (max-aspect-ratio: 16/9) {
+    .lobby-box {
+        max-width: calc(48vh * 5 / 4);
+        max-height: 48%;
+    }
+}
+
+@media (min-aspect-ratio: 16/9) {
+    .lobby-box {
+        max-width: 34%;
+        max-height: calc(34vw * 4 / 5);
+    }
+}
+
 
 .lobby-box__header {
     flex: 1.5;

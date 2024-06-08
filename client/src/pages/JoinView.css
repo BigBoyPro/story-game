@@ -4,7 +4,6 @@
     width: 60%;
     height: 60%;
     background-color: transparent;
-    border: 1px solid #000000;
 }
 @media (max-width: 600px), (max-height: 600px) {
     .join-box {
@@ -30,7 +29,6 @@
     max-width:70%;
     max-height: 60%;
     object-fit: contain;
-
 }
 
 
