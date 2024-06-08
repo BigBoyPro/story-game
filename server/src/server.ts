@@ -15,7 +15,7 @@ try {
     require('dotenv').config();
 
     const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
-    const PORT = parseInt(process.env.PORT || "443");
+    const PORT = process.env.PORT || 443;
 
     if (!SUPABASE_DATABASE_URL) {
         console.error('SUPABASE_DATABASE_URL is not set');
@@ -41,8 +41,8 @@ try {
 
     resetGames(io, pool).then(() => {
         setupSocketHandlers(io, pool);
-        server.listen(443, () => {
-            console.log("Server is running on port " + PORT, typeof PORT);
+        server.listen(PORT, () => {
+            console.log("Server is running on port " + PORT);
         });
         module.exports = app;
         console.log('Server listening');
