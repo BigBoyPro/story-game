@@ -6,9 +6,6 @@ import {Page, redirection} from "../App.tsx";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
 import './LobbyView.css';
-// import LeaveIcon from "../assets/icons/LeaveIcon.svg?react";
-// import PlayIcon from "../assets/icons/PlayIcon.svg?react";
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
 

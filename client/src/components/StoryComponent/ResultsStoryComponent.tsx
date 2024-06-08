@@ -3,6 +3,8 @@ import "./StoryComponent.css"
 import {Story} from "../../../../shared/sharedTypes.ts";
 import StoryUserComponent, {StoryUserComponentHandles} from "../StoryUserComponent/StoryUserComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons';
 
 
 function ResultsStoryComponent({
@@ -75,9 +77,13 @@ function ResultsStoryComponent({
                     <React.Fragment key={index}>
                         {index === shownUserIndex && !autoPlay &&
                             (!isPlaying ?
-                                    <button onClick={() => handlePlay(index)}>Play</button>
+                                    <button onClick={() => handlePlay(index)}>
+                                        <FontAwesomeIcon icon={faPlay} size="2x" />
+                                    </button>
                                     :
-                                    <button onClick={() => handleStop(index)}>Stop</button>
+                                    <button onClick={() => handleStop(index)}>
+                                        <FontAwesomeIcon icon={faStop} size="2x" />
+                                    </button>
                             )
                         }
                         <StoryUserComponent elements={elements}

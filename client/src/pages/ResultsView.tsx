@@ -3,7 +3,9 @@ import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
-import backgroundImage from "../assets/backgrounds/ResultsView.png";
+// import backgroundImage from "../assets/backgrounds/ResultsView.png";
+import ResultVideo from "../assets/backgrounds/ResultView.mp4";
+
 import {
     onEndGame,
     onStoryAtPart,
@@ -68,26 +70,35 @@ function ResultsView() {
     };
 
     return(
-      <div className="results-page">
-          <img src={backgroundImage} alt="Background" style={{position: 'absolute', width: '100%', height: '100%'}} />
-          { lobby && story &&
-            <div className="game-box-results">
-                <h2>Results</h2>
-                <div className="story-box-results">
-                    <h3>{story.name}</h3>
-                    <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
-                                    onPlayingEnd={() => setIsPlaying(false)}
-                    />
-                </div>
-                { !isPlaying &&
-                    ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
-                    <button className={"button"} onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
-                    :
-                    <button className={"button"} onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>)
-                }
-            </div>
-          }
-      </div>
+
+        <>
+                <video autoPlay loop muted className={"background"}>
+                    <source src={ResultVideo} type="video/mp4"/>
+                </video>
+
+                <div className="results-page">
+                    { lobby && story &&
+                        <div className="game-box-results">
+                            <h2>Results</h2>
+                        <div className="story-box-results">
+
+                        <h3>{story.name}</h3>
+
+                        <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
+                                            onPlayingEnd={() => setIsPlaying(false)}
+                        />
+
+                        </div>
+                            { !isPlaying &&
+                                ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
+                                <button className={"button"} onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
+                                :
+                                <button className={"button"} onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>)
+                            }
+                        </div>
+                    }
+              </div>
+        </>
   );
 }
 
