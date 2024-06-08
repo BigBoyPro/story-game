@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import "./StoryComponent.css"
+
 import {Story} from "../../../../shared/sharedTypes.ts";
 import StoryUserComponent, {StoryUserComponentHandles} from "../StoryUserComponent/StoryUserComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
@@ -48,6 +49,7 @@ function ResultsStoryComponent({
         setIsPlaying(false);
     };
 
+
     const handlePlay = (index: number) => {
         setIsPlaying(true);
         getStoryUserComponentsMap().get(index)?.play(tts, true);
@@ -71,7 +73,6 @@ function ResultsStoryComponent({
             </div>
 
             {getStoryElementsForEachUser(story.elements).map((elements, index) => {
-
 
                 return (
                     <React.Fragment key={index}>
