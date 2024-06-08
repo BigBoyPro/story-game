@@ -12,12 +12,8 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-
     background-color: transparent;
 }
-
-
-
 
 input{
     color: white;

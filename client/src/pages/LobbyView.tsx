@@ -43,7 +43,6 @@ function LobbyView() {
             </video>
 
             <div className={"main-page"}>
-                {/*<div className={"main-box-lobby"}>*/}
                 <div className={"lobby-box"}>
                     <div className={"lobby-box__header"}>
                         <button className={"lobby-box__header_button"} onClick={handleBack} title="Leave Lobby">
@@ -51,15 +50,14 @@ function LobbyView() {
                         </button>
                     </div>
                     <div className={"lobby-info"}>
-
                         <div className={"sidebar"}>
                             <div className="lobby-code">
-                                <h2 className={"lobby-info__title"}>Code:</h2>
+                                <h2 className={"lobby-info__title lobby-info__title--sidebar"}>Code:</h2>
                                 <p className={"lobby-code__code"}>{lobby?.code}</p>
                             </div>
 
                             <div className="lobby-players">
-                                <h2 className={"lobby-info__title"}>Players:</h2>
+                                <h2 className={"lobby-info__title lobby-info__title--sidebar"}>Players:</h2>
                                 <ul className={"players__list"}>
                                     {lobby?.users?.map((user, index) => (
                                         <li className={"player"}
@@ -73,7 +71,7 @@ function LobbyView() {
                             </div>
                         </div>
                         <div className="lobby-settings">
-                            <h2 className={"lobby-info__title"}>Settings:</h2>
+                            <h2 className={"lobby-info__title lobby-info__title--settings"}>Settings:</h2>
                             <ul className={"lobby-settings__list"}>
                                 <li>Max Players:</li>
                                 <li>Round Time:</li>
@@ -82,9 +80,9 @@ function LobbyView() {
                         </div>
                     </div>
                     <div className="lobby-play-button">
-                        <button className={"button-play"} onClick={handleStartGame}
+                        <button className={"button-play"} onClick={handleStartGame} title={"Start Game"}
                                 disabled={lobby?.hostUserId !== userId}>
-                            <FontAwesomeIcon icon={faPlay} size="3x" />
+                            <FontAwesomeIcon icon={faPlay} size="2x" />
                         </button>
                     </div>
                 </div>
