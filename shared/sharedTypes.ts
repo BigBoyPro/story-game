@@ -21,10 +21,16 @@ export enum SocketEvent {
     STORY_AT_PART = 'story at part',
     PART = 'part',
     SUBMITTED = 'submitted',
-    SUBMIT_LOBBY_SETTINGS = 'submit lobby settings',
-    LOBBY_SETTINGS = 'lobby settings',
+    SUBMIT_LOBBY_MAX_PLAYERS = 'submit lobby max players',
+    SUBMIT_LOBBY_SEE_PREV_STORY_PART = 'submit lobby see prev story part',
+    SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH = 'submit lobby with text to speech',
+    SUBMIT_LOBBY_MAX_TEXTS = 'submit lobby max texts',
+    SUBMIT_LOBBY_MAX_AUDIOS = 'submit lobby max audios',
+    SUBMIT_LOBBY_MAX_IMAGES = 'submit lobby max images',
+    SUBMIT_LOBBY_MAX_DRAWINGS = 'submit lobby max drawings',
+    SUBMIT_LOBBY_TIMER_SETTING = 'submit lobby timer setting',
+    SUBMIT_LOBBY_ROUND_SECONDS = 'submit lobby round seconds',
 }
-
 
 
 export enum PlaceType {
@@ -58,11 +64,15 @@ export enum TimerSetting {
 }
 
 export type LobbySettings = {
-    nbOfPlayers: number;
-    seePrevStory: boolean; // display mod
-    nbOfElements: (number | null); // number of input
-    dynamicTimer: TimerSetting; // dynamic or not
-    roundTime: number; // config of the timer
+    maxPlayers: number;            // nb of players
+    seePrevStoryPart: boolean;     // display mod
+    withTextToSpeech: boolean;     // text to speech mod
+    maxTexts: number;              // number of input
+    maxAudios: number;             // number of input
+    maxImages: number;             // number of input
+    maxDrawings: number;           // number of input
+    timerSetting: TimerSetting;    // dynamic or not
+    roundSeconds: number;          // config of the timer
 }
 
 export type Lobby = {
@@ -154,7 +164,17 @@ export enum ErrorType {
     DB_ERROR_UPDATE_LOBBY_HOST = "DB_ERROR_UPDATE_LOBBY_HOST",
     DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED = "DB_ERROR_UPDATE_LOBBY_USERS_SUBMITTED",
     DB_ERROR_UPDATE_LOBBY_ROUND = "DB_ERROR_UPDATE_LOBBY_ROUND",
-    DB_ERROR_UPDATE_LOBBY_SETTINGS = "DB_ERROR_UPDATE_LOBBY_SETTINGS",
+
+    //DB_ERROR_UPDATE_LOBBY_SETTINGS
+    DB_ERROR_UPDATE_LOBBY_MAX_PLAYERS = "DB_ERROR_UPDATE_LOBBY_MAX_PLAYERS",
+    DB_ERROR_UPDATE_LOBBY_SEE_PREV_STORY_PART = "DB_ERROR_UPDATE_LOBBY_SEE_PREV_STORY_PART",
+    DB_ERROR_UPDATE_LOBBY_WITH_TEXT_TO_SPEECH = "DB_ERROR_UPDATE_LOBBY_WITH_TEXT_TO_SPEECH",
+    DB_ERROR_UPDATE_LOBBY_MAX_TEXTS = "DB_ERROR_UPDATE_LOBBY_MAX_TEXTS",
+    DB_ERROR_UPDATE_LOBBY_MAX_AUDIOS = "DB_ERROR_UPDATE_LOBBY_MAX_AUDIOS",
+    DB_ERROR_UPDATE_LOBBY_MAX_IMAGES = "DB_ERROR_UPDATE_LOBBY_MAX_IMAGES",
+    DB_ERROR_UPDATE_LOBBY_MAX_DRAWINGS = "DB_ERROR_UPDATE_LOBBY_MAX_DRAWINGS",
+    DB_ERROR_UPDATE_LOBBY_TIMER_SETTING = "DB_ERROR_UPDATE_LOBBY_TIMER_SETTING",
+    DB_ERROR_UPDATE_LOBBY_ROUND_SECONDS = "DB_ERROR_UPDATE_LOBBY_ROUND_SECONDS",
 
     DB_ERROR_DELETE_LOBBY = "DB_ERROR_DELETE_LOBBY",
     DB_ERROR_DELETE_STORIES = "DB_ERROR_DELETE_STORIES",

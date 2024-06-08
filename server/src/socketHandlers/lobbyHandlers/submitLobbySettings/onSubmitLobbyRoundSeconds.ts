@@ -1,27 +1,27 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, LobbySettings, LogLevel, OpResult, processOp, User} from "../../../../shared/sharedTypes";
-import { broadcastLobbySettings, sendError} from "../socketService";
-import {dbSelectLobby, dbTransaction, dbUpdateLobbySettings, dbUpdateUserLobbyCode} from "../../db";
+import {ErrorType, LogLevel, OpResult, processOp, SocketEvent} from "../../../../../shared/sharedTypes";
+import {broadcastLobbyRoundSeconds, sendError} from "../../socketService";
+import {dbSelectLobby, dbTransaction, dbUpdateLobbyRoundSeconds} from "../../../db";
 
-export const onSubmitLobbySettings = async (io: Server, pool: Pool, userId: string, lobbyCode: string, lobbySettings: LobbySettings)=> {
+export const onSubmitLobbyRoundSeconds = async (io: Server, pool: Pool, userId: string, lobbyCode: string, roundSeconds: number)=> {
     console.log("user " + userId + " sent set lobby settings request");
 
     const {error, success} = await processOp(() =>
-        setLobbySettings(pool, userId, lobbyCode, lobbySettings)
+        setLobbyRoundSeconds(pool, userId, lobbyCode, roundSeconds)
     );
 
     if (!success) {
-        error && sendError(userId, error);
+        error && sendError(userId, SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS, error);
         return;
     }
 
-    broadcastLobbySettings(io, lobbyCode, lobbySettings);
+    broadcastLobbyRoundSeconds(io, lobbyCode, roundSeconds);
 
     console.log("user " + userId + " has set the lobby settings ");
 };
 
-export const setLobbySettings = (pool: Pool, userId: string, lobbyCode: string, lobbySettings: LobbySettings) => {
+export const setLobbyRoundSeconds = (pool: Pool, userId: string, lobbyCode: string, roundSeconds: number) => {
 
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<null>> => {
 
@@ -34,12 +34,12 @@ export const setLobbySettings = (pool: Pool, userId: string, lobbyCode: string, 
                 error: {
                     logLevel: LogLevel.Error,
                     type: ErrorType.USER_NOT_HOST,
-                    error: "Only the host can end the game"
+                    error: "Only the host can change this setting"
                 }
             };
         }
 
-        ({success, error} = await dbUpdateLobbySettings(client, lobbyCode, lobbySettings));
+        ({success, error} = await dbUpdateLobbyRoundSeconds(client, lobbyCode, roundSeconds));
         if (!success) return {success, error};
 
         return {success: true};
