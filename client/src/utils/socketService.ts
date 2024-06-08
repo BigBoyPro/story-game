@@ -439,7 +439,7 @@ export const submitLobbyMaxDrawings = (lobbyCode: string, maxDrawings: number) =
     sendRequest(SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS, userId, lobbyCode, maxDrawings);
 }
 
-export const submitLobbyTimerSetting = (lobbyCode: string, timerSetting: number) => {
+export const submitLobbyTimerSetting = (lobbyCode: string, timerSetting: TimerSetting) => {
     sendRequest(SocketEvent.SUBMIT_LOBBY_TIMER_SETTING, userId, lobbyCode, timerSetting);
 }
 

@@ -1,11 +1,11 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent} from "../../../../../shared/sharedTypes";
-import {broadcastLobbySeePrevStoryPart, sendError} from "../../socketService";
+import {excludedBroadcastLobbySeePrevStoryPart, sendError} from "../../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateLobbySeePrevStoryPart} from "../../../db";
 
 export const onSubmitLobbySeePrevStoryPart = async (io: Server, pool: Pool, userId: string, lobbyCode: string, seePrevStoryPart: boolean)=> {
-    console.log("user " + userId + " sent set lobby settings request");
+    console.log("user " + userId + "sent submit lobby see prev story part");
 
     const {error, success} = await processOp(() =>
         setLobbySeePrevStoryPart(pool, userId, lobbyCode, seePrevStoryPart)
@@ -16,9 +16,7 @@ export const onSubmitLobbySeePrevStoryPart = async (io: Server, pool: Pool, user
         return;
     }
 
-    broadcastLobbySeePrevStoryPart(io, lobbyCode, seePrevStoryPart);
-
-    console.log("user " + userId + " has set the lobby settings ");
+    excludedBroadcastLobbySeePrevStoryPart(userId,lobbyCode,seePrevStoryPart);
 };
 
 export const setLobbySeePrevStoryPart = (pool: Pool, userId: string, lobbyCode: string, seePrevStoryPart: boolean) => {

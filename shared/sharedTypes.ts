@@ -30,6 +30,16 @@ export enum SocketEvent {
     SUBMIT_LOBBY_MAX_DRAWINGS = 'submit lobby max drawings',
     SUBMIT_LOBBY_TIMER_SETTING = 'submit lobby timer setting',
     SUBMIT_LOBBY_ROUND_SECONDS = 'submit lobby round seconds',
+    LOBBY_MAX_PLAYERS = "LOBBY_MAX_PLAYERS",
+    LOBBY_SEE_PREV_STORY_PART = "LOBBY_SEE_PREV_STORY_PART",
+    LOBBY_WITH_TEXT_TO_SPEECH = "LOBBY_WITH_TEXT_TO_SPEECH",
+    LOBBY_MAX_TEXTS = "LOBBY_MAX_TEXTS",
+    LOBBY_MAX_AUDIOS = "LOBBY_MAX_AUDIOS",
+    LOBBY_MAX_IMAGES = "LOBBY_MAX_IMAGES",
+    LOBBY_MAX_DRAWINGS = "LOBBY_MAX_DRAWINGS",
+    LOBBY_TIMER_SETTING = "LOBBY_TIMER_SETTING",
+    LOBBY_ROUND_SECONDS = "LOBBY_ROUND_SECONDS",
+
 }
 
 
@@ -60,7 +70,8 @@ export type User = {
 };
 
 export enum TimerSetting {
-    DYNAMIC, NORMAL
+    DYNAMIC = "dynamic",
+    NORMAL = "normal"
 }
 
 export type LobbySettings = {
@@ -199,6 +210,7 @@ export enum ErrorType {
     DB_ERROR_UPDATE_USERS_READY = "DB_ERROR_UPDATE_USERS_READY",
     DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
     DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
+    DB_ERROR_SELECT_USERS_ALL = "DB_ERROR_SELECT_USERS_ALL",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -217,4 +229,15 @@ export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promi
         }
     }
     return res;
+}
+export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
+    maxPlayers: 8,
+    seePrevStoryPart: false,
+    withTextToSpeech: false,
+    maxTexts: 10,
+    maxAudios: 10,
+    maxImages: 10,
+    maxDrawings: 10,
+    timerSetting: TimerSetting.NORMAL,
+    roundSeconds: 15 * 60
 }

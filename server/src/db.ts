@@ -408,6 +408,33 @@ export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: s
         };
     }
 };
+export const dbSelectUsersAll = async (db: (Pool | PoolClient)): Promise<OpResult<User[]>> => {
+    try {
+        const res = await db.query(`SELECT *
+                                    FROM public.users`);
+        const data = res.rows;
+        const users : User[] = data.map(row => ({
+            id: row.id,
+            nickname: row.nickname,
+            lobbyCode: row.lobby_code,
+            lastActive: row.last_active,
+            ready: row.ready
+        }));
+        return {success: true, data: users};
+    } catch (error) {
+        return {
+            success: false,
+            error: {
+                type: ErrorType.DB_ERROR_SELECT_USERS_ALL,
+                logLevel: LogLevel.Error,
+                error: error
+            }
+        };
+    }
+
+}
+
+
 export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: number): Promise<OpResult<User[]>> => {
     try {
         const res = await db.query(`SELECT *
@@ -919,7 +946,7 @@ export const dbUpdateLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
 export const dbUpdateLobbyMaxPlayers = async (db: (Pool | PoolClient), lobbyCode: string, maxPlayers: number): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET max_players = $1,
+                        SET max_players = $1
                         WHERE code = $2`, [maxPlayers, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -938,7 +965,7 @@ export const dbUpdateLobbyMaxPlayers = async (db: (Pool | PoolClient), lobbyCode
 export const dbUpdateLobbySeePrevStoryPart = async (db: (Pool | PoolClient), lobbyCode: string, seePrevStoryPart: boolean): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET see_prev_story_part = $1,
+                        SET see_prev_story_part = $1
                         WHERE code = $2`, [seePrevStoryPart, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -957,7 +984,7 @@ export const dbUpdateLobbySeePrevStoryPart = async (db: (Pool | PoolClient), lob
 export const dbUpdateLobbyWithTextToSpeech = async (db: (Pool | PoolClient), lobbyCode: string, withTextToSpeech: boolean): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET with_text_to_speech = $1,
+                        SET with_text_to_speech = $1
                         WHERE code = $2`, [withTextToSpeech, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -976,7 +1003,7 @@ export const dbUpdateLobbyWithTextToSpeech = async (db: (Pool | PoolClient), lob
 export const dbUpdateLobbyMaxTexts = async (db: (Pool | PoolClient), lobbyCode: string, maxTexts: number): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET max_texts = $1,
+                        SET max_texts = $1
                         WHERE code = $2`, [maxTexts, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -994,7 +1021,7 @@ export const dbUpdateLobbyMaxTexts = async (db: (Pool | PoolClient), lobbyCode: 
 export const dbUpdateLobbyMaxAudios = async (db: (Pool | PoolClient), lobbyCode: string, maxAudios: number): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET max_audios = $1,
+                        SET max_audios = $1
                         WHERE code = $2`, [maxAudios, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -1013,7 +1040,7 @@ export const dbUpdateLobbyMaxAudios = async (db: (Pool | PoolClient), lobbyCode:
 export const dbUpdateLobbyMaxImages = async (db: (Pool | PoolClient), lobbyCode: string, maxImages: number): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET max_images = $1,
+                        SET max_images = $1
                         WHERE code = $2`, [maxImages, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -1032,7 +1059,7 @@ export const dbUpdateLobbyMaxImages = async (db: (Pool | PoolClient), lobbyCode:
 export const dbUpdateLobbyMaxDrawings = async (db: (Pool | PoolClient), lobbyCode: string, maxDrawings: number): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET max_drawings= $1,
+                        SET max_drawings= $1
                         WHERE code = $2`, [maxDrawings, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -1051,7 +1078,7 @@ export const dbUpdateLobbyMaxDrawings = async (db: (Pool | PoolClient), lobbyCod
 export const dbUpdateLobbyTimerSetting = async (db: (Pool | PoolClient), lobbyCode: string, timerSetting: TimerSetting): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET timer_setting = $1,
+                        SET timer_setting = $1
                         WHERE code = $2`, [timerSetting, lobbyCode]);
         return {success: true};
     } catch (error) {
@@ -1070,7 +1097,7 @@ export const dbUpdateLobbyTimerSetting = async (db: (Pool | PoolClient), lobbyCo
 export const dbUpdateLobbyRoundSeconds = async (db: (Pool | PoolClient), lobbyCode: string, roundSeconds: number): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
-                        SET round_seconds = $1,
+                        SET round_seconds = $1
                         WHERE code = $2`, [roundSeconds, lobbyCode]);
         return {success: true};
     } catch (error) {

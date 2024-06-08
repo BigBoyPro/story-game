@@ -1,11 +1,11 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent, TimerSetting} from "../../../../../shared/sharedTypes";
-import {broadcastLobbyTimerSetting, sendError} from "../../socketService";
+import {excludedBroadcastLobbyTimerSetting, sendError} from "../../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateLobbyTimerSetting} from "../../../db";
 
 export const onSubmitLobbyTimerSetting = async (io: Server, pool: Pool, userId: string, lobbyCode: string, timerSetting: TimerSetting)=> {
-    console.log("user " + userId + " sent set lobby settings request");
+    console.log("user " + userId + "sent submit lobby timer setting");
 
     const {error, success} = await processOp(() =>
         setLobbyTimerSetting(pool, userId, lobbyCode, timerSetting)
@@ -16,9 +16,7 @@ export const onSubmitLobbyTimerSetting = async (io: Server, pool: Pool, userId: 
         return;
     }
 
-    broadcastLobbyTimerSetting(io, lobbyCode, timerSetting);
-
-    console.log("user " + userId + " has set the lobby settings ");
+    excludedBroadcastLobbyTimerSetting(userId,lobbyCode,timerSetting);
 };
 
 export const setLobbyTimerSetting = (pool: Pool, userId: string, lobbyCode: string, timerSetting: TimerSetting) => {
