@@ -13,7 +13,8 @@ function HowToPlay() {
             <div className="rules-text">
                 <h1>Rules of the Game</h1>
                 <h2>Here are the rules of the game...</h2>
-                <p> ici on doit écrire les règle du jeu.</p>
+                <p> ici on doit écrire les règle du jeu.
+                oui </p>
             </div>
         </div>
     );
