@@ -209,9 +209,9 @@ function LobbyView() {
                                     {lobby?.users?.map((user, index) => (
                                         <li className={"player"}
                                             key={user.id} style={{backgroundColor: getColor(index)}}>
+                                            {user.nickname}
                                             {(lobby?.hostUserId === user.id) && <img src={CrownIcon} alt="Crown"
                                                                                      className="crown-icon-small"/>}
-                                            {user.nickname}
                                         </li>
                                     ))}
                                 </ul>
