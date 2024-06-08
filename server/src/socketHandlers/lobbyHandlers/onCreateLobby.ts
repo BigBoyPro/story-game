@@ -1,15 +1,14 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {
-    LobbySettings,
+    DEFAULT_LOBBY_SETTINGS,
     ErrorType,
     Lobby,
     LogLevel,
     OpResult,
     processOp,
     SocketEvent,
-    User,
-    TimerSetting
+    User
 } from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {
@@ -20,18 +19,6 @@ import {
     dbUpdateUserLobbyCode,
     dbUpsertUser
 } from "../../db";
-
-const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
-    maxPlayers: 8,
-    seePrevStoryPart: false,
-    withTextToSpeech: false,
-    maxTexts: 10,
-    maxAudios: 10,
-    maxImages: 10,
-    maxDrawings: 10,
-    timerSetting: TimerSetting.NORMAL,
-    roundSeconds: 15 * 60
-}
 
 export const onCreateLobby = async (event: SocketEvent ,io: Server, pool: Pool, userId: string, nickname: string) => {
     console.log("user " + userId + " sent create lobby request");

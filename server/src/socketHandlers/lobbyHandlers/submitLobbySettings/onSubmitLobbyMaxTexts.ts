@@ -1,11 +1,11 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent} from "../../../../../shared/sharedTypes";
-import {broadcastLobbyMaxTexts, sendError} from "../../socketService";
+import {excludedBroadcastLobbyMaxTexts, sendError} from "../../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateLobbyMaxTexts} from "../../../db";
 
 export const onSubmitLobbyMaxTexts = async (io: Server, pool: Pool, userId: string, lobbyCode: string, maxTexts: number)=> {
-    console.log("user " + userId + " sent set lobby settings request");
+    console.log("user " + userId + "sent submit lobby max texts");
 
     const {error, success} = await processOp(() =>
         setLobbyMaxTexts(pool, userId, lobbyCode, maxTexts)
@@ -16,9 +16,7 @@ export const onSubmitLobbyMaxTexts = async (io: Server, pool: Pool, userId: stri
         return;
     }
 
-    broadcastLobbyMaxTexts(io, lobbyCode, maxTexts);
-
-    console.log("user " + userId + " has set the lobby settings ");
+    excludedBroadcastLobbyMaxTexts(userId,lobbyCode,maxTexts);
 };
 
 export const setLobbyMaxTexts = (pool: Pool, userId: string, lobbyCode: string, maxTexts: number) => {

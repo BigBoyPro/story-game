@@ -1,11 +1,11 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent} from "../../../../../shared/sharedTypes";
-import {broadcastLobbyMaxImages, sendError} from "../../socketService";
+import {excludedBroadcastLobbyMaxImages, sendError} from "../../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateLobbyMaxImages} from "../../../db";
 
 export const onSubmitLobbyMaxImages = async (io: Server, pool: Pool, userId: string, lobbyCode: string, maxImages: number)=> {
-    console.log("user " + userId + " sent set lobby settings request");
+    console.log("user " + userId + "sent submit lobby max images");
 
     const {error, success} = await processOp(() =>
         setLobbyMaxImages(pool, userId, lobbyCode, maxImages)
@@ -16,9 +16,7 @@ export const onSubmitLobbyMaxImages = async (io: Server, pool: Pool, userId: str
         return;
     }
 
-    broadcastLobbyMaxImages(io, lobbyCode, maxImages);
-
-    console.log("user " + userId + " has set the lobby settings ");
+    excludedBroadcastLobbyMaxImages(userId,lobbyCode,maxImages);
 };
 
 export const setLobbyMaxImages = (pool: Pool, userId: string, lobbyCode: string, maxImages: number) => {

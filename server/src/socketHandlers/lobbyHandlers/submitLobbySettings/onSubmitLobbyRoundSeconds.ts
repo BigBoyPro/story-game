@@ -1,11 +1,11 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent} from "../../../../../shared/sharedTypes";
-import {broadcastLobbyRoundSeconds, sendError} from "../../socketService";
+import {excludedBroadcastLobbyRoundSeconds, sendError} from "../../socketService";
 import {dbSelectLobby, dbTransaction, dbUpdateLobbyRoundSeconds} from "../../../db";
 
 export const onSubmitLobbyRoundSeconds = async (io: Server, pool: Pool, userId: string, lobbyCode: string, roundSeconds: number)=> {
-    console.log("user " + userId + " sent set lobby settings request");
+    console.log("user " + userId + "sent submit lobby round seconds");
 
     const {error, success} = await processOp(() =>
         setLobbyRoundSeconds(pool, userId, lobbyCode, roundSeconds)
@@ -16,9 +16,7 @@ export const onSubmitLobbyRoundSeconds = async (io: Server, pool: Pool, userId: 
         return;
     }
 
-    broadcastLobbyRoundSeconds(io, lobbyCode, roundSeconds);
-
-    console.log("user " + userId + " has set the lobby settings ");
+    excludedBroadcastLobbyRoundSeconds(userId,lobbyCode,roundSeconds);
 };
 
 export const setLobbyRoundSeconds = (pool: Pool, userId: string, lobbyCode: string, roundSeconds: number) => {

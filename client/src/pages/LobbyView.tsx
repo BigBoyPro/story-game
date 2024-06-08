@@ -27,6 +27,7 @@ import {
 } from "../utils/socketService.ts";
 import {useNavigate} from "react-router-dom";
 import {Page, redirection} from "../App.tsx";
+import {DEFAULT_LOBBY_SETTINGS, TimerSetting} from "../../../shared/sharedTypes.ts";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
 import './LobbyView.css';
@@ -39,15 +40,15 @@ function LobbyView() {
     const navigate = useNavigate();
 
     // Lobby Settings
-    const [maxPlayers, setMaxPlayers] = useState(lobby?.lobbySettings.maxPlayers);
-    const [seePrevStoryPart, setSeePrevStoryPart] = useState(lobby?.lobbySettings.seePrevStoryPart);
-    const [withTextToSpeech, setWithTextToSpeech] = useState(lobby?.lobbySettings.withTextToSpeech);
-    const [maxTexts, setMaxTexts] = useState(lobby?.lobbySettings.maxTexts);
-    const [maxAudios, setMaxAudios] = useState(lobby?.lobbySettings.maxAudios);
-    const [maxImages, setMaxImages] = useState(lobby?.lobbySettings.maxImages);
-    const [maxDrawings, setMaxDrawings] = useState(lobby?.lobbySettings.maxDrawings);
-    const [timerSetting, setTimerSetting] = useState(lobby?.lobbySettings.timerSetting)
-    const [roundSeconds, setRoundSeconds] = useState(lobby?.lobbySettings.roundSeconds);
+    const [maxPlayers, setMaxPlayers] = useState(lobby?.lobbySettings.maxPlayers || DEFAULT_LOBBY_SETTINGS.maxPlayers);
+    const [seePrevStoryPart, setSeePrevStoryPart] = useState(lobby?.lobbySettings.seePrevStoryPart || DEFAULT_LOBBY_SETTINGS.seePrevStoryPart);
+    const [withTextToSpeech, setWithTextToSpeech] = useState(lobby?.lobbySettings.withTextToSpeech || DEFAULT_LOBBY_SETTINGS.withTextToSpeech);
+    const [maxTexts, setMaxTexts] = useState(lobby?.lobbySettings.maxTexts || DEFAULT_LOBBY_SETTINGS.maxTexts);
+    const [maxAudios, setMaxAudios] = useState(lobby?.lobbySettings.maxAudios || DEFAULT_LOBBY_SETTINGS.maxAudios);
+    const [maxImages, setMaxImages] = useState(lobby?.lobbySettings.maxImages || DEFAULT_LOBBY_SETTINGS.maxImages);
+    const [maxDrawings, setMaxDrawings] = useState(lobby?.lobbySettings.maxDrawings || DEFAULT_LOBBY_SETTINGS.maxDrawings);
+    const [timerSetting, setTimerSetting] = useState(lobby?.lobbySettings.timerSetting || DEFAULT_LOBBY_SETTINGS.timerSetting)
+    const [roundSeconds, setRoundSeconds] = useState(lobby?.lobbySettings.roundSeconds || DEFAULT_LOBBY_SETTINGS.roundSeconds);
 
     useEffect(() => {
         redirection(lobby, navigate, Page.Lobby);
@@ -124,41 +125,61 @@ function LobbyView() {
 
 
     // update Settings for the server
-    useEffect(() => {
-        if (lobby?.code && maxPlayers) submitLobbyMaxPlayers(lobby?.code, maxPlayers);
-    }, [maxPlayers]);
+    const handleMaxPlayersChange = (newMaxPlayer: number) => {
+        if (!lobby) return;
+        setMaxPlayers(newMaxPlayer);
+        submitLobbyMaxPlayers(lobby?.code, newMaxPlayer);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && seePrevStoryPart) submitLobbySeePrevStoryPart(lobby?.code, seePrevStoryPart);
-    }, [seePrevStoryPart]);
+    const handleSeePrevStoryPartChange = (newSeePrevStoryPart: boolean) => {
+        if (!lobby) return;
+        setSeePrevStoryPart(newSeePrevStoryPart);
+        submitLobbySeePrevStoryPart(lobby?.code, newSeePrevStoryPart);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && withTextToSpeech) submitLobbyWithTextToSpeech(lobby?.code, withTextToSpeech);
-    }, [withTextToSpeech]);
+    const handleWithTextToSpeechChange = (newWithTextToSpeech: boolean) => {
+        if (!lobby) return;
+        setWithTextToSpeech(newWithTextToSpeech);
+        submitLobbyWithTextToSpeech(lobby?.code, newWithTextToSpeech);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && maxTexts) submitLobbyMaxTexts(lobby?.code, maxTexts);
-    }, [maxPlayers]);
+    const handleMaxTextsChange = (newMaxTexts: number) => {
+        if (!lobby) return;
+        setMaxTexts(newMaxTexts);
+        submitLobbyMaxTexts(lobby?.code, newMaxTexts);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && maxAudios) submitLobbyMaxAudios(lobby?.code, maxAudios);
-    }, [maxPlayers]);
+    const handleMaxAudiosChange = (newMaxAudios: number) => {
+        if (!lobby) return;
+        setMaxAudios(newMaxAudios);
+        submitLobbyMaxAudios(lobby?.code, newMaxAudios);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && maxImages) submitLobbyMaxImages(lobby?.code, maxImages);
-    }, [maxPlayers]);
+    const handleMaxImagesChange = (newMaxImages: number) => {
+        if (!lobby) return;
+        setMaxImages(newMaxImages);
+        submitLobbyMaxImages(lobby?.code, newMaxImages);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && maxDrawings) submitLobbyMaxDrawings(lobby?.code, maxDrawings);
-    }, [maxPlayers]);
+    const handleMaxDrawingsChange = (newMaxDrawings: number) => {
+        if (!lobby) return;
+        setMaxDrawings(newMaxDrawings);
+        submitLobbyMaxDrawings(lobby?.code, newMaxDrawings);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && timerSetting) submitLobbyTimerSetting(lobby?.code, timerSetting);
-    }, [maxPlayers]);
+    const handleTimerSettingChange = (newTimerSetting: TimerSetting) => {
+        if (!lobby) return;
+        setTimerSetting(newTimerSetting);
+        submitLobbyTimerSetting(lobby?.code, newTimerSetting);
+    }
 
-    useEffect(() => {
-        if (lobby?.code && roundSeconds) submitLobbyRoundSeconds(lobby?.code, roundSeconds);
-    }, [maxPlayers]);
+    const handleRoundSecondsChange = (newRoundSeconds: number) => {
+        if (!lobby) return;
+        setRoundSeconds(newRoundSeconds);
+        submitLobbyRoundSeconds(lobby?.code, newRoundSeconds);
+    }
+
+
 
 
     // Always block navigation
@@ -199,45 +220,57 @@ function LobbyView() {
                         <div className="lobby-settings">
                             <h2 className={"lobby-info__title lobby-info__title--settings"}>Settings:</h2>
                             <ul className={"lobby-settings__list"}>
-                                {/*<li>*/}
-                                {/*    <label id="maxPlayers">Max number of Players in the Party</label>*/}
-                                {/*    <input type="number" id="nbOfPlayers"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="seePrevStoryPart">See All The previous Content of The Story</label>*/}
-                                {/*    <input type="checkbox" id="prevPart"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="tss">Activate Text To Speech option</label>*/}
-                                {/*    <input type="checkbox" id="tss"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="maxTexts">Max number of Texts added per Round</label>*/}
-                                {/*    <input type="number" id="nbOfTexts"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="maxAudios">Max number of Audios added per Round</label>*/}
-                                {/*    <input type="number" id="nbOfAudios"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="maxImages">Max number of Images added per Round</label>*/}
-                                {/*    <input type="number" id="nbOfImages"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="maxDrawings">Max number of Drawings added per Round</label>*/}
-                                {/*    <input type="number" id="nbOfDrawings"/>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label id="timerSetting">Timer Settings</label>*/}
-                                {/*    <select id="selectTimerTimer">*/}
-                                {/*        <option value="dynamic">Dynamic</option>*/}
-                                {/*        <option value="normal">Normal</option>*/}
-                                {/*    </select>*/}
-                                {/*</li>*/}
-                                {/*<li>*/}
-                                {/*    <label htmlFor="incrementNumber">Select Timer:</label>*/}
-                                {/*    <input type="number" id="roundTimer" step="1" value="5"/>*/}
-                                {/*</li>*/}
+                                <li>
+                                    <label id="maxPlayers">Max number of Players in the Party</label>
+                                    <input type="number" id="maxPlayers" value={maxPlayers}
+                                           onChange={(e) => handleMaxPlayersChange(parseInt(e.target.value))}/>
+
+                                </li>
+                                <li>
+                                    <label id="seePrevStoryPart">See All The previous Content of The Story</label>
+                                    <input type="checkbox" id="prevPart" checked={seePrevStoryPart}
+                                           onChange={(e) => handleSeePrevStoryPartChange(e.target.checked)}/>
+                                </li>
+                                <li>
+                                    <label id="tss">Activate Text To Speech option</label>
+                                    <input type="checkbox" id="tss" checked={withTextToSpeech}
+                                           onChange={(e) => handleWithTextToSpeechChange(e.target.checked)}/>
+                                </li>
+                                <li>
+                                    <label id="maxTexts">Max number of Texts added per Round</label>
+                                    <input type="number" id="nbOfTexts" value={maxTexts}
+                                           onChange={(e) => handleMaxTextsChange(parseInt(e.target.value))}/>
+                                </li>
+                                <li>
+                                    <label id="maxAudios">Max number of Audios added per Round</label>
+                                    <input type="number" id="nbOfAudios" value={maxAudios}
+                                           onChange={(e) => handleMaxAudiosChange(parseInt(e.target.value))}/>
+                                </li>
+                                <li>
+                                    <label id="maxImages">Max number of Images added per Round</label>
+                                    <input type="number" id="nbOfImages" value={maxImages}
+                                           onChange={(e) => handleMaxImagesChange(parseInt(e.target.value))}/>
+                                </li>
+                                <li>
+                                    <label id="maxDrawings">Max number of Drawings added per Round</label>
+                                    <input type="number" id="nbOfDrawings" value={maxDrawings}
+                                           onChange={(e) => handleMaxDrawingsChange(parseInt(e.target.value))}/>
+                                </li>
+                                <li>
+                                    <label id="timerSetting">Timer Settings</label>
+                                    <select id="selectTimerTimer" value={timerSetting}
+                                            onChange={(e) => handleTimerSettingChange(e.target.value as TimerSetting)}>
+                                        {Object.values(TimerSetting).map((value, index) => (
+                                            <option key={value}
+                                                    value={value}>{Object.keys(TimerSetting)[index]}</option>
+                                        ))}
+                                    </select>
+                                </li>
+                                <li>
+                                    <label htmlFor="incrementNumber">Select Timer:</label>
+                                    <input type="number" id="roundTimer" step="1" min="0" value={roundSeconds}
+                                           onChange={(e) => handleRoundSecondsChange(parseInt(e.target.value))}/>
+                                </li>
                             </ul>
                         </div>
                     </div>

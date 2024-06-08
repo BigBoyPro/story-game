@@ -24,6 +24,22 @@ import {LobbyContext} from "./LobbyContext.tsx";
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
 
+
+export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
+    let nextPage: Page = Page.Join;
+    if (lobby && lobby.users.find(user => user.id === userId)) {
+        if (lobby.round == 0) {
+            nextPage = Page.Lobby;
+        } else if(lobby.round > 0){
+            nextPage = Page.Game;
+        } else if(lobby.round < 0){
+            nextPage = Page.Results;
+        }
+    }
+    if(nextPage !== currentPage) navigate(nextPage);
+}
+
+
 export enum Page {
     Join = "/",
     Lobby = "/lobby",
@@ -45,19 +61,6 @@ const router = createBrowserRouter(
     )
 );
 
-export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
-    let nextPage: Page = Page.Join;
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
-            nextPage = Page.Lobby;
-        } else if(lobby.round > 0){
-            nextPage = Page.Game;
-        } else if(lobby.round < 0){
-            nextPage = Page.Results;
-        }
-    }
-    if(nextPage !== currentPage) navigate(nextPage);
-}
 
 
 function App() {

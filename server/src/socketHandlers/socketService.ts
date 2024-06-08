@@ -71,33 +71,71 @@ export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) 
     broadcast(io, lobbyCode, SocketEvent.LOBBY_SETTINGS, lobbySettings);
 }*/
 
-export const broadcastLobbyMaxPlayers = (io: Server, lobbyCode: string, maxPlayers: number) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS, maxPlayers);
+export const excludedBroadcastLobbyMaxPlayers = (excludedUserId: string, lobbyCode: string, maxPlayers: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_MAX_PLAYERS, maxPlayers);
+    }
 }
-export const broadcastLobbySeePrevStoryPart = (io: Server, lobbyCode: string, seePrevStoryPart: boolean) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART, seePrevStoryPart);
+
+export const excludedBroadcastLobbySeePrevStoryPart = (excludedUserId: string, lobbyCode: string, seePrevStoryPart: boolean) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_SEE_PREV_STORY_PART, seePrevStoryPart);
+    }
 }
-export const broadcastLobbyWithTextToSpeech = (io: Server, lobbyCode: string, withTextToSpeech: boolean) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH, withTextToSpeech);
+
+export const excludedBroadcastLobbyWithTextToSpeech = (excludedUserId: string, lobbyCode: string, withTextToSpeech: boolean) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_WITH_TEXT_TO_SPEECH, withTextToSpeech);
+    }
 }
-export const broadcastLobbyMaxTexts = (io: Server, lobbyCode: string, maxTexts: number) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_TEXTS, maxTexts);
+
+export const excludedBroadcastLobbyMaxTexts = (excludedUserId: string, lobbyCode: string, maxTexts: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_MAX_TEXTS, maxTexts);
+    }
 }
-export const broadcastLobbyMaxAudios = (io: Server, lobbyCode: string, maxAudios: number) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS, maxAudios);
+
+export const excludedBroadcastLobbyMaxAudios = (excludedUserId: string, lobbyCode: string, maxAudios: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_MAX_AUDIOS, maxAudios);
+    }
 }
-export const broadcastLobbyMaxImages = (io: Server, lobbyCode: string, maxImages: number) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_IMAGES, maxImages);
+
+export const excludedBroadcastLobbyMaxImages = (excludedUserId: string, lobbyCode: string, maxImages: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_MAX_IMAGES, maxImages);
+    }
 }
-export const broadcastLobbyMaxDrawings = (io: Server, lobbyCode: string, maxDrawings: number) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS, maxDrawings);
+
+export const excludedBroadcastLobbyMaxDrawings = (excludedUserId: string, lobbyCode: string, maxDrawings: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_MAX_DRAWINGS, maxDrawings);
+    }
 }
-export const broadcastLobbyTimerSetting = (io: Server, lobbyCode: string, timerSetting: TimerSetting) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_TIMER_SETTING, timerSetting);
+
+export const excludedBroadcastLobbyTimerSetting = (excludedUserId: string, lobbyCode: string, timerSetting: TimerSetting) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_TIMER_SETTING, timerSetting);
+    }
 }
-export const broadcastLobbyRoundSeconds = (io: Server, lobbyCode: string, roundSeconds: number) => {
-    broadcast(io, lobbyCode, SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS, roundSeconds);
+
+export const excludedBroadcastLobbyRoundSeconds = (excludedUserId: string, lobbyCode: string, roundSeconds: number) => {
+    const userSocket = userSocketMap.get(excludedUserId);
+    if(userSocket) {
+        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_ROUND_SECONDS, roundSeconds);
+    }
 }
+
+
+
 
 
 export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: string, lobby: Lobby) => {
