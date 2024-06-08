@@ -152,96 +152,96 @@ export const offSubmitted = () => {
 }
 
 export const onLobbyMaxPlayers = (callback: (maxPlayers: number) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS, (maxPlayers) => {
+    socket.on(SocketEvent.LOBBY_MAX_PLAYERS, (maxPlayers) => {
         callback(maxPlayers);
     });
 }
 
 export const offLobbyMaxPlayers = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS);
+    socket.off(SocketEvent.LOBBY_MAX_PLAYERS);
 }
 
 export const onLobbySeePrevStoryPart = (callback: (seePrevStoryPart: boolean) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART, (seePrevStoryPart) => {
+    socket.on(SocketEvent.LOBBY_SEE_PREV_STORY_PART, (seePrevStoryPart) => {
         callback(seePrevStoryPart);
     });
 }
 
 export const offLobbySeePrevStoryPart = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART);
+    socket.off(SocketEvent.LOBBY_SEE_PREV_STORY_PART);
 }
 
 export const onLobbyWithTextToSpeech = (callback: (withTextToSpeech: boolean) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH, (withTextToSpeech) => {
+    socket.on(SocketEvent.LOBBY_WITH_TEXT_TO_SPEECH, (withTextToSpeech) => {
         callback(withTextToSpeech);
     });
 }
 
 export const offLobbyWithTextToSpeech = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH);
+    socket.off(SocketEvent.LOBBY_WITH_TEXT_TO_SPEECH);
 }
 
 export const onLobbyMaxTexts = (callback: (maxTexts: number) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_MAX_TEXTS, (maxTexts) => {
+    socket.on(SocketEvent.LOBBY_MAX_TEXTS, (maxTexts) => {
         callback(maxTexts);
     });
 }
 
 export const offLobbyMaxTexts = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS);
+    socket.off(SocketEvent.LOBBY_MAX_PLAYERS);
 }
 
 export const onLobbyMaxAudios = (callback: (maxAudios: number) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS, (maxAudios) => {
+    socket.on(SocketEvent.LOBBY_MAX_AUDIOS, (maxAudios) => {
         callback(maxAudios);
     });
 }
 
 export const offLobbyMaxAudios = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS);
+    socket.off(SocketEvent.LOBBY_MAX_AUDIOS);
 }
 
 export const onLobbyMaxImages = (callback: (maxAudios: number) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_MAX_IMAGES, (maxImages) => {
+    socket.on(SocketEvent.LOBBY_MAX_IMAGES, (maxImages) => {
         callback(maxImages);
     });
 }
 
 export const offLobbyMaxImages = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_MAX_IMAGES);
+    socket.off(SocketEvent.LOBBY_MAX_IMAGES);
 }
 
 
 export const onLobbyMaxDrawings = (callback: (maxDrawings: number) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_MAX_IMAGES, (maxDrawings) => {
+    socket.on(SocketEvent.LOBBY_MAX_IMAGES, (maxDrawings) => {
         callback(maxDrawings);
     });
 }
 
 export const offLobbyMaxDrawings = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS);
+    socket.off(SocketEvent.LOBBY_MAX_DRAWINGS);
 }
 
 
 export const onLobbyTimerSetting = (callback: (TimerSetting: TimerSetting) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_TIMER_SETTING, (timerSetting) => {
+    socket.on(SocketEvent.LOBBY_TIMER_SETTING, (timerSetting) => {
         callback(timerSetting);
     });
 }
 
 export const offLobbyTimerSetting = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_TIMER_SETTING);
+    socket.off(SocketEvent.LOBBY_TIMER_SETTING);
 }
 
 
 export const onLobbyRoundSeconds = (callback: (roundSeconds: number) => void) => {
-    socket.on(SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS, (maxImages) => {
+    socket.on(SocketEvent.LOBBY_ROUND_SECONDS, (maxImages) => {
         callback(maxImages);
     });
 }
 
 export const offLobbyRoundSeconds = () => {
-    socket.off(SocketEvent.SUBMIT_LOBBY_MAX_IMAGES);
+    socket.off(SocketEvent.LOBBY_MAX_IMAGES);
 }
 
 
