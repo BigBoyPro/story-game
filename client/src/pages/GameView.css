@@ -22,17 +22,20 @@
     min-width: 40rem;
 }
 .game-box {
-    border: 1px solid #eac3c3;
+    /*border: 1px solid #eac3c3;*/
     z-index: 1;
     padding: 5rem;
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
+    overflow:auto;
+    scrollbar-width: none; /* Pour Firefox */
+    -ms-overflow-style: none; /* Pour Internet Explorer et Edge */
 }
 .game-page h2{
-    font-size: 110%;
-    color: #DB9494;
+    font-size: 130%;
+    color: #e19a9a;
     font-weight: bold;
 }
 
@@ -41,7 +44,7 @@
 }
 
 .floating-elements {
-    border: black 1px solid;
+    /*border: black 1px solid;*/
     z-index: 1;
     display: flex;
     justify-content: space-evenly;

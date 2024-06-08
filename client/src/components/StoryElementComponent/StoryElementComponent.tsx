@@ -201,7 +201,7 @@ const StoryElementComponent = forwardRef(
                             {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
                                 <button className={"button"} onClick={() => onElementEdit()}><FontAwesomeIcon icon={faEdit} /></button>
                             }
-                            {isEditable && onElementDelete && <button className={"button"} onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} color={"#FF6347"} /></button>}
+                            {isEditable && onElementDelete && <button className={"button"} onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} className={"fa-trash-alt"} /></button>}
 
                             {isEditable && onUp && element.index > 1 &&
                                 <button className={"button"} onClick={onUp}><FontAwesomeIcon icon={faArrowUp} /></button>
