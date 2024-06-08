@@ -6,6 +6,8 @@ import './StoryElementComponent.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faArrowUp, faArrowDown, faTrashAlt, faEdit} from '@fortawesome/free-solid-svg-icons'
+import { faVolumeHigh, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+
 
 export interface StoryElementComponentHandles {
     play: (tts: boolean) => void;
@@ -171,7 +173,7 @@ const StoryElementComponent = forwardRef(
 
                         return <>
                             {textArea}
-                            <button onClick={handleSpeak}>{isPlaying ? 'Stop' : 'Play'}</button>
+                            <button onClick={handleSpeak}>{isPlaying ? <FontAwesomeIcon icon={faVolumeMute} size="2x" /> : <FontAwesomeIcon icon={faVolumeHigh} size="2x" />}</button>
                         </>
 
                     }
