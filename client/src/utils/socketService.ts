@@ -2,11 +2,12 @@ import io from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement, TimerSetting} from "../../../shared/sharedTypes.ts";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:443";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost";
+const SERVER_PORT = import.meta.env.VITE_SERVER_PORT || 3000;
 console.log('connecting to server at', SERVER_URL);
 
 
-const socket = io(SERVER_URL)
+const socket = io(SERVER_URL + ':' + SERVER_PORT);
 
 export const userId = localStorage.getItem('userId')
     || (() => {
