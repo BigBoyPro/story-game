@@ -115,7 +115,7 @@ export const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), storyIndex
                 success: false,
                 error: {
                     type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Story not found by index"
                 }
             };
@@ -243,7 +243,7 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
                 success: false,
                 error: {
                     type: ErrorType.LOBBY_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Lobby not found"
                 }
             };
@@ -297,7 +297,7 @@ export const dbSelectLobbyCurrentPart = async (db: (Pool | PoolClient), lobbyCod
                 success: false,
                 error: {
                     type: ErrorType.LOBBY_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Lobby not found"
                 }
             };
@@ -381,7 +381,7 @@ export const dbSelectStoryByIndex = async (db: (Pool | PoolClient), lobbyCode: s
                 success: false,
                 error: {
                     type: ErrorType.STORY_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Story not found"
                 }
             };
@@ -475,7 +475,7 @@ export const dbSelectUserReady = async (db: (Pool | PoolClient), userId: string,
                 success: false,
                 error: {
                     type: ErrorType.USER_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "User not found"
                 }
             };
@@ -530,7 +530,7 @@ export const dbSelectStoryIdByIndex = async (db: (Pool | PoolClient), lobbyCode:
                 success: false,
                 error: {
                     type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
-                    logLevel: LogLevel.Warning,
+                    logLevel: LogLevel.Error,
                     error: "Story not found by index"
                 }
             };
