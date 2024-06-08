@@ -199,45 +199,45 @@ function LobbyView() {
                         <div className="lobby-settings">
                             <h2 className={"lobby-info__title lobby-info__title--settings"}>Settings:</h2>
                             <ul className={"lobby-settings__list"}>
-                                <li>
-                                    <label id="maxPlayers">Max number of Players in the Party</label>
-                                    <input type="number" id="nbOfPlayers"/>
-                                </li>
-                                <li>
-                                    <label id="seePrevStoryPart">See All The previous Content of The Story</label>
-                                    <input type="checkbox" id="prevPart"/>
-                                </li>
-                                <li>
-                                    <label id="tss">Activate Text To Speech option</label>
-                                    <input type="checkbox" id="tss"/>
-                                </li>
-                                <li>
-                                    <label id="maxTexts">Max number of Texts added per Round</label>
-                                    <input type="number" id="nbOfTexts"/>
-                                </li>
-                                <li>
-                                    <label id="maxAudios">Max number of Audios added per Round</label>
-                                    <input type="number" id="nbOfAudios"/>
-                                </li>
-                                <li>
-                                    <label id="maxImages">Max number of Images added per Round</label>
-                                    <input type="number" id="nbOfImages"/>
-                                </li>
-                                <li>
-                                    <label id="maxDrawings">Max number of Drawings added per Round</label>
-                                    <input type="number" id="nbOfDrawings"/>
-                                </li>
-                                <li>
-                                    <label id="timerSetting">Timer Settings</label>
-                                    <select id="selectTimerTimer" multiple>
-                                        <option value="dynamic">Dynamic</option>
-                                        <option value="normal">Normal</option>
-                                    </select>
-                                </li>
-                                <li>
-                                    <label htmlFor="incrementNumber">Select Timer:</label>
-                                    <input type="number" id="roundTimer" step="1" value="5"/>
-                                </li>
+                                {/*<li>*/}
+                                {/*    <label id="maxPlayers">Max number of Players in the Party</label>*/}
+                                {/*    <input type="number" id="nbOfPlayers"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="seePrevStoryPart">See All The previous Content of The Story</label>*/}
+                                {/*    <input type="checkbox" id="prevPart"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="tss">Activate Text To Speech option</label>*/}
+                                {/*    <input type="checkbox" id="tss"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="maxTexts">Max number of Texts added per Round</label>*/}
+                                {/*    <input type="number" id="nbOfTexts"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="maxAudios">Max number of Audios added per Round</label>*/}
+                                {/*    <input type="number" id="nbOfAudios"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="maxImages">Max number of Images added per Round</label>*/}
+                                {/*    <input type="number" id="nbOfImages"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="maxDrawings">Max number of Drawings added per Round</label>*/}
+                                {/*    <input type="number" id="nbOfDrawings"/>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label id="timerSetting">Timer Settings</label>*/}
+                                {/*    <select id="selectTimerTimer">*/}
+                                {/*        <option value="dynamic">Dynamic</option>*/}
+                                {/*        <option value="normal">Normal</option>*/}
+                                {/*    </select>*/}
+                                {/*</li>*/}
+                                {/*<li>*/}
+                                {/*    <label htmlFor="incrementNumber">Select Timer:</label>*/}
+                                {/*    <input type="number" id="roundTimer" step="1" value="5"/>*/}
+                                {/*</li>*/}
                             </ul>
                         </div>
                     </div>
