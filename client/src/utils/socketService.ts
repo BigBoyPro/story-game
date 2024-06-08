@@ -4,7 +4,8 @@ import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement, T
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost";
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT || 3000;
-console.log('connecting to server at', SERVER_URL);
+
+console.log('connecting to server at', SERVER_URL + ':' + SERVER_PORT);
 
 
 const socket = io(SERVER_URL + ':' + SERVER_PORT);
