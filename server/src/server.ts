@@ -41,8 +41,8 @@ try {
 
     resetGames(io, pool).then(() => {
         setupSocketHandlers(io, pool);
-        server.listen(PORT, () => {
-            console.log("Server is running on port " + PORT);
+        server.listen(443, () => {
+            console.log("Server is running on port " + PORT, typeof PORT);
         });
         module.exports = app;
         console.log('Server listening');
