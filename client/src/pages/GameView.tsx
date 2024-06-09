@@ -26,6 +26,7 @@ function GameView() {
         redirection(lobby, navigate, Page.Game);
 
         onStory((story) => {
+            console.log('story received!', story);
             setStory(story);
         });
 

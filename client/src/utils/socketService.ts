@@ -34,6 +34,11 @@ const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]]
 ]);
 
+
+const responseWarningsMap = new Map<SocketEvent, ErrorType[]>([
+    [SocketEvent.JOIN_LOBBY, [ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.LOBBY_NOT_FOUND]],
+    ]);
+
 const RETRY_MILLISECONDS = 4000;
 const MAX_RETRIES = 5;
 
@@ -91,19 +96,16 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
 
         // If the error level is Error, retry the request after a delay
         if (error.logLevel === LogLevel.Error) {
-
             if(errorsThatShouldReload.includes(error.type)){
                 setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
                 return;
             }
-
-
-            const requestInfo = ongoingRequests.get(event);
-            if (requestInfo) {
-                if (requestInfo.retryCount < MAX_RETRIES) {
+            const request = ongoingRequests.get(event);
+            if (request) {
+                if (request.retryCount < MAX_RETRIES) {
                     setTimeout(() => {
-                        socket.emit(event, ...requestInfo.args);
-                        requestInfo.retryCount++;
+                        socket.emit(event, ...request.args);
+                        request.retryCount++;
                     }, RETRY_MILLISECONDS); // Retry after 5 seconds
                 } else {
                     console.log(`Max retry attempts reached for event ${event}.`);
@@ -111,6 +113,11 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
                 }
             } else {
                 console.log(`No request info found for event ${event}.`);
+            }
+        }else if (error.logLevel === LogLevel.Warning) {
+            const responseWarnings = responseWarningsMap.get(event);
+            if (responseWarnings && responseWarnings.includes(error.type)) {
+                ongoingRequests.delete(event);
             }
         }
 

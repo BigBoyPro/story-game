@@ -12,7 +12,7 @@ import {
     requestStory,
     userId
 } from "./utils/socketService.ts";
-import {Lobby} from "../../shared/sharedTypes.ts";
+import {Lobby, LogLevel} from "../../shared/sharedTypes.ts";
 
 import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
@@ -104,8 +104,17 @@ function App() {
         });
 
         onError((event, error) => {
-            console.error('Event: ', event, 'Error: ', error);
-
+            switch (error.logLevel) {
+                case LogLevel.Error:
+                    console.error("event: " + event + ", error type: " + error.type + " : " + error.error);
+                    break;
+                case LogLevel.Warning:
+                    console.warn("event: " + event + ", error type: " + error.type + " : " + error.error);
+                    break;
+                case LogLevel.Information:
+                    console.info("event: " + event + ", error type: " + error.type + " : " + error.error);
+                    break;
+            }
         });
 
         return () => {

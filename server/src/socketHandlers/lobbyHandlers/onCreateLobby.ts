@@ -13,8 +13,7 @@ import {
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {
     dbInsertLobby,
-    dbSelectLobbyByHost,
-    dbSelectLobbyCount,
+    dbSelectLobbyCount, dbSelectUserLobbyCode,
     dbTransaction,
     dbUpdateUserLobbyCode,
     dbUpsertUser
@@ -39,15 +38,19 @@ export const onCreateLobby = async (event: SocketEvent ,io: Server, pool: Pool, 
 
 export const createLobby = (pool: Pool, userId: string, nickname: string): Promise<OpResult<Lobby>> => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
+        // check if user is already in a lobby
+        let {data: userLobbyCode, success, error} = await dbSelectUserLobbyCode(client, userId);
+        if(!success && !(error && error.type === ErrorType.USER_NOT_FOUND)) return {success, error};
+        if (userLobbyCode) {
+            return {success: false, error: {type: ErrorType.USER_ALREADY_IN_LOBBY, logLevel: LogLevel.Error, error: "User is already in a lobby"}};
+        }
+
         // upsert user
         const user: User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
 
-        let {success, error} = await dbUpsertUser(client, user, true);
+        ({success, error} = await dbUpsertUser(client, user, true))
         if (!success) return {success, error};
 
-        let existingLobby;
-        ({success, data: existingLobby, error}  = await dbSelectLobbyByHost(client, userId));
-        if (success && existingLobby) return {success: false, error: { logLevel: LogLevel.Error, type: ErrorType.USER_ALREADY_IN_LOBBY, error: "User is already in a lobby" }};
 
         // generate unique lobby code
         let lobbyCode;
