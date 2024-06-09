@@ -2,6 +2,7 @@ import {PlaceType, StoryElement, StoryElementType} from "../../../../shared/shar
 import StoryElementComponent, {StoryElementComponentHandles} from "../StoryElementComponent/StoryElementComponent.tsx";
 import React, {forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
+import {userId} from "../../utils/socketService.ts";
 
 
 export interface StoryUserComponentHandles {
@@ -124,7 +125,14 @@ const StoryUserComponent = forwardRef(
                              backgroundRepeat: 'no-repeat'
                          }}>
                         {!isEditable && elements.length > 0 &&
-                            <h3>{getUserNameFromId(elements[0].userId)}'s story</h3>
+                            (elements[0].userId === userId ?
+                                <h3>Your part:</h3>
+                                :
+                                (onPlayingEnd ?
+                                        <h3>{getUserNameFromId(elements[0].userId)}'s part:</h3>
+                                        :
+                                        <h3>Previous story part:</h3>
+                                ))
                         }
                         {elements.map((element) => {
                             return (
