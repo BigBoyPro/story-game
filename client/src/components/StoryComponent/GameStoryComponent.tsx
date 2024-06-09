@@ -27,6 +27,7 @@ export interface GameStoryComponentHandles {
 }
 
 const createStoryElement = (index: number, storyId: number , round: number, type: StoryElementType, content: string): StoryElement => {
+    console.log('given story id', storyId);
     return {
         index,
         userId,
@@ -63,7 +64,8 @@ const GameStoryComponent = forwardRef(
         const forceSave = (): StoryElement[] => {
             const newStoryElements = [...storyElements];
             if (lobby && isDrawing && selectedElementIndex === null) {
-                const drawingElement = createStoryElement(newStoryElements.length,lobby.round, story.id, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+                console.log('story id', story.id);
+                const drawingElement = createStoryElement(newStoryElements.length, story.id, lobby.round, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
                 if (drawingElement) newStoryElements.push(drawingElement);
             }
             return newStoryElements;
@@ -105,6 +107,10 @@ const GameStoryComponent = forwardRef(
 
         const inputRef = useRef<HTMLInputElement>(null);
 
+
+        useEffect(() => {
+            console.log('story changed ', story.id);
+        }, [story]);
 
         onNewStoryElementsChange && useEffect(() => {
             onNewStoryElementsChange(storyElements);

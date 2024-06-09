@@ -70,8 +70,8 @@ export type User = {
 };
 
 export enum TimerSetting {
-    DYNAMIC = "dynamic",
-    NORMAL = "normal"
+    NORMAL = "normal",
+    DYNAMIC = "dynamic"
 }
 
 export type LobbySettings = {
