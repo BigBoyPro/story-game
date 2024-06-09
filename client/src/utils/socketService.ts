@@ -2,11 +2,13 @@ import io from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement, TimerSetting} from "../../../shared/sharedTypes.ts";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:443";
-console.log('connecting to server at', SERVER_URL);
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost";
+const SERVER_PORT = import.meta.env.VITE_SERVER_PORT || 443;
+
+console.log('connecting to server at', SERVER_URL + ':' + SERVER_PORT);
 
 
-const socket = io(SERVER_URL)
+const socket = io(SERVER_URL + ':' + SERVER_PORT);
 
 export const userId = localStorage.getItem('userId')
     || (() => {
@@ -31,6 +33,11 @@ const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]],
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]]
 ]);
+
+
+const responseWarningsMap = new Map<SocketEvent, ErrorType[]>([
+    [SocketEvent.JOIN_LOBBY, [ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.LOBBY_NOT_FOUND]],
+    ]);
 
 const RETRY_MILLISECONDS = 4000;
 const MAX_RETRIES = 5;
@@ -89,19 +96,16 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
 
         // If the error level is Error, retry the request after a delay
         if (error.logLevel === LogLevel.Error) {
-
             if(errorsThatShouldReload.includes(error.type)){
                 setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
                 return;
             }
-
-
-            const requestInfo = ongoingRequests.get(event);
-            if (requestInfo) {
-                if (requestInfo.retryCount < MAX_RETRIES) {
+            const request = ongoingRequests.get(event);
+            if (request) {
+                if (request.retryCount < MAX_RETRIES) {
                     setTimeout(() => {
-                        socket.emit(event, ...requestInfo.args);
-                        requestInfo.retryCount++;
+                        socket.emit(event, ...request.args);
+                        request.retryCount++;
                     }, RETRY_MILLISECONDS); // Retry after 5 seconds
                 } else {
                     console.log(`Max retry attempts reached for event ${event}.`);
@@ -109,6 +113,11 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
                 }
             } else {
                 console.log(`No request info found for event ${event}.`);
+            }
+        }else if (error.logLevel === LogLevel.Warning) {
+            const responseWarnings = responseWarningsMap.get(event);
+            if (responseWarnings && responseWarnings.includes(error.type)) {
+                ongoingRequests.delete(event);
             }
         }
 

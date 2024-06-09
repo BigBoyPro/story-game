@@ -10,7 +10,7 @@ import {
 
 import {storyIndexForUser} from "../../utils/utils";
 
-const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
+const USERS_TIMEOUT_MILLISECONDS = 30 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
@@ -104,6 +104,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         let roundEndTime: (Date | null) = new Date(shiftedNow + lobby.lobbySettings.roundSeconds * 1000);
 
         if (newLobbyRound > lobby.users.length) {
+            // end game
             newLobbyRound = -1;
             roundStartTime = null;
             roundEndTime = null;

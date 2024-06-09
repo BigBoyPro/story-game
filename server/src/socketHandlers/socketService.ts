@@ -31,7 +31,7 @@ interface Socket extends BaseSocket {
     userId?: string;
 }
 
-const userSocketMap = new Map<string, BaseSocket>();
+export const userSocketMap = new Map<string, BaseSocket>();
 
 const send = (userId: string, event: string, ...args: any[]) => {
     const userSocket = userSocketMap.get(userId);

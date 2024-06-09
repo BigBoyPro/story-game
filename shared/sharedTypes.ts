@@ -70,8 +70,8 @@ export type User = {
 };
 
 export enum TimerSetting {
-    DYNAMIC = "dynamic",
-    NORMAL = "normal"
+    NORMAL = "normal",
+    DYNAMIC = "dynamic"
 }
 
 export type LobbySettings = {
@@ -211,6 +211,7 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBIES_WITH_HOST = "DB_ERROR_SELECT_LOBBIES_WITH_HOST",
     DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
     DB_ERROR_SELECT_USERS_ALL = "DB_ERROR_SELECT_USERS_ALL",
+    LOBBY_ALREADY_PLAYING = "LOBBY_ALREADY_PLAYING",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
