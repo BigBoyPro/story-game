@@ -67,6 +67,10 @@ export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) 
     broadcast(io, lobbyCode, SocketEvent.LOBBY_INFO, lobby);
 }
 
+export const broadcastGetStoryElements = (io: Server, lobbyCode: string) => {
+    broadcast(io, lobbyCode, SocketEvent.GET_STORY_ELEMENTS, null);
+}
+
 /*export const broadcastLobbySettings = (io: Server, lobbyCode: string, lobbySettings: LobbySettings) => {
     broadcast(io, lobbyCode, SocketEvent.LOBBY_SETTINGS, lobbySettings);
 }*/

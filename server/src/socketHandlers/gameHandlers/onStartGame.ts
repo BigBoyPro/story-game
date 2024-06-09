@@ -5,6 +5,7 @@ import {dbInsertStory, dbSelectLobby, dbTransaction, dbUpdateUserLastActive} fro
 import {broadcastLobbyInfo, sendError} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
+
 export async function onStartGame(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
     console.log("user " + userId + " sent start game request");
     let {success, error} = await processOp(() =>

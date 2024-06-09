@@ -89,7 +89,7 @@ function ResultsStoryComponent({
                                             resultsProps={{
                                                 onPlayingEnd: (index === shownUserIndex) ? () => {
                                                     handlePlayingEnd()
-                                                } : undefined,
+                                                } : () => {},
                                                 isHidden: shownUserIndex !== undefined ? (index > shownUserIndex) : false,
                                             }}
                         />
