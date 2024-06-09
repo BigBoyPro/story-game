@@ -19,71 +19,87 @@ import {isUserInLobby} from "../../utils/utils";
 import {excludedBroadcastUsersSubmitted, sendError, sendSubmitted} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
-
+// Main function to handle the submission of story elements
 export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]) {
+    // Log the submit story elements request by the user
     console.log("user " + userId + " sent submit story elements");
 
+    // Update the user's last activity
     let {success, error} = await processOp(() =>
         dbUpdateUserLastActive(pool, userId)
     );
+    // If the update fails, send an error
     if (!success) {
         error && sendError(userId, event, error);
         return;
     }
 
     let lobby;
+    // Attempt to submit story elements
     ({data: lobby, error, success} = await processOp(() =>
         submitStoryElements(pool, userId, lobbyCode, elements)
     ));
+    // If the submission fails, send an error
     if (!success || !lobby) {
         error && sendError(userId, event, error);
         return;
     }
 
+    // Send the submitted status to the user
     sendSubmitted(userId, true);
+    // Broadcast the users submitted to all users except the one who submitted
     excludedBroadcastUsersSubmitted(userId, lobbyCode, lobby.usersSubmitted);
+    // Log the submission of story elements
     console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
 
+    // If all users have submitted, start a new round
     if (lobby.usersSubmitted >= lobby.users.length) {
         await onNewRound(io, pool, lobby);
     }
 }
 
+// Function to handle the submission of story elements
 const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]): Promise<OpResult<Lobby>> => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
-        // get lobby
-        let {data: lobby, success, error} = await dbSelectLobby(client, lobbyCode, true);
+        // Get the lobby information
+        let {data: lobby, error, success} = await dbSelectLobby(client, lobbyCode, true);
+        // If the retrieval fails, return an error
         if (!success || !lobby) return {success, error};
-        // check if user is in lobby
+
+        // Check if the user is in the lobby
         if (!isUserInLobby(lobby, userId)) return {
             success: false,
             error: {logLevel: LogLevel.Error, type: ErrorType.USER_NOT_IN_LOBBY, error: "User is not in the lobby"}
         };
-        //check if our user has already submitted
+        // Check if the user has already submitted
         let ready;
         ({data: ready, success, error} = await dbSelectUserReady(client, userId, true));
+        // If the retrieval fails, return an error
         if (!success) return {success, error};
+        // If the user has not submitted yet, update the user's ready status and increment the users submitted in the lobby
         if (!ready) {
             ({success, error} = await dbUpdateUserReady(client, userId, true));
+            // If the update fails, return an error
             if (!success) return {success, error};
 
-
-            // update users submitted
+            // Update the users submitted in the lobby
             ({success, error} = await dbUpdateLobbyUsersSubmittedIncrement(client, lobbyCode))
+            // If the update fails, return an error
             if (!success) return {success, error};
             lobby.usersSubmitted++;
         }
 
-        // upsert story elements to db
+        // Upsert the story elements to the database
         ({success, error} = await dbUpsertleteStoryElements(client, elements))
+        // If the upsert fails, return an error
         if (!success) return {success, error};
 
-
-        // check if all users have submitted their story elements
+        // Check if all users have submitted their story elements
         const allUsersSubmitted = lobby.usersSubmitted >= lobby.users.length;
         if (allUsersSubmitted) {
             console.log("***round " + lobby.round + " ended***");
         }
+        // Return the updated lobby
         return {success: true, data: lobby};
     });
 }
