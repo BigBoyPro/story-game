@@ -70,15 +70,14 @@
     background-color: #007BFF;
 }
 
-.story-element textarea {
-    height: 10vh;
-    width: 20vw;
-    overflow:auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    resize: both;
-    padding: 10px;
-    font-size: 16px;
-}
+/*.story-element textarea {*/
+/*    height: 10vh;*/
+/*    width: 20vw;*/
+/*    overflow:auto;*/
+/*    scrollbar-width: none;*/
+/*    -ms-overflow-style: none;*/
+/*    padding: 10px;*/
+/*    font-size: 16px;*/
+/*}*/
 
 

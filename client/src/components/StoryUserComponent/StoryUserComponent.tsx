@@ -3,7 +3,7 @@ import StoryElementComponent, {StoryElementComponentHandles} from "../StoryEleme
 import React, {forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
 import {LobbyContext} from "../../LobbyContext.tsx";
 import {userId} from "../../utils/socketService.ts";
-
+import './StoryUserComponent.css';
 
 export interface StoryUserComponentHandles {
     play: (tts: boolean, autoPlay: boolean) => void;
@@ -117,7 +117,7 @@ const StoryUserComponent = forwardRef(
         return (
             <>
                 {!isHidden &&
-                    <div className="story-element"
+                    <div className="story-user-elements"
                          style={{
                              backgroundImage: `url(${placeImage})`,
                              backgroundSize: 'cover',
