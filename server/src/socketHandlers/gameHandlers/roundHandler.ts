@@ -14,6 +14,7 @@ const USERS_TIMEOUT_MILLISECONDS = 30 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
+// Function to handle the start of a new round
 export const onNewRound = async (io : Server, pool: Pool, lobby: Lobby) => {
     const {data: newLobby, success} = await processOp(() =>
         newRound(pool, lobby)
@@ -27,6 +28,7 @@ export const onNewRound = async (io : Server, pool: Pool, lobby: Lobby) => {
     if (newLobby.round > 0) waitForRound(io, pool, newLobby);
 };
 
+// Function to wait for a round to end
 const waitForRound = (io: Server, pool: Pool, lobby: Lobby) => {
     let roundWaitInterval: NodeJS.Timeout | null = null;
     console.log("***waiting for round : " + lobby.round + "***");
@@ -49,6 +51,7 @@ const waitForRound = (io: Server, pool: Pool, lobby: Lobby) => {
     setLobbyTimeout(lobby.code, roundWaitInterval);
 };
 
+// Function to handle the end of a round
 const onEndRound = (io : Server, pool: Pool, lobby: Lobby) => {
     io.to(lobby.code).emit("get story elements");
     // set timeout for users to submit story elements
@@ -57,7 +60,7 @@ const onEndRound = (io : Server, pool: Pool, lobby: Lobby) => {
     }, USERS_TIMEOUT_MILLISECONDS));
 };
 
-
+// Function to start a new round
 const newRound = (pool: Pool, lobby: Lobby) => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
         console.log("***starting new round***");
@@ -135,6 +138,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
     });
 };
 
+// Function to handle the restart of a round
 export const onRestartRound = async (io: Server, pool: Pool, lobby: Lobby) => {
     const {data: newLobby, success} = await processOp(() =>
         restartRound(pool, lobby)
@@ -148,6 +152,7 @@ export const onRestartRound = async (io: Server, pool: Pool, lobby: Lobby) => {
     waitForRound(io, pool, newLobby);
 }
 
+// Function to restart a round
 const restartRound = (pool: Pool, lobby: Lobby) => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
         console.log("***restarting round***");
@@ -178,10 +183,12 @@ const restartRound = (pool: Pool, lobby: Lobby) => {
     });
 }
 
+// Function to set a timeout for a lobby
 export const setLobbyTimeout = (lobbyCode: string, timeout: NodeJS.Timeout) => {
     lobbyTimeouts.set(lobbyCode, timeout);
 }
 
+// Function to clear all timeouts for a lobby
 const clearLobbyTimeouts = (lobbyCode: string) => {
     if (lobbyTimeouts.has(lobbyCode)) {
         clearTimeout(lobbyTimeouts.get(lobbyCode));
