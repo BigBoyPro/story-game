@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import rough from 'roughjs';
 import {Drawable} from "roughjs/bin/core";
 import {RoughCanvas} from "roughjs/bin/canvas";
@@ -733,18 +733,16 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
         context.restore();
     };
+    const useIsomorphicLayoutEffect =
+        typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
-    useLayoutEffect(() => {
+    useIsomorphicLayoutEffect(() => {
         if (!drawnElements) return;
         const canvas = canvasRef.current;
         if (!canvas) return;
         redraw(canvas);
 
     }, [canvasRef, canvasSize, drawnElements, state, selection]);
-
-    useEffect(() => {
-
-    }, [selectedColor]);
 
 // Always keep the ref updated with the latest state
 

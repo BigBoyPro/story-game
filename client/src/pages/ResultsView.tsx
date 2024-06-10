@@ -44,7 +44,7 @@ function ResultsView() {
         onStoryAtPart(({story, userIndex, storiesCount}) => {
             setStory(story);
             setUserIndex(userIndex);
-            setStoriesCount(storiesCount);
+            setStoriesCount(storiesCount?? (lobby?.users.length || 0));
             console.log('Story at part', story, userIndex);
             console.log('Stories Count', storiesCount);
         });

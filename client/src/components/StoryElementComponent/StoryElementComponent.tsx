@@ -225,7 +225,6 @@ const StoryElementComponent = forwardRef(
 
                     break;
             }
-            if(audioRef.current) audioRef.current.volume = 0.1;
             return result;
         }
 
