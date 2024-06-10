@@ -3,9 +3,9 @@
     flex-direction: column;
     flex: 1;
     gap: 1rem;
-    padding: 1rem;
     border-radius: 0.5rem;
     color: #111111;
+    border: yellow 1px solid;
 }
 
 .story-element {

@@ -92,6 +92,8 @@ export type Lobby = {
     round: number;
     usersSubmitted: number;
     users: User[];
+    userIndexOrder: { [key: string]: number } | null;
+    roundsCount: number;
     roundStartAt: (Date | null);
     roundEndAt: (Date | null);
     currentStoryIndex: (number | null);
@@ -213,7 +215,11 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
     DB_ERROR_SELECT_USERS_ALL = "DB_ERROR_SELECT_USERS_ALL",
     LOBBY_ALREADY_PLAYING = "LOBBY_ALREADY_PLAYING",
-
+    DB_ERROR_SELECT_STORY_ELEMENTS_UNIQUE_USER_IDS_COUNT = "DB_ERROR_SELECT_STORY_ELEMENTS_UNIQUE_USER_IDS_COUNT",
+    DB_ERROR_UPDATE_LOBBY_ROUNDS_COUNT = "DB_ERROR_UPDATE_LOBBY_ROUNDS_COUNT",
+    DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT = "DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT",
+    DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER = "DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER",
+    USER_INDEX_ORDER_IS_NULL = "USER_INDEX_ORDER_IS_NULL",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -242,5 +248,5 @@ export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     maxImages: 10,
     maxDrawings: 10,
     timerSetting: TimerSetting.NORMAL,
-    roundSeconds: 15 * 60
+    roundSeconds: 15 * 60,
 }

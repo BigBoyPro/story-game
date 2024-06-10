@@ -10,10 +10,12 @@ import {
     onGetStoryElements,
     submitStoryElements,
     offStory,
-    offGetStoryElements, unsubmitStoryElements, userId
+    offGetStoryElements, unsubmitStoryElements, userId, requestLeaveLobby
 } from "../utils/socketService.ts";
 import {Page, redirection} from "../App.tsx";
 import GameStoryComponent, {GameStoryComponentHandles} from "../components/StoryComponent/GameStoryComponent.tsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faRightFromBracket} from "@fortawesome/free-solid-svg-icons";
 
 function GameView() {
     const navigate = useNavigate();
@@ -74,10 +76,16 @@ function GameView() {
         unsubmitStoryElements(lobby.code);
     }
 
+    const handleBack = () => {
+        if (!lobby) return;
+        console.log('leaving lobby')
+        requestLeaveLobby(lobby.code);
+    };
 
     return (
         <>
             <div className="game-page">
+
                 <div className={"floating floating-elements"}>
                     <div className={"timer"}>
                         <h2>Timer</h2>
@@ -86,10 +94,15 @@ function GameView() {
                     </div>
                     <div className={"round"}>
                         <h2>Round</h2>
-                        <p className={"round__text"}>{lobby?.round}/{lobby?.users.length}</p>
+                        <p className={"round__text"}>{lobby?.round}/{lobby?.roundsCount}</p>
                     </div>
                 </div>
                 <div className="game-box">
+                    <div className={"leave-lobby__header"}>
+                        <button className={"leave-lobby__header_button"} onClick={handleBack} title="Leave Lobby">
+                            <FontAwesomeIcon icon={faRightFromBracket} size="2x"/>
+                        </button>
+                    </div>
                     {lobby?.round && lobby.round > 1}
                     {story &&
                         <GameStoryComponent key={story.id}
@@ -108,7 +121,7 @@ function GameView() {
                     <ul className="users__list">
                         {lobby?.users && lobby.users.map(user =>
                             <li key={user.id} className="user">
-                                {(lobby?.hostUserId === user.id) &&
+                            {(lobby?.hostUserId === user.id) &&
                                     <img src={CrownIcon} alt="Crown" className="crown-icon crown-icon-small"/>}
                                 {user.nickname}
                             </li>
