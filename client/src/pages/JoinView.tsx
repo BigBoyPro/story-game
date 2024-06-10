@@ -38,6 +38,10 @@ function JoinView() {
         navigate("/how-to-play");
     };
 
+    const handleContactClick = () => {
+        navigate("/contact");
+    };
+
     return (
         <>
             <video autoPlay loop muted
@@ -45,10 +49,19 @@ function JoinView() {
                 <source src={JoinVideo} type="video/mp4" />
             </video>
             <header>
+                <div className="header-buttons">
                 <button type="button" className={"join__button-3d button-3d-icon--help"} onClick={handleHelpClick}>
                     <img src={helpButtonIcon} alt="Help Button"/>
-                </button>
-            </header>
+                </button>  
+                
+                
+                </div>
+                </header>
+                
+                
+                
+             
+                 
             <div className={"main-page"}>
 
                 <div className={"join-box"}>
@@ -62,8 +75,18 @@ function JoinView() {
                             <img src={playButtonIcon} alt="Play Button"/>
                         </button>
                     </form>
+                    
+                    
                 </div>
             </div>
+            <footer><button type="button" className={"contactButton"} onClick={handleContactClick}>
+                    Contact Us
+                   </button>
+                    </footer>
+            
+                   
+           
+            
         </>
     );
 }
