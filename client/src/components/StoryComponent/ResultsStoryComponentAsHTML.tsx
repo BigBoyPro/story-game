@@ -5,10 +5,10 @@ import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
 import {getStoryElementsForEachUser} from "./StoryComponent.ts";
 import ReactDOMServer from 'react-dom/server';
 
-export const savedComponentAsHTML = (storyElements : StoryElement[], drawings: HTMLCanvasElement[]) => {
+export const savedComponentAsHTML = (storyElements : StoryElement[], drawingsAsDataUrls: string[]) => {
 
-    const drawingsAsDataUrls = drawings.map(canvas => canvas.toDataURL());
-    const componentHTML = ReactDOMServer.renderToStaticMarkup(<ResultsStoryComponentAsHTML storyElements={storyElements} drawingsAsDataUrls={drawingsAsDataUrls} />);
+    const componentHTML = ReactDOMServer.renderToStaticMarkup(
+        <ResultsStoryComponentAsHTML storyElements={storyElements} drawingsAsDataUrls={drawingsAsDataUrls} />);
 
 
     const htmlContent = `

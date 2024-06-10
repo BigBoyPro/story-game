@@ -80,7 +80,6 @@ function ResultsView() {
         requestEndGame(lobby.code)
     };
 
-
     const handleActions = (actions: DrawingAction[]) => {
         let elements: DrawingElement[] = [];
         let oldActions: DrawingAction[] = [];
@@ -95,18 +94,19 @@ function ResultsView() {
     }
 
     const getDrawings = () => {
-        const canvases : HTMLCanvasElement[] = [];
+        const canvases: HTMLCanvasElement[] = [];
         if (story?.elements) {
             story.elements.forEach(element => {
                 if (element.type === StoryElementType.Drawing) {
-                    const canvas = new HTMLCanvasElement;
+                    const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d')!;
                     const roughCanvas = rough.canvas(canvas);
                     const drawingElements = handleActions(JSON.parse(element.content));
                     drawingElements.forEach(drawingElement => {
                         drawElement(roughCanvas, context, drawingElement, canvas.width, canvas.height);
                     });
-                    canvases.push(canvas)
+                    canvases.push(canvas);
+                    console.log('Canvas added:', canvas);
                 }
             });
         }
@@ -115,7 +115,12 @@ function ResultsView() {
 
     const handleSave = () => {
         if (!lobby) return;
-        if (story?.elements) savedComponentAsHTML(story?.elements, getDrawings());
+        //if (story?.elements) savedComponentAsHTML(story?.elements, getDrawings());
+        if (story?.elements) {
+            const canvases = getDrawings();
+            const drawingsAsDataURL = canvases.map(canvas => canvas.toDataURL("image/png"));
+            savedComponentAsHTML(story?.elements, drawingsAsDataURL);
+        }
     }
     return (
         <>
