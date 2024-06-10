@@ -176,12 +176,11 @@ const StoryElementComponent = forwardRef(
             let result = null;
             switch (element.type) {
                 case StoryElementType.Empty:
-                    result = <div/>;
+                    result = <p>nothing :(</p>;
                     break;
                 case StoryElementType.Place:
                     result = <div/>
                     break;
-
                 case StoryElementType.Text:
                     const textArea = <textarea ref={textAreaRef}
                         value={element.content}

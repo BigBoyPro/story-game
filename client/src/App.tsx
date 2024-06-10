@@ -132,7 +132,7 @@ function App() {
   return (
       <>
           <LobbyContext.Provider value={lobby}>
-              <RouterProvider router={router}/>
+              <RouterProvider key={lobby ? lobby.round : undefined} router={router}/>
           </LobbyContext.Provider>
       </>
   )
