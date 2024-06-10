@@ -128,21 +128,21 @@ const StoryUserComponent = forwardRef(
                             (elements[0].userId === userId ?
                                 <h3>Your part:</h3>
                                 :
-                                (onPlayingEnd ?
+                                (isHidden !== undefined ?
                                         <h3>{getUserNameFromId(elements[0].userId)}'s part:</h3>
                                         :
                                         <h3>Previous story part:</h3>
                                 ))
                         }
-                        {elements.map((element) => {
+                        {elements.map((element, index) => {
                             return (
-                                <StoryElementComponent key={element.index}
+                                <StoryElementComponent key={index}
                                                        ref={(node) => {
                                                            const map = getStoryElementComponentsMap();
                                                            if (node) {
-                                                               map.set(element.index, node);
+                                                               map.set(index, node);
                                                            } else {
-                                                               map.delete(element.index);
+                                                               map.delete(index);
                                                            }
 
                                                        }}

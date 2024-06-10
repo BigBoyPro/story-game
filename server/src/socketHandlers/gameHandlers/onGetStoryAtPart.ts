@@ -1,7 +1,11 @@
 import {Server} from "socket.io";
 import {Pool} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
-import {dbSelectLobbyCurrentPart, dbSelectStoryByIndex, dbUpdateUserLastActive} from "../../db";
+import {
+    dbSelectLobbyCurrentPart, dbSelectLobbyRoundsCount,
+    dbSelectStoryByIndex,
+    dbUpdateUserLastActive
+} from "../../db";
 import { broadcastStoryAtPart, sendError} from "../socketService";
 
 
@@ -28,7 +32,7 @@ export async function onGetStoryAtPart(event: SocketEvent, io: Server, pool: Poo
   }
 
 
-const getStoryAtPart = async (pool: Pool, lobbyCode: string): Promise<OpResult<{ story: Story, userIndex: number }>> => {
+const getStoryAtPart = async (pool: Pool, lobbyCode: string): Promise<OpResult<{ story: Story, userIndex: number, storiesCount: number}>> => {
     let story;
 
     let {data: part, success, error} = await dbSelectLobbyCurrentPart(pool, lobbyCode, true);
@@ -39,5 +43,10 @@ const getStoryAtPart = async (pool: Pool, lobbyCode: string): Promise<OpResult<{
     ({data: story, success, error} = await dbSelectStoryByIndex(pool, lobbyCode, storyIndex));
     if (!success || !story) return {success, error};
 
-    return {success: true, data: {story, userIndex}};
+    // get rounds count
+    let roundsCount;
+    ({data: roundsCount, success, error} = await dbSelectLobbyRoundsCount(pool, lobbyCode));
+    if (!success || roundsCount === undefined) return {success, error};
+
+    return {success: true, data: {story, userIndex , storiesCount: roundsCount}};
 };

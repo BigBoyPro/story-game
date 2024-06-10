@@ -2,7 +2,13 @@ import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent, User} from "../../../../shared/sharedTypes";
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
-import {dbSelectLobby, dbSelectUserLobbyCode, dbTransaction, dbUpdateUserLobbyCode, dbUpsertUser} from "../../db";
+import {
+    dbSelectLobby,
+    dbSelectUserLobbyCode,
+    dbTransaction,
+    dbUpdateUserLobbyCode,
+    dbUpsertUser
+} from "../../db";
 
 export const onJoinLobby = async (event: SocketEvent, io: Server, pool: Pool, userId: string, nickname: string, lobbyCode: string) => {
     console.log("user " + userId + "sent join lobby:" + lobbyCode + " request");
@@ -30,7 +36,7 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
 
         // get lobby
         let lobby;
-        ({data: lobby, success, error} = await dbSelectLobby(client, lobbyCode));
+        ({data: lobby, success, error} = await dbSelectLobby(client, lobbyCode, true));
         if (!success || !lobby) {
             if(error && error.type === ErrorType.LOBBY_NOT_FOUND) {
                 error.logLevel = LogLevel.Warning;
@@ -50,8 +56,8 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
         // join lobby
         ({success, error} = await dbUpdateUserLobbyCode(client, userId, lobbyCode))
         if (!success) return {success, error};
-
         lobby.users.push(user);
+
 
         return {success: true, data: lobby};
     })

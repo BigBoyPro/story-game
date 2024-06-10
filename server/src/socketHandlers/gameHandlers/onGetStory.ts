@@ -1,6 +1,10 @@
 import {Pool} from "pg";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
-import {dbSelectLobby, dbSelectStoryWithIndex, dbUpdateUserLastActive} from "../../db";
+import {
+    dbSelectLobby,
+    dbSelectStoryWithIndex,
+    dbUpdateUserLastActive
+} from "../../db";
 import {sendError, sendStory} from "../socketService";
 import {isUserInLobby, storyIndexForUser} from "../../utils/utils";
 
@@ -40,8 +44,12 @@ const getStory = async (pool: Pool, userId: string, lobbyCode: string): Promise<
         };
 
 
+    // get user index
+    if(lobby.userIndexOrder === null || lobby.userIndexOrder[userId] === null)
+        return {success: false, error: {type: ErrorType.USER_INDEX_ORDER_IS_NULL, logLevel: LogLevel.Error, error: "user index is null"}};
+    const userIndex = lobby.userIndexOrder[userId]
     // shuffle the user order based on the lobby code
-    const storyIndex = storyIndexForUser(lobby, userId);
+    const storyIndex = storyIndexForUser(lobby.code, userIndex, lobby.round, lobby.roundsCount);
     // get the story for the user
     return await dbSelectStoryWithIndex(pool, storyIndex, lobbyCode);
 }

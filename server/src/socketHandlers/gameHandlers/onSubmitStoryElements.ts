@@ -16,7 +16,7 @@ import {
     dbUpdateUserLastActive, dbUpdateUserReady, dbUpsertleteStoryElements
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
-import {excludedBroadcastUsersSubmitted, sendError, sendSubmitted} from "../socketService";
+import {excludedBroadcastUsersSubmitted, isUserConnected, sendError, sendSubmitted} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
 
@@ -43,9 +43,12 @@ export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool
     sendSubmitted(userId, true);
     excludedBroadcastUsersSubmitted(userId, lobbyCode, lobby.usersSubmitted);
     console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
-
-    if (lobby.usersSubmitted >= lobby.users.length) {
+    // get number of users connected
+    const connectedUsersCount =  lobby.users.filter(user => isUserConnected(user.id)).length;
+    if (lobby.usersSubmitted >= connectedUsersCount) {
         await onNewRound(io, pool, lobby);
+        console.log("***round " + lobby.round + " ended***");
+
     }
 }
 
@@ -78,12 +81,6 @@ const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elem
         ({success, error} = await dbUpsertleteStoryElements(client, elements))
         if (!success && !(error && error.type === ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE)) return {success, error};
 
-
-        // check if all users have submitted their story elements
-        const allUsersSubmitted = lobby.usersSubmitted >= lobby.users.length;
-        if (allUsersSubmitted) {
-            console.log("***round " + lobby.round + " ended***");
-        }
         return {success: true, data: lobby};
     });
 }

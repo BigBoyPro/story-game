@@ -7,8 +7,6 @@ import {getStoryElementsForEachUser} from "./StoryComponent.ts";
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons';
 import {LobbyContext} from "../../LobbyContext.tsx";
-
-
 function ResultsStoryComponent({
                                    story,
                                    shownUserIndex,
@@ -60,7 +58,7 @@ function ResultsStoryComponent({
     return (
         <div className="story-page">
 
-            {getStoryElementsForEachUser(story.elements).map((elements, index) => {
+            {lobby && lobby?.userIndexOrder && getStoryElementsForEachUser(story.elements).map((elements, index) => {
 
                 return (
                     <React.Fragment key={index}>
@@ -89,7 +87,7 @@ function ResultsStoryComponent({
                                             resultsProps={{
                                                 onPlayingEnd: (index === shownUserIndex) ? () => {
                                                     handlePlayingEnd()
-                                                } : () => {},
+                                                } : undefined,
                                                 isHidden: shownUserIndex !== undefined ? (index > shownUserIndex) : false,
                                             }}
                         />

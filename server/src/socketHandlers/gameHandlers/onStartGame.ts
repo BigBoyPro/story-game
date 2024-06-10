@@ -1,7 +1,14 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
-import {dbInsertStory, dbSelectLobby, dbTransaction, dbUpdateUserLastActive} from "../../db";
+import {
+    dbInsertStory,
+    dbSelectLobby,
+    dbTransaction,
+    dbUpdateLobbyRoundsCount,
+    dbUpdateLobbyUserIndexOrder,
+    dbUpdateUserLastActive
+} from "../../db";
 import {broadcastLobbyInfo, sendError} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
@@ -61,6 +68,18 @@ const startGame = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRes
                 }
             };
         }
+
+        // update rounds count
+        ({success, error} = await dbUpdateLobbyRoundsCount(client, lobbyCode, lobby.users.length));
+        if (!success) return {success, error};
+
+        // update user index order
+        const userIndexOrder : {[key: string]: number} = {};
+        for (let i = 0; i < lobby.users.length; i++) {
+            userIndexOrder[lobby.users[i].id] = i;
+        }
+        ({success, error} = await dbUpdateLobbyUserIndexOrder(client, lobbyCode, userIndexOrder));
+
 
         // create all stories
         const users = lobby.users;

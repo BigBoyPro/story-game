@@ -2,9 +2,9 @@ import {Pool} from "pg";
 import {Server} from "socket.io";
 import {ErrorType, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
 import {
-    dbSelectLobbyCurrentPart,
+    dbSelectLobbyCurrentPart, dbSelectLobbyRoundsCount,
     dbSelectStoryByIndex,
-    dbSelectUsersInLobbyCount, dbTransaction, dbUpdateLobbyCurrentPart,
+    dbTransaction, dbUpdateLobbyCurrentPart,
     dbUpdateUserLastActive
 } from "../../db";
 import {broadcastPart, broadcastStoryAtPart, sendError} from "../socketService";
@@ -21,19 +21,19 @@ export async function onNextPart(event: SocketEvent, io: Server, pool: Pool, use
         return;
     }
 
-    let storyAndUser;
-    ({data : storyAndUser, success, error} = await processOp(() =>
+    let storyAndUserAndCount;
+    ({data : storyAndUserAndCount, success, error} = await processOp(() =>
         nextPart(pool, lobbyCode)
     ));
-    if (!success || storyAndUser === undefined) {
+    if (!success || storyAndUserAndCount === undefined) {
         error && sendError(userId, event, error);
         return;
     }
-    const {story, userIndex} = storyAndUser;
+    const {story, userIndex, storiesCount} = storyAndUserAndCount;
     if (story) {
-        broadcastStoryAtPart(io, lobbyCode, {story, userIndex});
+        broadcastStoryAtPart(io, lobbyCode, {story, userIndex, storiesCount});
     } else{
-        broadcastPart(io, lobbyCode, userIndex);
+        broadcastPart(io, lobbyCode, {userIndex, storiesCount});
     }
 
 
@@ -41,26 +41,27 @@ export async function onNextPart(event: SocketEvent, io: Server, pool: Pool, use
 
 
 const nextPart = async (pool: Pool, lobbyCode: string)=> {
-    return dbTransaction(pool, async (client): Promise<OpResult<{ story?: Story, userIndex: number }>> => {
-        // get number of users
-        let {data: userCount, error, success} = await dbSelectUsersInLobbyCount(client, lobbyCode);
-        if (!success || userCount === undefined) return {success, error};
+    return dbTransaction(pool, async (client): Promise<OpResult<{ story?: Story, userIndex: number , storiesCount: number}>> => {
 
-
-        let story, part;
-        ({data: part, success, error} = await dbSelectLobbyCurrentPart(client, lobbyCode, true))
+        let {data: part, success, error} = await dbSelectLobbyCurrentPart(client, lobbyCode, true)
         if (!success || !part) return {success, error};
         let {storyIndex, userIndex} = part;
 
         if (storyIndex === null || userIndex === null) return {success: false, error: {type: ErrorType.PART_IS_NULL, logLevel: LogLevel.Error, error: "story index or user index is null"}};
 
+        // get rounds count
+        let roundsCount;
+        ({data: roundsCount, success, error} = await dbSelectLobbyRoundsCount(pool, lobbyCode));
+        if (!success || roundsCount === undefined) return {success, error};
+
         userIndex++;
-        if (userIndex > userCount - 1) {
+        if (userIndex > roundsCount - 1) {
             userIndex = 0;
             storyIndex++;
         }
-        if (storyIndex > userCount - 1) return {success: false, error: {type: ErrorType.STORY_INDEX_OUT_OF_BOUNDS, logLevel: LogLevel.Error, error: "story index out of bounds"}};
+        if (storyIndex > roundsCount - 1) return {success: false, error: {type: ErrorType.STORY_INDEX_OUT_OF_BOUNDS, logLevel: LogLevel.Error, error: "story index out of bounds"}};
 
+        let story;
         if (userIndex === 0) {
             ({data: story, success, error} = await dbSelectStoryByIndex(client, lobbyCode, storyIndex));
             if (!success || !story) return {success, error};
@@ -69,6 +70,6 @@ const nextPart = async (pool: Pool, lobbyCode: string)=> {
         ({success, error} = await dbUpdateLobbyCurrentPart(client, lobbyCode, storyIndex, userIndex));
         if (!success) return {success, error};
 
-        return {success: true, data: {story, userIndex}};
+        return {success: true, data: {story, userIndex, storiesCount: roundsCount}};
     })
 };

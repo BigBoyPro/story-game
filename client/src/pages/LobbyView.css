@@ -27,7 +27,7 @@
 }
 
 
-.lobby-box__header {
+.leave-lobby__header {
     z-index: 3;
     position: absolute; /* Change this from relative to absolute */
     top: 0; /* Add this */
@@ -44,7 +44,7 @@
 }
 
 
-.lobby-box__header_button {
+.leave-lobby__header_button {
     max-height: 100%;
     aspect-ratio: 1/1;
     /*background: radial-gradient(circle, rgba(121, 218, 231, 0.56) 0%, rgb(84, 188, 211) 100%);*/
@@ -57,7 +57,7 @@
     align-items: center;
 }
 
-.lobby-box__header_button:hover {
+.leave-lobby__header_button:hover {
     background-color: transparent;
     transform: scale(1.1);
 }
