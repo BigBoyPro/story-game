@@ -152,12 +152,11 @@ const dbSelectUsersInLobby = async (db: (Pool | PoolClient), lobbyCode: string):
                                     WHERE lobby_code = $1
                                     ORDER BY created_at`, [lobbyCode]);
         const data = res.rows;
-        const users: User[] = data.map(row => ({
+        const users = data.map(row => ({
             id: row.id,
             nickname: row.nickname,
             lobbyCode: row.lobby_code,
-            ready: row.ready,
-            connected: row.connected,
+            ready: row.ready
         }));
         return {success: true, data: users};
     } catch (error) {
@@ -454,8 +453,7 @@ export const dbSelectUsersAll = async (db: (Pool | PoolClient)): Promise<OpResul
             nickname: row.nickname,
             lobbyCode: row.lobby_code,
             lastActive: row.last_active,
-            ready: row.ready,
-            connected: row.connected
+            ready: row.ready
         }));
         return {success: true, data: users};
     } catch (error) {
@@ -483,8 +481,7 @@ export const dbSelectUsersInactive = async (db: (Pool | PoolClient), seconds: nu
             nickname: row.nickname,
             lobbyCode: row.lobby_code,
             lastActive: row.last_active,
-            ready: row.ready,
-            connected: row.connected
+            ready: row.ready
         }));
         return {success: true, data: users};
     } catch (error) {
@@ -557,6 +554,7 @@ export const dbSelectUserReady = async (db: (Pool | PoolClient), userId: string,
             }
         };
     }
+
 }
 
 export const dbSelectStoryElementDistinctUserIdsForRound = async (db: (Pool | PoolClient), lobbyCode: string, round: number): Promise<OpResult<string[]>> => {
@@ -809,12 +807,11 @@ export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Prom
 export const dbUpsertUser = async (db: (Pool | PoolClient), user: User, lock = false): Promise<OpResult<null>> => {
     try {
         // Perform the upsert operation
-        await db.query(`INSERT INTO public.users (id, nickname, ready, connected, lobby_code)
-                        VALUES ($1, $2, $3, $4, $5)
+        await db.query(`INSERT INTO public.users (id, nickname, ready, lobby_code)
+                        VALUES ($1, $2, $3, $4)
                         ON CONFLICT (id) DO UPDATE SET nickname    = $2,
                                                        ready       = $3,
-                                                        connected   = $4,
-                                                       last_active = NOW()`, [user.id, user.nickname, user.ready, user.connected, user.lobbyCode]);
+                                                       last_active = NOW()`, [user.id, user.nickname, user.ready, user.lobbyCode]);
         if (lock) {
             // Lock the row
             await db.query(`SELECT
@@ -851,25 +848,6 @@ export const dbUpdateUserLastActive = async (db: (Pool | PoolClient), userId: st
         }
     }
 };
-
-export const dbUpdateUserConnected = async (db: (Pool | PoolClient), userId: string, connected: boolean): Promise<OpResult<null>> => {
-    try {
-        await db.query(`UPDATE public.users
-                        SET connected = $1
-                        WHERE id = $2`, [connected, userId]);
-        return {success: true};
-    } catch (error) {
-        return {
-            success: false,
-            error: {
-                type: ErrorType.DB_ERROR_UPDATE_USER_CONNECTED,
-                logLevel: LogLevel.Error,
-                error: error
-            }
-        }
-    }
-}
-
 export const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), userId: string, lobbyCode: string | null): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE public.users

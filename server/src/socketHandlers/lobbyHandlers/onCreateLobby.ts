@@ -46,7 +46,7 @@ export const createLobby = (pool: Pool, userId: string, nickname: string): Promi
         }
 
         // upsert user
-        const user: User = {id: userId, nickname: nickname, lobbyCode: null, ready: false, connected: true};
+        const user: User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
 
         ({success, error} = await dbUpsertUser(client, user, true))
         if (!success) return {success, error};

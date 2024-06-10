@@ -1,13 +1,13 @@
 import {Pool} from "pg";
 import {Lobby, OpResult, processOp, SocketEvent} from "../../../../shared/sharedTypes";
 import {join, sendError, sendLobbyInfo} from "../socketService";
-import {dbSelectLobby, dbSelectUserLobbyCode, dbUpdateUserConnected} from "../../db";
+import {dbSelectLobby, dbSelectUserLobbyCode} from "../../db";
 
 export const onGetLobby = async (event: SocketEvent, pool: Pool, userId: string) => {
     console.log("user " + userId + " sent get lobby request");
 
     const {data: lobby, error, success} = await processOp(() =>
-        getLobby(pool, userId)
+        getLobbyForUser(pool, userId)
     );
     if (!success) {
         error && sendError(userId, event, error);
@@ -21,13 +21,11 @@ export const onGetLobby = async (event: SocketEvent, pool: Pool, userId: string)
     }
 };
 
-const getLobby = async (pool: Pool, userId: string): Promise<OpResult<Lobby | null>> => {
+const getLobbyForUser = async (pool: Pool, userId: string): Promise<OpResult<Lobby | null>> => {
     // get user lobby
-    let {data: lobbyCode, error, success} = await dbSelectUserLobbyCode(pool, userId);
-    if (!success) return {success, error};
-
-    ({success, error} = await dbUpdateUserConnected(pool, userId, true));
-    if (!success) return {success, error};
+    const lobbyCodeRes = await dbSelectUserLobbyCode(pool, userId);
+    if (!lobbyCodeRes.success) return {success: false, error: lobbyCodeRes.error};
+    const lobbyCode = lobbyCodeRes.data;
 
     if (!lobbyCode) {
         return {success: true, data: null};

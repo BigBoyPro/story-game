@@ -67,7 +67,6 @@ export type User = {
     nickname: string;
     lobbyCode: (string | null);
     ready: boolean;
-    connected: boolean;
 };
 
 export enum TimerSetting {
@@ -220,7 +219,6 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT = "DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT",
     DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER = "DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER",
     USER_INDEX_ORDER_IS_NULL = "USER_INDEX_ORDER_IS_NULL",
-    DB_ERROR_UPDATE_USER_CONNECTED = "DB_ERROR_UPDATE_USER_CONNECTED",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
