@@ -264,11 +264,11 @@ export const offUsersSubmitted = () => {
     socket.off(SocketEvent.USERS_SUBMITTED);
 }
 
-export const onStoryAtPart = (callback: ({story, userIndex}: { story: Story, userIndex: number }) => void) => {
+export const onStoryAtPart = (callback: ({story, userIndex, storiesCount}: { story: Story, userIndex: number, storiesCount: number}) => void) => {
     // log content of elements
 
-    socket.on(SocketEvent.STORY_AT_PART, ({story, userIndex}) => {
-        callback({story, userIndex});
+    socket.on(SocketEvent.STORY_AT_PART, ({story, userIndex, storiesCount}) => {
+        callback({story, userIndex, storiesCount});
     });
 }
 
@@ -276,9 +276,9 @@ export const offStoryAtPart = () => {
     socket.off(SocketEvent.STORY_AT_PART);
 }
 
-export const onPart = (callback: (userIndex: number) => void) => {
-    socket.on(SocketEvent.PART, userIndex => {
-        callback(userIndex);
+export const onPart = (callback: ({userIndex, storiesCount} : {userIndex: number, storiesCount: number}) => void) => {
+    socket.on(SocketEvent.PART, ({userIndex, storiesCount}) => {
+        callback({userIndex, storiesCount});
     });
 }
 

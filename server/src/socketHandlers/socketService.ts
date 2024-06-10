@@ -25,6 +25,7 @@ import {onSubmitLobbyMaxImages} from "./lobbyHandlers/submitLobbySettings/onSubm
 import {onSubmitLobbyTimerSetting} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyTimerSetting";
 import {onSubmitLobbyMaxDrawings} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyMaxDrawings";
 import {onSubmitLobbyRoundSeconds} from "./lobbyHandlers/submitLobbySettings/onSubmitLobbyRoundSeconds";
+import {onDisconnect} from "./onDisconnect";
 
 
 interface Socket extends BaseSocket {
@@ -32,6 +33,11 @@ interface Socket extends BaseSocket {
 }
 
 export const userSocketMap = new Map<string, BaseSocket>();
+export const isUserConnected = (userId: string) => {
+    return userSocketMap.has(userId);
+}
+
+
 
 const send = (userId: string, event: string, ...args: any[]) => {
     const userSocket = userSocketMap.get(userId);
@@ -149,12 +155,12 @@ export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: st
     }
 }
 
-export const broadcastStoryAtPart = (io: Server, lobbyCode: string, storyAndUser: {story: Story, userIndex: number}) => {
-    broadcast(io, lobbyCode, SocketEvent.STORY_AT_PART, storyAndUser);
+export const broadcastStoryAtPart = (io: Server, lobbyCode: string, storyAndUserAndCount: {story: Story, userIndex: number, storiesCount: number}) => {
+    broadcast(io, lobbyCode, SocketEvent.STORY_AT_PART, storyAndUserAndCount);
 }
 
-export const broadcastPart = (io: Server, lobbyCode: string, userIndex: number) => {
-    broadcast(io, lobbyCode, SocketEvent.PART, userIndex);
+export const broadcastPart = (io: Server, lobbyCode: string, UserAndCount: {userIndex: number, storiesCount: number}) => {
+    broadcast(io, lobbyCode, SocketEvent.PART, UserAndCount);
 }
 
 export const join = (userId: string, room: string) => {
@@ -277,6 +283,7 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
             console.log("user disconnected");
             if(socket.userId) {
                 userSocketMap.delete(socket.userId);
+                await onDisconnect(SocketEvent.DISCONNECT, io, pool, socket.userId);
             }
         });
     });

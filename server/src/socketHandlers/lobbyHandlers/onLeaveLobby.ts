@@ -5,11 +5,12 @@ import {
     dbDeleteLobby,
     dbSelectLobby,
     dbTransaction,
-    dbUpdateLobbyHost,
+    dbUpdateLobbyHost, dbUpdateLobbyUsersSubmittedDecrement,
     dbUpdateUserLastActive,
-    dbUpdateUserLobbyCode
+    dbUpdateUserLobbyCode, dbUpdateUserReady
 } from "../../db";
-import {excludedBroadcastLobbyInfo, leave, sendError, sendLobbyInfo} from "../socketService";
+import {excludedBroadcastLobbyInfo, isUserConnected, leave, sendError, sendLobbyInfo} from "../socketService";
+import {onNewRound} from "../gameHandlers/roundHandler";
 
 export const onLeaveLobby = async (event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) => {
     console.log("user " + userId + " sent leave lobby:" + lobbyCode + " request");
@@ -31,12 +32,22 @@ export const onLeaveLobby = async (event: SocketEvent, io: Server, pool: Pool, u
         return;
     }
 
+
     if (lobby) {
         leave(userId, lobby.code);
         excludedBroadcastLobbyInfo(userId, lobby.code, lobby);
     }
     sendLobbyInfo(userId, null);
     console.log("user " + userId + " left lobby " + lobbyCode);
+
+    // if game is in progress and all users submitted
+    if(lobby && lobby.round > 0) {
+        const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id)).length;
+        if (lobby.usersSubmitted >= connectedUsersCount) {
+            await onNewRound(io, pool, lobby);
+        }
+    }
+
 };
 
 const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpResult<Lobby | null>> => {
@@ -68,7 +79,10 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
         if (!success) return {success, error};
 
         console.log("user " + userId + " removed from lobby " + lobbyCode);
-        lobby.users = lobby.users.filter(user => user.id !== userId);
+        const user = lobby.users.find(user => user.id === userId);
+        if (user) {
+            lobby.users = lobby.users.filter(user => user.id !== userId);
+        }
 
         if (!activeUser) {
             // remove lobby if user is the last one
@@ -78,6 +92,19 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
             return {success: true, data: null};
         }
 
+        if(lobby.round > 0){
+            // don't wait for user
+            if(user && user.ready){
+                // update users submitted
+                ({success, error} = await dbUpdateLobbyUsersSubmittedDecrement(client, lobbyCode))
+                if (!success) return {success, error};
+                lobby.usersSubmitted--;
+
+                // update user ready
+                ({success, error} = await dbUpdateUserReady(client, userId, false))
+                if (!success) return {success, error};
+            }
+        }
         return {success: true, data: lobby};
     });
 }
