@@ -12,7 +12,7 @@ import {
     requestStory,
     userId
 } from "./utils/socketService.ts";
-import {Lobby} from "../../shared/sharedTypes.ts";
+import {Lobby, LogLevel} from "../../shared/sharedTypes.ts";
 
 import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
@@ -29,7 +29,7 @@ import ContactView from "./pages/ContactView.tsx";
 export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
     let nextPage: Page = Page.Join;
     if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round == 0) {
+        if (lobby.round === 0) {
             nextPage = Page.Lobby;
         } else if(lobby.round > 0){
             nextPage = Page.Game;
@@ -37,7 +37,10 @@ export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, cur
             nextPage = Page.Results;
         }
     }
-    if(nextPage !== currentPage) navigate(nextPage);
+    if(nextPage !== currentPage) {
+        console.log('Redirecting from', currentPage, 'to', nextPage);
+        navigate(nextPage);
+    }
 }
 
 
@@ -105,8 +108,17 @@ function App() {
         });
 
         onError((event, error) => {
-            console.error('Event: ', event, 'Error: ', error);
-
+            switch (error.logLevel) {
+                case LogLevel.Error:
+                    console.error("event: " + event + ", error type: " + error.type + " : " + error.error);
+                    break;
+                case LogLevel.Warning:
+                    console.warn("event: " + event + ", error type: " + error.type + " : " + error.error);
+                    break;
+                case LogLevel.Information:
+                    console.info("event: " + event + ", error type: " + error.type + " : " + error.error);
+                    break;
+            }
         });
 
         return () => {

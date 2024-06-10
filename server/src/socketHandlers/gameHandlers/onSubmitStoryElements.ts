@@ -76,7 +76,7 @@ const submitStoryElements = (pool: Pool, userId: string, lobbyCode: string, elem
 
         // upsert story elements to db
         ({success, error} = await dbUpsertleteStoryElements(client, elements))
-        if (!success) return {success, error};
+        if (!success && !(error && error.type === ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE)) return {success, error};
 
 
         // check if all users have submitted their story elements

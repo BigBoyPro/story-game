@@ -116,7 +116,7 @@ export const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), storyIndex
                 error: {
                     type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
                     logLevel: LogLevel.Error,
-                    error: "Story not found by index"
+                    error: "Story not found by index: " + storyIndex
                 }
             };
         }
@@ -695,7 +695,7 @@ export const dbUpsertleteStoryElements = async (db: (Pool | PoolClient), element
             success: false,
             error: {
                 type: ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE,
-                logLevel: LogLevel.Warning,
+                logLevel: LogLevel.Information,
                 error: "No elements to upsert"
             }
         };
@@ -793,15 +793,9 @@ export const dbUpdateUserLastActive = async (db: (Pool | PoolClient), userId: st
 };
 export const dbUpdateUserLobbyCode = async (db: (Pool | PoolClient), userId: string, lobbyCode: string | null): Promise<OpResult<null>> => {
     try {
-        if (lobbyCode === null) {
-            await db.query(`UPDATE public.users
-                            SET lobby_code = NULL
-                            WHERE id = $1`, [userId]);
-        } else {
-            await db.query(`UPDATE public.users
-                            SET lobby_code = $1
-                            WHERE id = $2`, [lobbyCode, userId]);
-        }
+        await db.query(`UPDATE public.users
+                        SET lobby_code = $1
+                        WHERE id = $2`, [lobbyCode, userId]);
         return {success: true};
     } catch (error) {
         return {

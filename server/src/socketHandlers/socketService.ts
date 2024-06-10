@@ -31,7 +31,7 @@ interface Socket extends BaseSocket {
     userId?: string;
 }
 
-const userSocketMap = new Map<string, BaseSocket>();
+export const userSocketMap = new Map<string, BaseSocket>();
 
 const send = (userId: string, event: string, ...args: any[]) => {
     const userSocket = userSocketMap.get(userId);
@@ -65,6 +65,10 @@ export const excludedBroadcastUsersSubmitted = (excludedUserId: string, lobbyCod
 
 export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) => {
     broadcast(io, lobbyCode, SocketEvent.LOBBY_INFO, lobby);
+}
+
+export const broadcastGetStoryElements = (io: Server, lobbyCode: string) => {
+    broadcast(io, lobbyCode, SocketEvent.GET_STORY_ELEMENTS, null);
 }
 
 /*export const broadcastLobbySettings = (io: Server, lobbyCode: string, lobbySettings: LobbySettings) => {

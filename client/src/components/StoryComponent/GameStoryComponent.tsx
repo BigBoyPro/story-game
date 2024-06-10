@@ -63,7 +63,7 @@ const GameStoryComponent = forwardRef(
         const forceSave = (): StoryElement[] => {
             const newStoryElements = [...storyElements];
             if (lobby && isDrawing && selectedElementIndex === null) {
-                const drawingElement = createStoryElement(newStoryElements.length,lobby.round, story.id, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
+                const drawingElement = createStoryElement(newStoryElements.length, story.id, lobby.round, StoryElementType.Drawing, JSON.stringify(drawingActionsRef.current));
                 if (drawingElement) newStoryElements.push(drawingElement);
             }
             return newStoryElements;

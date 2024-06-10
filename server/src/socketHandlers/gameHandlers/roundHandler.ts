@@ -9,8 +9,11 @@ import {
 } from "../../db";
 
 import {storyIndexForUser} from "../../utils/utils";
+import {broadcastGetStoryElements, broadcastLobbyInfo} from "../socketService";
 
-const USERS_TIMEOUT_MILLISECONDS = 10 * 1000;
+const USERS_TIMEOUT_MILLISECONDS = 30 * 1000;
+
+const LOADING_TIMEOUT_MILLISECONDS = 3 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
@@ -23,7 +26,9 @@ export const onNewRound = async (io : Server, pool: Pool, lobby: Lobby) => {
         return;
     }
 
-    io.to(newLobby.code).emit("lobby info", newLobby);
+    setTimeout(() => {
+        broadcastLobbyInfo(io, newLobby.code, newLobby);
+    }, LOADING_TIMEOUT_MILLISECONDS);
     if (newLobby.round > 0) waitForRound(io, pool, newLobby);
 };
 
@@ -44,13 +49,13 @@ const waitForRound = (io: Server, pool: Pool, lobby: Lobby) => {
             onEndRound(io, pool, lobby);
             console.log("waiting for story elements from all users");
         }
-    }, 500);
+    }, 1000);
     clearLobbyTimeouts(lobby.code);
     setLobbyTimeout(lobby.code, roundWaitInterval);
 };
 
 const onEndRound = (io : Server, pool: Pool, lobby: Lobby) => {
-    io.to(lobby.code).emit("get story elements");
+    broadcastGetStoryElements(io, lobby.code);
     // set timeout for users to submit story elements
     setLobbyTimeout(lobby.code, setTimeout(async () => {
         await onNewRound(io ,pool, lobby);
@@ -98,12 +103,12 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         }
         // proceed to the next round
         let newLobbyRound = lobby.round + 1;
-        // set round start time now + 2 seconds for the users to receive the lobby info before the round starts
-        const shiftedNow = Date.now() + 2 * 1000;
+        const shiftedNow = Date.now() + LOADING_TIMEOUT_MILLISECONDS;
         let roundStartTime: (Date | null) = new Date(shiftedNow);
         let roundEndTime: (Date | null) = new Date(shiftedNow + lobby.lobbySettings.roundSeconds * 1000);
 
         if (newLobbyRound > lobby.users.length) {
+            // end game
             newLobbyRound = -1;
             roundStartTime = null;
             roundEndTime = null;
@@ -143,7 +148,9 @@ export const onRestartRound = async (io: Server, pool: Pool, lobby: Lobby) => {
         return;
     }
 
-    io.to(newLobby.code).emit("lobby info", newLobby);
+    setTimeout(() => {
+        broadcastLobbyInfo(io, newLobby.code, newLobby);
+    }, LOADING_TIMEOUT_MILLISECONDS);
     waitForRound(io, pool, newLobby);
 }
 
@@ -158,7 +165,7 @@ const restartRound = (pool: Pool, lobby: Lobby) => {
         if (!success || !submittedUserIds) return {success: false, error};
 
         // set round start time now + 2 seconds for the users to receive the lobby info before the round starts
-        const shiftedNow = Date.now() + 2 * 1000;
+        const shiftedNow = Date.now() + LOADING_TIMEOUT_MILLISECONDS;
         let roundStartTime: (Date | null) = new Date(shiftedNow);
         let roundEndTime: (Date | null) = new Date(shiftedNow + lobby.lobbySettings.roundSeconds * 1000);
 

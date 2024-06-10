@@ -4,15 +4,16 @@ import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} fro
 import LanguageDetect from "languagedetect";
 import './StoryElementComponent.css';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faArrowUp, faArrowDown, faTrashAlt, faEdit} from '@fortawesome/free-solid-svg-icons'
-import { faVolumeHigh, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+import {faVolumeHigh, faVolumeMute} from '@fortawesome/free-solid-svg-icons';
 
 
 export interface StoryElementComponentHandles {
     play: (tts: boolean) => void;
     stop: () => void;
 }
+
 export const DRAW_INITIAL_ACTIONS_MILLISECONDS = 1000;
 const AUDIO_PLAY_TIMEOUT_MILLISECONDS = 2 * 1000;
 
@@ -53,7 +54,6 @@ const StoryElementComponent = forwardRef(
         const shouldPlayOnLoad = useRef(false);
 
         const elementRef = useRef<HTMLDivElement>(null);
-
 
 
         useEffect(() => {
@@ -98,16 +98,20 @@ const StoryElementComponent = forwardRef(
             } else if (element.type === StoryElementType.Drawing) {
                 setIsPlaying(true);
                 isPlayingRef.current = true;
-                timeoutRef.current = setTimeout(() => {handlePlayingEnd()}, DRAW_INITIAL_ACTIONS_MILLISECONDS + 500);
+                timeoutRef.current = setTimeout(() => {
+                    handlePlayingEnd()
+                }, DRAW_INITIAL_ACTIONS_MILLISECONDS + 500);
             } else {
-                setTimeout(() => {onPlayingEnd && onPlayingEnd()}, 500);
+                setTimeout(() => {
+                    onPlayingEnd && onPlayingEnd()
+                }, 500);
             }
-            elementRef.current?.scrollIntoView({ behavior: 'smooth' });
+            elementRef.current?.scrollIntoView({behavior: 'smooth'});
 
         }
 
         const stop = () => {
-            if(!isPlayingRef.current) return;
+            if (!isPlayingRef.current) return;
             if (element.type === StoryElementType.Text && element.content.length > 0 && synthRef.current.speaking) {
                 synthRef.current.cancel();
                 if (!synthRef.current.speaking) {
@@ -168,65 +172,85 @@ const StoryElementComponent = forwardRef(
         }
 
         const renderContent = () => {
+            let result = null;
             switch (element.type) {
                 case StoryElementType.Empty:
-                    return <div/>;
+                    result = <div/>;
+                    break;
                 case StoryElementType.Place:
-                return <div/>
-            case StoryElementType.Text:
+                    result = <div/>
+                    break;
+
+                case StoryElementType.Text:
                     const textArea = <textarea value={element.content}
                                                className="chat-bubble"
                                                onChange={(e) => handleContentChange(e.target.value)}
                                                disabled={!isEditable}/>;
                     if (isEditable) {
-                        return textArea;
+                        result = textArea;
                     } else {
 
-                        return <>
+                        result = <>
                             {textArea}
-                            <button onClick={handleSpeak}>{isPlaying ? <FontAwesomeIcon icon={faVolumeMute} size="2x" /> : <FontAwesomeIcon icon={faVolumeHigh} size="2x" />}</button>
+                            <button onClick={handleSpeak}>{isPlaying ?
+                                <FontAwesomeIcon icon={faVolumeMute} size="2x"/> :
+                                <FontAwesomeIcon icon={faVolumeHigh} size="2x"/>}</button>
                         </>
 
                     }
+                    break;
                 case StoryElementType.Image:
-                    return <img src={element.content} alt="Story element" width="250"/>;
+                    result = <img src={element.content} alt="Story element" width="250"/>;
+                    break;
                 case StoryElementType.Drawing:
                     const actions = JSON.parse(element.content)
-                    return <DrawingComponent initialActions={actions} isEditable={false}/>;
+                    result = <DrawingComponent initialActions={actions} isEditable={false}/>;
+                    break;
                 case StoryElementType.Audio:
-                    return <audio ref={audioRef} controls  src={element.content} loop
-                                  onLoadedData={() => {
-                                      if (shouldPlayOnLoad.current) {
-                                          play(false);
-                                      }
-                                  }}/>;
+                    result = <audio ref={audioRef} controls src={element.content} loop
+                                    onLoadedData={() => {
+                                        if (shouldPlayOnLoad.current) {
+                                            play(false);
+                                        }
+                                    }}/>;
+                    break;
                 default:
-                    return null;
+
+                    break;
             }
-        };
+            if(audioRef.current) audioRef.current.volume = 0.1;
+            return result;
+        }
 
 
-        return (<>
-                {!isHidden &&
-                    <div className="story-element" ref={elementRef}>
-                        {renderContent()}
-                        <div className={"buttons-container"}>
-                            {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
-                                <button className={"button"} onClick={() => onElementEdit()}><FontAwesomeIcon icon={faEdit} /></button>
-                            }
-                            {isEditable && onElementDelete && <button className={"button"} onClick={() => onElementDelete()}><FontAwesomeIcon icon={faTrashAlt} className={"fa-trash-alt"} /></button>}
+            return (<>
+                    {!isHidden &&
+                        <div className="story-element" ref={elementRef}>
+                            {renderContent()}
+                            <div className={"buttons-container"}>
+                                {isEditable && onElementEdit && (element.type === StoryElementType.Image || element.type === StoryElementType.Drawing) &&
+                                    <button className={"button"} onClick={() => onElementEdit()}><FontAwesomeIcon
+                                        icon={faEdit}/></button>
+                                }
+                                {isEditable && onElementDelete &&
+                                    <button className={"button"} onClick={() => onElementDelete()}><FontAwesomeIcon
+                                        icon={faTrashAlt} className={"fa-trash-alt"}/></button>}
 
-                            {isEditable && onUp && element.index > 1 &&
-                                <button className={"button"} onClick={onUp}><FontAwesomeIcon icon={faArrowUp} /></button>
-                            }
-                            {isEditable && onDown && !isLast &&
-                                <button className={"button"} onClick={onDown}><FontAwesomeIcon icon={faArrowDown} /></button>
-                            }
+                                {isEditable && onUp && element.index > 1 &&
+                                    <button className={"button"} onClick={onUp}><FontAwesomeIcon icon={faArrowUp}/>
+                                    </button>
+                                }
+                                {isEditable && onDown && !isLast &&
+                                    <button className={"button"} onClick={onDown}><FontAwesomeIcon icon={faArrowDown}/>
+                                    </button>
+                                }
+                            </div>
                         </div>
-                    </div>
-                }
-            </>
-        );
-    });
+                    }
+                </>
+            );
+        }
+    )
+        ;
 
-export default StoryElementComponent;
+        export default StoryElementComponent;
