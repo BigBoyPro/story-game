@@ -10,6 +10,7 @@ import {
     dbUpdateUserLastActive
 } from "../../db";
 import {broadcastLobbyInfo, sendError} from "../socketService";
+import {onNewRound} from "./roundHandler";
 
 // Main function to handle the start of a game
 export async function onStartGame(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
@@ -40,6 +41,8 @@ export async function onStartGame(event: SocketEvent, io: Server, pool: Pool, us
     broadcastLobbyInfo(io, lobby.code, lobby);
     // Log the start of the game
     console.log("game started in lobby " + lobby.code);
+
+    await onNewRound(io, pool, lobby);
 }
 
 // Function to handle the start of the game
