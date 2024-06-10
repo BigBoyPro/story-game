@@ -63,7 +63,6 @@ function ResultsView() {
                 lobby.usersSubmitted = 0;
                 lobby.round = 0;
             }
-            redirection(lobby, navigate, Page.Lobby);
         });
 
         if (lobby && !story) requestGetStoryAtPart(lobby.code)
@@ -126,7 +125,7 @@ function ResultsView() {
     }
     return (
         <>
-            <video autoPlay loop muted className={"background"}>
+            <video autoPlay loop muted className={"background background--results"}>
                 <source src={ResultVideo} type="video/mp4"/>
             </video>
 

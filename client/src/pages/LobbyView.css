@@ -25,7 +25,12 @@
         max-height: calc(34vw * 4 / 5);
     }
 }
-
+.background--lobby{
+    background-image: url('../assets/backgrounds/LobbyView.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 .leave-lobby__header {
     z-index: 3;
@@ -230,3 +235,4 @@ input[type="checkbox"]:checked {
     transform: scale(1.1);
     transition: transform 0.3s ease-in-out;
 }
+

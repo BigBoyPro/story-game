@@ -56,7 +56,6 @@ function LobbyView() {
 
 
     const handleStartGame = () => {
-        redirection(lobby, navigate, Page.Lobby);
         if (!lobby) return;
         console.log('starting game')
         requestStartGame(lobby.code)
@@ -185,7 +184,7 @@ function LobbyView() {
     // Always block navigation
     return (
         <>
-            <video autoPlay loop muted className={"background"}>
+            <video autoPlay loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>
             </video>
 

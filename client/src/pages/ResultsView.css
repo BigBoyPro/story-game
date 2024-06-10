@@ -9,7 +9,12 @@
     background-size: cover;
     background-attachment: scroll;
 }
-
+.background--results{
+    background-image: url('../assets/backgrounds/ResultsView.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 .game-box-results {
     width: 80%;
     height: 90%;
