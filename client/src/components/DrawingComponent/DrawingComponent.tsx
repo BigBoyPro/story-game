@@ -24,7 +24,7 @@ const generator = rough.generator();
 type Coordinates = { x1: number, y1: number, x2: number, y2: number };
 type Point = { x: number, y: number };
 
-type DrawingElement = {
+export type DrawingElement = {
     index: number;
     id: number;
     type: ElementType;
@@ -325,7 +325,8 @@ const handleUndoAction = (elements: DrawingElement[], actions: DrawingAction[]):
     }
     return newElements;
 };
-const handleAction = (action: DrawingAction, elements: DrawingElement[], currentActions: DrawingAction[]) => {
+
+export const handleAction = (action: DrawingAction, elements: DrawingElement[], currentActions: DrawingAction[]) => {
     let newElements = [...elements];
     switch (action.type) {
         case ActionType.DRAW:
@@ -563,7 +564,7 @@ const updatePencilElement = (element: DrawingElement, points: Point[]): DrawingE
     return {...element, points}
 }
 
-const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D, element: DrawingElement, canvasWidth: number, canvasHeight: number) => {
+export const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D, element: DrawingElement, canvasWidth: number, canvasHeight: number) => {
     switch (element.type) {
         case ElementType.Line:
         case ElementType.Rectangle:

@@ -42,6 +42,11 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
         if (lobby.round !== 0) {
             return {success: false, error: {type: ErrorType.LOBBY_ALREADY_PLAYING, logLevel: LogLevel.Warning, error: "Lobby is already playing"}}
         }
+        if (lobby.users.length >= lobby.lobbySettings.maxPlayers) return {success: false, error: {
+                type: ErrorType.LOBBY_MAX_PLAYERS_REACHED,
+                logLevel: LogLevel.Error,
+                error: "Lobby is full"
+            }}
         // upsert user
         const user : User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
         ({success, error} = await dbUpsertUser(client, user, true))

@@ -34,7 +34,6 @@ Sinon, vous pouvez aussi lancer le serveur avec la commande suivante:
 
 
 
-
 ### Pour acceder a la base de donnees:
 J'ai utilisé `Supabase` pour la base de donnees, c'est une BDD `PostgreSQL` en ligne,
 pour y acceder, vous pouvez `creer un compte` sur le site suivant: https://supabase.com/dashboard/sign-in.  

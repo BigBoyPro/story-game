@@ -1,21 +1,32 @@
-import {Story} from "../../../shared/sharedTypes.ts";
+import {Story, StoryElementType} from "../../../shared/sharedTypes.ts";
 import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
-// import backgroundImage from "../assets/backgrounds/ResultsView.png";
 import ResultVideo from "../assets/backgrounds/ResultView.mp4";
 
 import {
+    offEndGame,
+    offPart,
+    offStoryAtPart,
     onEndGame,
+    onPart,
     onStoryAtPart,
     requestEndGame,
-    offEndGame,
-    userId, requestGetStoryAtPart, requestNextPart, onPart, offStoryAtPart, offPart
+    requestGetStoryAtPart,
+    requestNextPart,
+    userId
 } from "../utils/socketService.ts";
 import {Page, redirection} from "../App.tsx";
 import ResultsStoryComponent from "../components/StoryComponent/ResultsStoryComponent.tsx";
-
+import {savedComponentAsHTML} from "../components/StoryComponent/ResultsStoryComponentAsHTML.tsx";
+import {
+    drawElement,
+    DrawingAction,
+    DrawingElement,
+    handleAction
+} from "../components/DrawingComponent/DrawingComponent.tsx";
+import rough from "roughjs";
 
 
 function ResultsView() {
@@ -41,14 +52,14 @@ function ResultsView() {
         onEndGame(() => {
             console.log('Game Ended');
             setStory(null);
-            if(lobby) {
+            if (lobby) {
                 lobby.usersSubmitted = 0;
                 lobby.round = 0;
             }
             redirection(lobby, navigate, Page.Lobby);
         });
 
-        if(lobby && !story) requestGetStoryAtPart(lobby.code)
+        if (lobby && !story) requestGetStoryAtPart(lobby.code)
 
         return () => {
             offStoryAtPart()
@@ -64,42 +75,81 @@ function ResultsView() {
     };
 
     const handleEndGame = () => {
-        if(!lobby) return;
+        if (!lobby) return;
         console.log('ending game')
         requestEndGame(lobby.code)
     };
 
-    return(
 
+    const handleActions = (actions: DrawingAction[]) => {
+        let elements: DrawingElement[] = [];
+        let oldActions: DrawingAction[] = [];
+
+        actions.forEach((action, index) => {
+            elements = handleAction(action, elements, oldActions);
+            action.index = index;
+            oldActions = [...oldActions, action];
+        });
+
+        return elements;
+    }
+
+    const getDrawings = () => {
+        const canvases : HTMLCanvasElement[] = [];
+        if (story?.elements) {
+            story.elements.forEach(element => {
+                if (element.type === StoryElementType.Drawing) {
+                    const canvas = new HTMLCanvasElement;
+                    const context = canvas.getContext('2d')!;
+                    const roughCanvas = rough.canvas(canvas);
+                    const drawingElements = handleActions(JSON.parse(element.content));
+                    drawingElements.forEach(drawingElement => {
+                        drawElement(roughCanvas, context, drawingElement, canvas.width, canvas.height);
+                    });
+                    canvases.push(canvas)
+                }
+            });
+        }
+        return canvases;
+    };
+
+    const handleSave = () => {
+        if (!lobby) return;
+        if (story?.elements) savedComponentAsHTML(story?.elements, getDrawings());
+    }
+    return (
         <>
-                <video autoPlay loop muted className={"background"}>
-                    <source src={ResultVideo} type="video/mp4"/>
-                </video>
+            <video autoPlay loop muted className={"background"}>
+                <source src={ResultVideo} type="video/mp4"/>
+            </video>
 
-                <div className="results-page">
-                    { lobby && story &&
-                        <div className="game-box-results">
-                            <h2>Results</h2>
+            <div className="results-page">
+                {lobby && story &&
+                    <div className="game-box-results">
+                        <h2>Results</h2>
                         <div className="story-box-results">
 
-                        <h3>{story.name}</h3>
+                            <h3>{story.name}</h3>
 
-                        <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
-                                            onPlayingEnd={() => setIsPlaying(false)}
-                        />
+                            <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
+                                                   onPlayingEnd={() => setIsPlaying(false)}
+                            />
 
                         </div>
-                            { !isPlaying &&
-                                ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
-                                <button className={"button"} onClick={handleNextUser} disabled={lobby?.hostUserId !== userId}>Next Story</button>
+                        <button onClick={handleSave}>Share Story</button>
+                        {!isPlaying &&
+                            ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
+                                <button className={"button"} onClick={handleNextUser}
+                                        disabled={lobby?.hostUserId !== userId}>Next Story</button>
                                 :
-                                <button className={"button"} onClick={handleEndGame} disabled={lobby?.hostUserId !== userId}>End</button>)
-                            }
-                        </div>
-                    }
-              </div>
+                                <button className={"button"} onClick={handleEndGame}
+                                        disabled={lobby?.hostUserId !== userId}>End</button>)
+                        }
+                    </div>
+                }
+            </div>
         </>
-  );
+    );
 }
 
 export default ResultsView;
