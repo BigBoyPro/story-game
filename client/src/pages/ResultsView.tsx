@@ -34,19 +34,24 @@ function ResultsView() {
     const lobby = useContext(LobbyContext);
     const [story, setStory] = useState<Story | null>(null);
     const [userIndex, setUserIndex] = useState<number>(0);
+    const [storiesCount, setStoriesCount] = useState<number>(lobby?.users.length || 0);
     const [isPlaying, setIsPlaying] = useState(true);
     useEffect(() => {
         redirection(lobby, navigate, Page.Results);
 
-        onStoryAtPart(({story, userIndex}) => {
+        onStoryAtPart(({story, userIndex, storiesCount}) => {
             setStory(story);
             setUserIndex(userIndex);
+            setStoriesCount(storiesCount);
             console.log('Story at part', story, userIndex);
+            console.log('Stories Count', storiesCount);
         });
 
-        onPart((userIndex) => {
+        onPart(({userIndex, storiesCount}) => {
             setUserIndex(userIndex);
+            setStoriesCount(storiesCount);
             console.log('Part', userIndex);
+            console.log('Stories Count', storiesCount);
         });
 
         onEndGame(() => {
@@ -138,7 +143,7 @@ function ResultsView() {
                         </div>
                         <button onClick={handleSave}>Share Story</button>
                         {!isPlaying &&
-                            ((story.index < (lobby.users.length - 1) || userIndex < (lobby.users.length - 1)) ?
+                            ((story.index < (storiesCount - 1) || userIndex < (storiesCount - 1)) ?
                                 <button className={"button"} onClick={handleNextUser}
                                         disabled={lobby?.hostUserId !== userId}>Next Story</button>
                                 :
