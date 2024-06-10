@@ -70,8 +70,8 @@ export type User = {
 };
 
 export enum TimerSetting {
-    NORMAL = "normal",
-    DYNAMIC = "dynamic"
+    Normal = "normal",
+    Dynamic = "dynamic"
 }
 
 export type LobbySettings = {
@@ -247,6 +247,6 @@ export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     maxAudios: 10,
     maxImages: 10,
     maxDrawings: 10,
-    timerSetting: TimerSetting.NORMAL,
+    timerSetting: TimerSetting.Normal,
     roundSeconds: 15 * 60,
 }

@@ -217,47 +217,52 @@ function LobbyView() {
                                 </ul>
                             </div>
                         </div>
+
+
+
+
+
                         <div className="lobby-settings">
                             <h2 className={"lobby-info__title lobby-info__title--settings"}>Settings:</h2>
                             <ul className={"lobby-settings__list"}>
                                 <li>
-                                    <label id="maxPlayers">Max number of Players in the Party</label>
+                                    <label id="maxPlayers">Players limit</label>
                                     <input type="number" id="maxPlayers" value={maxPlayers}
                                            onChange={(e) => handleMaxPlayersChange(parseInt(e.target.value))}/>
 
                                 </li>
+
+
+
+
                                 <li>
-                                    <label id="seePrevStoryPart">See All The previous Content of The Story</label>
-                                    <input type="checkbox" id="prevPart" checked={seePrevStoryPart}
-                                           onChange={(e) => handleSeePrevStoryPartChange(e.target.checked)}/>
-                                </li>
-                                <li>
-                                    <label id="tss">Activate Text To Speech option</label>
-                                    <input type="checkbox" id="tss" checked={withTextToSpeech}
-                                           onChange={(e) => handleWithTextToSpeechChange(e.target.checked)}/>
-                                </li>
-                                <li>
-                                    <label id="maxTexts">Max number of Texts added per Round</label>
+                                    <label id="maxTexts">Texts limit</label>
                                     <input type="number" id="nbOfTexts" value={maxTexts}
                                            onChange={(e) => handleMaxTextsChange(parseInt(e.target.value))}/>
                                 </li>
                                 <li>
-                                    <label id="maxAudios">Max number of Audios added per Round</label>
+                                    <label id="maxAudios">Audios limit</label>
                                     <input type="number" id="nbOfAudios" value={maxAudios}
                                            onChange={(e) => handleMaxAudiosChange(parseInt(e.target.value))}/>
                                 </li>
                                 <li>
-                                    <label id="maxImages">Max number of Images added per Round</label>
+                                    <label id="maxImages">Images limit</label>
                                     <input type="number" id="nbOfImages" value={maxImages}
                                            onChange={(e) => handleMaxImagesChange(parseInt(e.target.value))}/>
                                 </li>
                                 <li>
-                                    <label id="maxDrawings">Max number of Drawings added per Round</label>
+                                    <label id="maxDrawings">Drawings limit</label>
                                     <input type="number" id="nbOfDrawings" value={maxDrawings}
                                            onChange={(e) => handleMaxDrawingsChange(parseInt(e.target.value))}/>
                                 </li>
+
                                 <li>
-                                    <label id="timerSetting">Timer Settings</label>
+                                    <label htmlFor="incrementNumber">Round time (s):</label>
+                                    <input type="number" id="roundTimer" step="1" min="0" value={roundSeconds}
+                                           onChange={(e) => handleRoundSecondsChange(parseInt(e.target.value))}/>
+                                </li>
+                                <li>
+                                    <label id="timerSetting">Timer type</label>
                                     <select id="selectTimerTimer" value={timerSetting}
                                             onChange={(e) => handleTimerSettingChange(e.target.value as TimerSetting)}>
                                         {Object.values(TimerSetting).map((value, index) => (
@@ -266,11 +271,20 @@ function LobbyView() {
                                         ))}
                                     </select>
                                 </li>
+
+
                                 <li>
-                                    <label htmlFor="incrementNumber">Select Timer:</label>
-                                    <input type="number" id="roundTimer" step="1" min="0" value={roundSeconds}
-                                           onChange={(e) => handleRoundSecondsChange(parseInt(e.target.value))}/>
+                                    <label id="seePrevStoryPart">See full previous story</label>
+                                    <input type="checkbox" id="prevPart" checked={seePrevStoryPart}
+                                           onChange={(e) => handleSeePrevStoryPartChange(e.target.checked)}/>
                                 </li>
+                                <li>
+                                    <label id="tss">Text-To-Speech</label>
+                                    <input type="checkbox" id="tss" checked={withTextToSpeech}
+                                           onChange={(e) => handleWithTextToSpeechChange(e.target.checked)}/>
+                                </li>
+
+
                             </ul>
                         </div>
                     </div>
