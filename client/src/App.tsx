@@ -23,6 +23,7 @@ import HowToPlayView from './pages/HowToPlayView.tsx';
 import {LobbyContext} from "./LobbyContext.tsx";
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
+import ContactView from "./pages/ContactView.tsx";
 
 
 export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
@@ -45,7 +46,8 @@ export enum Page {
     Lobby = "/lobby",
     Game = "/game",
     Results = "/results",
-    HowToPlay = "/how-to-play"
+    HowToPlay = "/how-to-play",
+    Contact = "/contact"
 }
 
 
@@ -57,6 +59,8 @@ const router = createBrowserRouter(
             <Route path={Page.Game} element={<GameView/>}/>
             <Route path={Page.Results} element={<ResultsView/>}/>
             <Route path={Page.HowToPlay} element={<HowToPlayView/>}/>
+            <Route path={Page.Contact} element={<ContactView/>}/>
+
         </>
     )
 );
