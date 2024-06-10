@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import rough from 'roughjs';
 import {Drawable} from "roughjs/bin/core";
 import {RoughCanvas} from "roughjs/bin/canvas";
@@ -24,7 +24,7 @@ const generator = rough.generator();
 type Coordinates = { x1: number, y1: number, x2: number, y2: number };
 type Point = { x: number, y: number };
 
-type DrawingElement = {
+export type DrawingElement = {
     index: number;
     id: number;
     type: ElementType;
@@ -325,7 +325,8 @@ const handleUndoAction = (elements: DrawingElement[], actions: DrawingAction[]):
     }
     return newElements;
 };
-const handleAction = (action: DrawingAction, elements: DrawingElement[], currentActions: DrawingAction[]) => {
+
+export const handleAction = (action: DrawingAction, elements: DrawingElement[], currentActions: DrawingAction[]) => {
     let newElements = [...elements];
     switch (action.type) {
         case ActionType.DRAW:
@@ -563,7 +564,7 @@ const updatePencilElement = (element: DrawingElement, points: Point[]): DrawingE
     return {...element, points}
 }
 
-const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D, element: DrawingElement, canvasWidth: number, canvasHeight: number) => {
+export const drawElement = (roughCanvas: RoughCanvas, context: CanvasRenderingContext2D, element: DrawingElement, canvasWidth: number, canvasHeight: number) => {
     switch (element.type) {
         case ElementType.Line:
         case ElementType.Rectangle:
@@ -732,18 +733,16 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
         context.restore();
     };
+    const useIsomorphicLayoutEffect =
+        typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
-    useLayoutEffect(() => {
+    useIsomorphicLayoutEffect(() => {
         if (!drawnElements) return;
         const canvas = canvasRef.current;
         if (!canvas) return;
         redraw(canvas);
 
     }, [canvasRef, canvasSize, drawnElements, state, selection]);
-
-    useEffect(() => {
-
-    }, [selectedColor]);
 
 // Always keep the ref updated with the latest state
 

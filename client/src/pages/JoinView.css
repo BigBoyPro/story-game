@@ -71,7 +71,7 @@
     transition: transform 0.2s ease;
 }
 
-.background{
+.background--join{
     background-image: url('../assets/backgrounds/JoinView.png');
     background-size: cover;
     background-position: center;

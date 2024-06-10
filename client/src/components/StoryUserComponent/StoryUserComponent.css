@@ -1,0 +1,10 @@
+.story-user-elements{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.8rem;
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+}

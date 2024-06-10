@@ -23,8 +23,6 @@ function JoinView() {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        redirection(lobby, navigate, Page.Join);
-
         if (lobbyCode && lobbyCode.length > 0) {
             // join existing lobby
             requestJoinLobby(nickname, lobbyCode)
@@ -47,7 +45,7 @@ function JoinView() {
     return (
         <>
             <video autoPlay loop muted
-                   className={"background"}>
+                   className={"background background--join"}>
                 <source src={JoinVideo} type="video/mp4" />
             </video>
             <header>

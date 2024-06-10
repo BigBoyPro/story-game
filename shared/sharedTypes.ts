@@ -51,7 +51,13 @@ export enum PlaceType {
     Street = 'places/street.png',
     Bedroom = 'places/bedroom.png',
     HauntedHouse = 'places/haunted-house.png',
-    Romantic = 'places/romantic-outdoor.png'
+    Romantic = 'places/romantic-outdoor.png',
+    Cafeteria = 'places/Cafeteria.png',
+    Hospital = 'places/Hospital.png',
+    Library = 'places/Library.png',
+    School = 'places/School.png',
+    Train = 'places/Train.png',
+    Village = 'places/Village.png',
 }
 
 
@@ -59,7 +65,18 @@ export enum AudioType {
     Scary = "audios/Scary.mp3",
     Romantic = "audios/Romantic.mp3",
     Sad = "audios/Sad.mp3",
-    Suspense = "audios/Suspense.mp3"
+    Suspense = "audios/Suspense.mp3",
+    Alarm="audios/Alarm.mp3",
+    Ambulance="audios/Ambulance.mp3",
+    Applause="audios/Applause.mp3",
+    Beach="audios/Beach.mp3",
+    Fantastic="audios/Fantastic.mp3",
+    Forest="audios/Forest.mp3",
+    Heartbeat="audios/Heartbeat.mp3",
+    Shimmering="audios/Shimmering.mp3",
+    Waiting="audios/Waiting.mp3",
+    Yay="audios/Yay.mp3",
+    Funny="audios/Funny.mp3",
 }
 
 export type User = {
@@ -70,8 +87,8 @@ export type User = {
 };
 
 export enum TimerSetting {
-    NORMAL = "normal",
-    DYNAMIC = "dynamic"
+    Normal = "normal",
+    Dynamic = "dynamic"
 }
 
 export type LobbySettings = {
@@ -92,6 +109,8 @@ export type Lobby = {
     round: number;
     usersSubmitted: number;
     users: User[];
+    userIndexOrder: { [key: string]: number } | null;
+    roundsCount: number;
     roundStartAt: (Date | null);
     roundEndAt: (Date | null);
     currentStoryIndex: (number | null);
@@ -151,12 +170,12 @@ export enum ErrorType {
     LOBBY_NOT_FOUND = "LOBBY_NOT_FOUND",
     USER_NOT_FOUND = "USER_NOT_FOUND",
     STORY_NOT_FOUND = "STORY_NOT_FOUND",
-    STORY_BY_INDEX_NOT_FOUND = "STORY_BY_INDEX_NOT_FOUND",
+    STORY_ID_NOT_FOUND = "STORY_ID_NOT_FOUND",
     STORY_INDEX_OUT_OF_BOUNDS = "STORY_INDEX_OUT_OF_BOUNDS",
     USER_ALREADY_IN_LOBBY = "USER_ALREADY_IN_LOBBY",
     PART_IS_NULL = "PART_IS_NULL",
     NO_STORY_ELEMENTS_TO_UPSERTLETE = "NO_STORY_ELEMENTS_TO_UPSERTLETE",
-    USER_NOT_SUBMITTED = "USER_NOT_SUBMITTED",
+    LOBBY_MAX_PLAYERS_REACHED = "LOBBY_MAX_PLAYERS_REACHED",
 
     DB_ERROR_SELECT_STORY_ELEMENTS = "DB_ERROR_SELECT_STORY_ELEMENTS",
     DB_ERROR_SELECT_STORY = "DB_ERROR_SELECT_STORY",
@@ -212,6 +231,11 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBY_BY_HOST = "DB_ERROR_SELECT_LOBBY_BY_HOST",
     DB_ERROR_SELECT_USERS_ALL = "DB_ERROR_SELECT_USERS_ALL",
     LOBBY_ALREADY_PLAYING = "LOBBY_ALREADY_PLAYING",
+    DB_ERROR_SELECT_STORY_ELEMENTS_UNIQUE_USER_IDS_COUNT = "DB_ERROR_SELECT_STORY_ELEMENTS_UNIQUE_USER_IDS_COUNT",
+    DB_ERROR_UPDATE_LOBBY_ROUNDS_COUNT = "DB_ERROR_UPDATE_LOBBY_ROUNDS_COUNT",
+    DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT = "DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT",
+    DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER = "DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER",
+    USER_INDEX_ORDER_IS_NULL = "USER_INDEX_ORDER_IS_NULL",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -239,6 +263,6 @@ export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     maxAudios: 10,
     maxImages: 10,
     maxDrawings: 10,
-    timerSetting: TimerSetting.NORMAL,
-    roundSeconds: 15 * 60
+    timerSetting: TimerSetting.Normal,
+    roundSeconds: 15 * 60,
 }

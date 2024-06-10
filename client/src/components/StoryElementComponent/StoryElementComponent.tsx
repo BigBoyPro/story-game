@@ -61,14 +61,15 @@ const StoryElementComponent = forwardRef(
         }, [isPlaying]);
 
 
-        // La zone de texte grandit si on écrit un grand texte sur la page GameView
+
+        const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
         useEffect(() => {
-            const textareaElement = document.querySelector('textarea');
-            if (textareaElement) {
-                textareaElement.style.height = 'auto';
-                textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+            if (textAreaRef.current) {
+                textAreaRef.current.style.height = 'auto';
+                textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
             }
-        }, [element.content]);
+        }, [element.content, isEditable]);
 
 
         function handleAudioPlay() {
@@ -175,17 +176,23 @@ const StoryElementComponent = forwardRef(
             let result = null;
             switch (element.type) {
                 case StoryElementType.Empty:
-                    result = <div/>;
+                    result = <p>nothing :(</p>;
                     break;
                 case StoryElementType.Place:
                     result = <div/>
                     break;
-
                 case StoryElementType.Text:
-                    const textArea = <textarea value={element.content}
+                    const textArea = <textarea ref={textAreaRef}
+                        value={element.content}
                                                className="chat-bubble"
-                                               onChange={(e) => handleContentChange(e.target.value)}
-                                               disabled={!isEditable}/>;
+                                               onChange={(e) => {
+                                                   e.target.style.height = 'auto';
+                                                   e.target.style.height = `${e.target.scrollHeight}px`;
+                                                   handleContentChange(e.target.value)
+                                               }}
+
+                                               disabled={!isEditable}
+                    />;
                     if (isEditable) {
                         result = textArea;
                     } else {
@@ -218,7 +225,6 @@ const StoryElementComponent = forwardRef(
 
                     break;
             }
-            if(audioRef.current) audioRef.current.volume = 0.1;
             return result;
         }
 

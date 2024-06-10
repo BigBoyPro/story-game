@@ -43,7 +43,8 @@
     border-radius: 15px;
     padding: 10px 15px;
     font-size: 16px;
-    max-width: 80%;
+    max-width: 80rem;
+    width: 100%;
     margin: 10px 0;
     background-color: #d5c2c2;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -54,16 +55,6 @@
 .chat-bubble:disabled {
     background-color: #f1f0f0;
     color: #333;
-}
-
-.chat-bubble-container {
-    display: flex;
-    justify-content: flex-start;
-    width: 100%;
-}
-
-.chat-bubble-container.editable {
-    justify-content: flex-end;
 }
 
 

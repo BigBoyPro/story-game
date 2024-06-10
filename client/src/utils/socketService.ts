@@ -1,6 +1,15 @@
 import io from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
-import {ErrorType, Lobby, LogLevel, OpError, SocketEvent, Story, StoryElement, TimerSetting} from "../../../shared/sharedTypes.ts";
+import {
+    ErrorType,
+    Lobby,
+    LogLevel,
+    OpError,
+    SocketEvent,
+    Story,
+    StoryElement,
+    TimerSetting
+} from "../../../shared/sharedTypes.ts";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost";
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT || 443;
@@ -17,6 +26,9 @@ export const userId = localStorage.getItem('userId')
         return id;
     })();
 
+
+const RETRY_MILLISECONDS = 4000;
+const MAX_RETRIES = 5;
 
 const ongoingRequests = new Map<SocketEvent, { args: any[], retryCount: number }>();
 
@@ -39,8 +51,110 @@ const responseWarningsMap = new Map<SocketEvent, ErrorType[]>([
     [SocketEvent.JOIN_LOBBY, [ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.LOBBY_NOT_FOUND]],
     ]);
 
-const RETRY_MILLISECONDS = 4000;
-const MAX_RETRIES = 5;
+
+const eventsThatCanBeInfinitelyRetried = [
+    SocketEvent.GET_LOBBY,
+    SocketEvent.GET_STORY,
+    SocketEvent.GET_STORY_AT_PART,
+    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
+    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
+    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
+    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
+    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
+    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
+    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
+    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
+    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS,
+    // Add other events that can be retried infinitely
+];
+
+const eventsThatCanVerifyArgs = [
+    SocketEvent.JOIN_LOBBY,
+    SocketEvent.CREATE_LOBBY,
+    // Add other events that are allowed to verify their arguments
+];
+
+const eventsCoexistWithEveryEvent = [
+    SocketEvent.GET_LOBBY,
+    SocketEvent.GET_STORY,
+    SocketEvent.GET_STORY_AT_PART,
+    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
+    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
+    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
+    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
+    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
+    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
+    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
+    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
+    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS
+];
+
+
+const eventsThatCanCoexist = new Map<SocketEvent, SocketEvent[]>([
+    [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
+    [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
+    // Add other events that can be called at the same time
+
+]);
+
+export const canRequest = (event: SocketEvent, args: any[]): boolean => {
+    // If the event can be retried infinitely and the event is already ongoing, return true
+    if (eventsThatCanBeInfinitelyRetried.includes(event) && ongoingRequests.has(event)) {
+        return true;
+    }
+    // Get the existing request info for this event
+    const existingRequestInfo = ongoingRequests.get(event);
+
+    // If there is an existing request and the event is in the list of events that can verify their arguments,
+    // check if the arguments have changed
+    if (existingRequestInfo && eventsThatCanVerifyArgs.includes(event) && JSON.stringify(existingRequestInfo.args) === JSON.stringify(args)) {
+        console.log(`Request for event ${event} with the same arguments is already ongoing.`);
+        return false;
+    }
+
+    // If there is an existing request and the event is not in the list of events that can verify their arguments, return
+    if (existingRequestInfo && !eventsThatCanVerifyArgs.includes(event)) {
+        console.log(`Request for event ${event} is already ongoing.`);
+        return false;
+    }
+
+    // If the event has coexisting restrictions, check if any of the restricted events are ongoing
+    const coexistingEvents = eventsThatCanCoexist.get(event);
+    if (coexistingEvents) {
+        for (const [ongoingEvent] of ongoingRequests.entries()) {
+            if (!coexistingEvents.includes(ongoingEvent) && !eventsCoexistWithEveryEvent.includes(ongoingEvent)) {
+                console.log(`Cannot request event ${event} because event ${ongoingEvent} is ongoing.`);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+export const sendRequest = (event: SocketEvent, ...args: any[]) => {
+    if (!canRequest(event, args)) return;
+    // Emit the event to the server with the provided arguments
+    socket.emit(event, ...args);
+
+    // Add the request to the ongoingRequests map
+    ongoingRequests.set(event, {args: args, retryCount: 0});
+
+    // Get the response events for this request event from the map
+    const responseEvents = responseEventsMap.get(event);
+
+    // If there are response events, set up a one-time listener for each one that removes the request from the ongoingRequests map
+    if (responseEvents) {
+        responseEvents.forEach(responseEvent => {
+            socket.once(responseEvent, () => {
+                ongoingRequests.delete(event);
+            });
+        });
+    }
+}
+
+
 
 // Event Listeners:
 
@@ -83,20 +197,26 @@ const errorsThatShouldReload = [
     ErrorType.USER_NOT_IN_LOBBY,
     ErrorType.LOBBY_NOT_FOUND,
     ErrorType.USER_NOT_HOST,
-    ErrorType.USER_NOT_SUBMITTED,
     ErrorType.STORY_NOT_FOUND,
-    ErrorType.STORY_BY_INDEX_NOT_FOUND,
+    ErrorType.STORY_ID_NOT_FOUND,
     ErrorType.STORY_INDEX_OUT_OF_BOUNDS,
     ErrorType.PART_IS_NULL,
 ];
 
 
-export const onError = (callback: (event: SocketEvent, error: OpError) => void) => {
-    socket.on(SocketEvent.ERROR, (event, error) => {
+// The errors that aren't supposed to happen on that page (ignored)
 
+
+export const onError = (isWrongPage: (event: SocketEvent, error: OpError) => boolean) => {
+    socket.on(SocketEvent.ERROR, (event: SocketEvent, error? : OpError) => {
+        if(error && isWrongPage(event, error)){
+            console.log("error on wrong page...")
+            return;
+        }
         // If the error level is Error, retry the request after a delay
-        if (error.logLevel === LogLevel.Error) {
+        if (error && error.logLevel === LogLevel.Error) {
             if(errorsThatShouldReload.includes(error.type)){
+                console.log("reloading page")
                 setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
                 return;
             }
@@ -109,19 +229,19 @@ export const onError = (callback: (event: SocketEvent, error: OpError) => void) 
                     }, RETRY_MILLISECONDS); // Retry after 5 seconds
                 } else {
                     console.log(`Max retry attempts reached for event ${event}.`);
+                    console.log("reloading page")
                     setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
                 }
             } else {
                 console.log(`No request info found for event ${event}.`);
             }
-        }else if (error.logLevel === LogLevel.Warning) {
+        }else if (error && error.logLevel === LogLevel.Warning) {
             const responseWarnings = responseWarningsMap.get(event);
             if (responseWarnings && responseWarnings.includes(error.type)) {
                 ongoingRequests.delete(event);
             }
         }
 
-        callback(event, error);
 
     });
 }
@@ -264,11 +384,11 @@ export const offUsersSubmitted = () => {
     socket.off(SocketEvent.USERS_SUBMITTED);
 }
 
-export const onStoryAtPart = (callback: ({story, userIndex}: { story: Story, userIndex: number }) => void) => {
+export const onStoryAtPart = (callback: ({story, userIndex, storiesCount}: { story: Story, userIndex: number, storiesCount: number}) => void) => {
     // log content of elements
 
-    socket.on(SocketEvent.STORY_AT_PART, ({story, userIndex}) => {
-        callback({story, userIndex});
+    socket.on(SocketEvent.STORY_AT_PART, ({story, userIndex, storiesCount}) => {
+        callback({story, userIndex, storiesCount});
     });
 }
 
@@ -276,9 +396,9 @@ export const offStoryAtPart = () => {
     socket.off(SocketEvent.STORY_AT_PART);
 }
 
-export const onPart = (callback: (userIndex: number) => void) => {
-    socket.on(SocketEvent.PART, userIndex => {
-        callback(userIndex);
+export const onPart = (callback: ({userIndex, storiesCount} : {userIndex: number, storiesCount: number}) => void) => {
+    socket.on(SocketEvent.PART, ({userIndex, storiesCount}) => {
+        callback({userIndex, storiesCount});
     });
 }
 
@@ -299,107 +419,6 @@ export const offEndGame = () => {
 
 // Event Emitters:
 
-const eventsThatCanBeInfinitelyRetried = [
-    SocketEvent.GET_LOBBY,
-    SocketEvent.GET_STORY,
-    SocketEvent.GET_STORY_AT_PART,
-    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
-    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
-    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
-    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
-    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
-    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
-    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
-    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
-    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS,
-    // Add other events that can be retried infinitely
-];
-
-const eventsThatCanVerifyArgs = [
-    SocketEvent.JOIN_LOBBY,
-    SocketEvent.CREATE_LOBBY,
-    // Add other events that are allowed to verify their arguments
-];
-
-const eventsCoexistWithEveryEvent = [
-    SocketEvent.GET_LOBBY,
-    SocketEvent.GET_STORY,
-    SocketEvent.GET_STORY_AT_PART,
-    SocketEvent.SUBMIT_LOBBY_MAX_IMAGES,
-    SocketEvent.SUBMIT_LOBBY_MAX_AUDIOS,
-    SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
-    SocketEvent.SUBMIT_LOBBY_MAX_TEXTS,
-    SocketEvent.SUBMIT_LOBBY_MAX_PLAYERS,
-    SocketEvent.SUBMIT_LOBBY_SEE_PREV_STORY_PART,
-    SocketEvent.SUBMIT_LOBBY_WITH_TEXT_TO_SPEECH,
-    SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
-    SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS
-];
-
-
-const eventsThatCanCoexist = new Map<SocketEvent, SocketEvent[]>([
-    [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
-    [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.GET_STORY, SocketEvent.GET_STORY_AT_PART]],
-    // Add other events that can be called at the same time
-
-]);
-
-export const canRequest = (event: SocketEvent, args: any[]): boolean => {
-    // If the event can be retried infinitely and the event is already ongoing, return true
-    if (eventsThatCanBeInfinitelyRetried.includes(event) && ongoingRequests.has(event)) {
-        return true;
-    }
-    // Get the existing request info for this event
-    const existingRequestInfo = ongoingRequests.get(event);
-
-    // If there is an existing request and the event is in the list of events that can verify their arguments,
-    // check if the arguments have changed
-    if (existingRequestInfo && eventsThatCanVerifyArgs.includes(event) && JSON.stringify(existingRequestInfo.args) === JSON.stringify(args)) {
-        console.log(`Request for event ${event} with the same arguments is already ongoing.`);
-        return false;
-    }
-
-    // If there is an existing request and the event is not in the list of events that can verify their arguments, return
-    if (existingRequestInfo && !eventsThatCanVerifyArgs.includes(event)) {
-        console.log(`Request for event ${event} is already ongoing.`);
-        return false;
-    }
-
-    // If the event has coexisting restrictions, check if any of the restricted events are ongoing
-    const coexistingEvents = eventsThatCanCoexist.get(event);
-    if (coexistingEvents) {
-        for (const [ongoingEvent] of ongoingRequests.entries()) {
-            if (!coexistingEvents.includes(ongoingEvent) && !eventsCoexistWithEveryEvent.includes(ongoingEvent)) {
-                console.log(`Cannot request event ${event} because event ${ongoingEvent} is ongoing.`);
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-
-export const sendRequest = (event: SocketEvent, ...args: any[]) => {
-    if (!canRequest(event, args)) return;
-    // Emit the event to the server with the provided arguments
-    socket.emit(event, ...args);
-
-    // Add the request to the ongoingRequests map
-    ongoingRequests.set(event, {args: args, retryCount: 0});
-
-    // Get the response events for this request event from the map
-    const responseEvents = responseEventsMap.get(event);
-
-    // If there are response events, set up a one-time listener for each one that removes the request from the ongoingRequests map
-    if (responseEvents) {
-        responseEvents.forEach(responseEvent => {
-            socket.once(responseEvent, () => {
-                ongoingRequests.delete(event);
-            });
-        });
-    }
-}
 export const requestJoinLobby = (nickname: string, lobbyCode: string) => {
     sendRequest(SocketEvent.JOIN_LOBBY, userId, nickname, lobbyCode);
 }

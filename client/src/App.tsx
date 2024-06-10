@@ -10,9 +10,9 @@ import {
     onLobbyInfo, onSubmitted,
     onUsersSubmitted,
     requestStory,
-    userId
+
 } from "./utils/socketService.ts";
-import {Lobby, LogLevel} from "../../shared/sharedTypes.ts";
+import {ErrorType, Lobby, LogLevel} from "../../shared/sharedTypes.ts";
 
 import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
@@ -26,20 +26,25 @@ import ResultsView from "./pages/ResultsView.tsx";
 import ContactView from "./pages/ContactView.tsx";
 
 
-export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
-    let nextPage: Page = Page.Join;
-    if (lobby && lobby.users.find(user => user.id === userId)) {
-        if (lobby.round === 0) {
-            nextPage = Page.Lobby;
-        } else if(lobby.round > 0){
-            nextPage = Page.Game;
-        } else if(lobby.round < 0){
-            nextPage = Page.Results;
-        }
+const getPageForLobby = (lobby: Lobby | null) => {
+    if (!lobby) {
+        return Page.Join;
     }
+    if (lobby.round === 0) {
+        return Page.Lobby;
+    } else if (lobby.round > 0) {
+        return Page.Game;
+    } else if (lobby.round < 0) {
+        return Page.Results;
+    }
+    return Page.Join;
+}
+
+export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
+    let nextPage: Page = getPageForLobby(lobby);
     if(nextPage !== currentPage) {
         console.log('Redirecting from', currentPage, 'to', nextPage);
-        navigate(nextPage);
+        navigate(nextPage, {replace: true});
     }
 }
 
@@ -52,6 +57,24 @@ export enum Page {
     HowToPlay = "/how-to-play",
     Contact = "/contact"
 }
+
+const WrongErrorsForPageMap = new Map<Page, ErrorType[]>([
+    [Page.Join, [ErrorType.STORY_ID_NOT_FOUND, ErrorType.STORY_INDEX_OUT_OF_BOUNDS, ErrorType.PART_IS_NULL,
+        ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE, ErrorType.STORY_NOT_FOUND, ErrorType.USER_NOT_HOST, ErrorType.USER_NOT_IN_LOBBY,
+        ErrorType.USER_INDEX_ORDER_IS_NULL, ErrorType.GAME_ALREADY_STARTED]],
+    [Page.Lobby, [ErrorType.STORY_INDEX_OUT_OF_BOUNDS, ErrorType.PART_IS_NULL,
+        ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE, ErrorType.STORY_ID_NOT_FOUND, ErrorType.STORY_NOT_FOUND,
+        ErrorType.USER_ALREADY_IN_LOBBY, ErrorType.USER_INDEX_ORDER_IS_NULL, ErrorType.LOBBY_MAX_PLAYERS_REACHED, ErrorType.LOBBY_ALREADY_PLAYING]],
+    [Page.Game, [ErrorType.PART_IS_NULL, ErrorType.LOBBY_MAX_PLAYERS_REACHED, ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.GAME_ALREADY_STARTED,
+        ErrorType.STORY_INDEX_OUT_OF_BOUNDS, ErrorType.USER_ALREADY_IN_LOBBY]],
+    [Page.Results, [ErrorType.STORY_ID_NOT_FOUND, ErrorType.STORY_NOT_FOUND, ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE,
+        ErrorType.GAME_ALREADY_STARTED, ErrorType.USER_ALREADY_IN_LOBBY, ErrorType.USER_INDEX_ORDER_IS_NULL, ErrorType.LOBBY_MAX_PLAYERS_REACHED,
+        ErrorType.LOBBY_MAX_PLAYERS_REACHED, ErrorType.LOBBY_ALREADY_PLAYING]],
+    [Page.HowToPlay, [ErrorType.USER_ALREADY_IN_LOBBY, ErrorType.LOBBY_MAX_PLAYERS_REACHED, ErrorType.LOBBY_ALREADY_PLAYING,
+        ErrorType.USER_NOT_HOST, ErrorType.USER_NOT_IN_LOBBY, ErrorType.LOBBY_NOT_FOUND, ErrorType.GAME_ALREADY_STARTED,
+        ErrorType.STORY_ID_NOT_FOUND, ErrorType.STORY_NOT_FOUND, ErrorType.NO_STORY_ELEMENTS_TO_UPSERTLETE, ErrorType.USER_INDEX_ORDER_IS_NULL,
+        ErrorType.PART_IS_NULL, ErrorType.STORY_INDEX_OUT_OF_BOUNDS]]
+]);
 
 
 const router = createBrowserRouter(
@@ -73,6 +96,18 @@ const router = createBrowserRouter(
 function App() {
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            event.preventDefault();
+
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
+
+
     useEffect(() => {
         onLobbyInfo(newLobby => {
 
@@ -119,6 +154,8 @@ function App() {
                     console.info("event: " + event + ", error type: " + error.type + " : " + error.error);
                     break;
             }
+            const currentPage : Page = getPageForLobby(lobby);
+            return !!((WrongErrorsForPageMap.get(currentPage)?.includes(error.type)))
         });
 
         return () => {
@@ -136,7 +173,7 @@ function App() {
   return (
       <>
           <LobbyContext.Provider value={lobby}>
-              <RouterProvider router={router}/>
+              <RouterProvider key={lobby ? lobby.round : undefined} router={router}/>
           </LobbyContext.Provider>
       </>
   )
