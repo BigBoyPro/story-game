@@ -1,5 +1,13 @@
 import {Pool, PoolClient} from "pg";
-import {Lobby, OpResult, processOp, StoryElement, StoryElementType} from "../../../../shared/sharedTypes";
+import {
+    ErrorType,
+    Lobby,
+    LogLevel,
+    OpResult,
+    processOp,
+    StoryElement,
+    StoryElementType
+} from "../../../../shared/sharedTypes";
 import {Server} from "socket.io";
 import {
     dbInsertStoryElements, dbLockRowLobby,
@@ -19,14 +27,14 @@ const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
 // Function to handle the start of a new round
 export const onNewRound = async (io : Server, pool: Pool, lobby: Lobby) => {
-    const {data: newLobby, success} = await processOp(() =>
+
+    const {data: newLobby, success, error} = await processOp(() =>
         newRound(pool, lobby)
     )
     if (!success || !newLobby) {
-        console.error("error starting new round");
+        console.error("error starting new round : ", error);
         return;
     }
-
     setTimeout(() => {
         broadcastLobbyInfo(io, newLobby.code, newLobby);
     }, LOADING_TIMEOUT_MILLISECONDS);
@@ -70,27 +78,33 @@ const newRound = (pool: Pool, lobby: Lobby) => {
     return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
         console.log("***starting new round***");
         clearLobbyTimeouts(lobby.code);
-
+        let error, success;
         console.log("round: " + lobby.round);
+        // get number of users in the story
 
-        if (lobby.usersSubmitted < lobby.users.length && lobby.round > 0) {
+
+        if (lobby.usersSubmitted < lobby.roundsCount && lobby.round > 0) {
             // push an empty story element for each user who hasn't submitted
-            const {data: submittedUserIds, error, success} = await dbSelectStoryElementDistinctUserIdsForRound(client, lobby.code, lobby.round);
+            let submittedUserIds;
+            ({data: submittedUserIds, error, success} = await dbSelectStoryElementDistinctUserIdsForRound(client, lobby.code, lobby.round));
             if (!success || !submittedUserIds) return {success: false, error: error};
-
+            if(lobby.userIndexOrder === null)
+                return {success: false, error: {type: ErrorType.USER_INDEX_ORDER_IS_NULL, logLevel: LogLevel.Error, error: "user index is null"}};
 
             const storyElements: StoryElement[] = [];
-            for (const user of lobby.users) {
-                if (!submittedUserIds.includes(user.id)) {
-                    console.log("user " + user.id + " has not submitted");
-                    const storyIndex = storyIndexForUser(lobby, user.id);
-
-                    const {data: storyId, error, success} = await dbSelectStoryIdByIndex(client, lobby.code, storyIndex);
+            for (let key in lobby.userIndexOrder) {
+                if (!submittedUserIds.includes(key)) {
+                    console.log("user " + key + " has not submitted");
+                    // get user index
+                    const userIndex = lobby.userIndexOrder[key]
+                    const storyIndex = storyIndexForUser(lobby.code, userIndex, lobby.round, lobby.roundsCount );
+                    let storyId;
+                    ({data: storyId, error, success} = await dbSelectStoryIdByIndex(client, lobby.code, storyIndex));
                     if (!success || !storyId) return {success, error};
 
                     const emptyStoryElement: StoryElement = {
-                        index: storyIndex,
-                        userId: user.id,
+                        index: 0,
+                        userId: key,
                         storyId: storyId,
                         round: lobby.round,
                         type: StoryElementType.Empty,
@@ -110,7 +124,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         let roundStartTime: (Date | null) = new Date(shiftedNow);
         let roundEndTime: (Date | null) = new Date(shiftedNow + lobby.lobbySettings.roundSeconds * 1000);
 
-        if (newLobbyRound > lobby.users.length) {
+        if (newLobbyRound > lobby.roundsCount ) {
             // end game
             newLobbyRound = -1;
             roundStartTime = null;
@@ -118,7 +132,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         }
 
         //lock the lobby row
-        let {error, success} = await dbLockRowLobby(client, lobby.code);
+        ({error, success} = await dbLockRowLobby(client, lobby.code));
         if (!success) return {success, error};
 
         ({error, success} = await dbUpdateLobbyUsersSubmitted(client, lobby.code, 0));
@@ -129,7 +143,7 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         // unready all players
         const userIds = lobby.users.map(user => user.id);
         ({error, success} = await dbUpdateUsersReady(client, userIds, false));
-
+        if (!success) return {success, error};
 
         ({error, success} = await dbUpdateLobbyRound(client, lobby.code, newLobbyRound, roundStartTime, roundEndTime));
         if (!success) return {success, error};

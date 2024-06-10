@@ -1,7 +1,14 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
-import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent} from "../../../../shared/sharedTypes";
-import {dbSelectLobby, dbTransaction, dbUpdateLobbyRound, dbUpdateUserLastActive} from "../../db";
+import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent, Story} from "../../../../shared/sharedTypes";
+import {
+    dbInsertStory,
+    dbSelectLobby,
+    dbTransaction,
+    dbUpdateLobbyRoundsCount,
+    dbUpdateLobbyUserIndexOrder,
+    dbUpdateUserLastActive
+} from "../../db";
 import {broadcastLobbyInfo, sendError} from "../socketService";
 
 // Main function to handle the start of a game
@@ -55,13 +62,46 @@ const startGame = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRes
                 }
             };
         }
-        // Update the lobby round to 1
-        ({success, error} = await dbUpdateLobbyRound(client, lobbyCode, 1, null, null))
-        // If the update fails, return an error
-        if (!success) return {success, error};
-        lobby.round = 1;
 
-        // Return the updated lobby
+        // check if lobby is already started
+        if (lobby.round !== 0) {
+            return {
+                success: false,
+                error: {
+                    logLevel: LogLevel.Error,
+                    type: ErrorType.GAME_ALREADY_STARTED,
+                    error: "Game is already started"
+                }
+            };
+        }
+
+        // update rounds count
+        ({success, error} = await dbUpdateLobbyRoundsCount(client, lobbyCode, lobby.users.length));
+        if (!success) return {success, error};
+
+        // update user index order
+        const userIndexOrder : {[key: string]: number} = {};
+        for (let i = 0; i < lobby.users.length; i++) {
+            userIndexOrder[lobby.users[i].id] = i;
+        }
+        ({success, error} = await dbUpdateLobbyUserIndexOrder(client, lobbyCode, userIndexOrder));
+
+
+        // create all stories
+        const users = lobby.users;
+        const storyNames = ["Once upon a time", "In a galaxy far far away", "A long time ago in a land of magic", "In a world of mystery", "In a land of dragons", "In a kingdom of knights"];
+        for (let i = 0; i < users.length; i++) {
+            const storyName = storyNames[i % storyNames.length];
+            const story: Story = {
+                id: -1,
+                index: i,
+                lobbyCode: lobbyCode,
+                name: storyName,
+                elements: []
+            };
+            ({success, error} = await dbInsertStory(client, story))
+            if (!success) return {success, error};
+        }
         return {success: true, data: lobby};
     })
 };

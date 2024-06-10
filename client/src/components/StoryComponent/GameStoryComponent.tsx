@@ -378,12 +378,9 @@ const GameStoryComponent = forwardRef(
                         }
                     </>
                     :
-                    <div className="story-element">
-
-                        <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
-                            onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}
-                            onCancel={handleCancelDrawing} />
-                    </div>
+                    <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
+                        onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}
+                        onCancel={handleCancelDrawing} />
                 }
             </div>
         )

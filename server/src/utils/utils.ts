@@ -4,10 +4,10 @@ import shuffleSeed from "shuffle-seed";
 export const isUserInLobby = (lobby: Lobby, userId: string): boolean => {
     return !!lobby.users.find(user => user.id === userId);
 }
-export const storyIndexForUser = (lobby: Lobby, userId: string) => {
-    const userIndex = lobby.users.findIndex(user => user.id === userId);
-    const shuffledBalancedLatinSquare = shuffleSeed.shuffle(balancedLatinSquare(lobby.users.length), lobby.code);
-    return shuffledBalancedLatinSquare[userIndex][lobby.round - 1];
+export const storyIndexForUser = (lobbyCode: string, userIndex: number, round: number, storiesCount: number) => {
+
+    const shuffledBalancedLatinSquare = shuffleSeed.shuffle(balancedLatinSquare(storiesCount), lobbyCode);
+    return shuffledBalancedLatinSquare[userIndex][round - 1];
 };
 
 const balancedLatinSquare = (arrayLength: number) => {

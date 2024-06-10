@@ -191,8 +191,8 @@ function LobbyView() {
 
             <div className={"main-page"}>
                 <div className={"lobby-box"}>
-                    <div className={"lobby-box__header"}>
-                        <button className={"lobby-box__header_button"} onClick={handleBack} title="Leave Lobby">
+                    <div className={"leave-lobby__header"}>
+                        <button className={"leave-lobby__header_button"} onClick={handleBack} title="Leave Lobby">
                             <FontAwesomeIcon icon={faRightFromBracket} size="2x"/>
                         </button>
                     </div>
