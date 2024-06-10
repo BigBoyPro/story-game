@@ -123,7 +123,7 @@ const StoryUserComponent = forwardRef(
                              backgroundSize: 'cover',
                              backgroundPosition: 'center',
                              backgroundRepeat: 'no-repeat'
-                         }}>
+                    }}>
                         {!isEditable && elements.length > 0 &&
                             (elements[0].userId === userId ?
                                 <h3>Your part:</h3>
@@ -148,7 +148,7 @@ const StoryUserComponent = forwardRef(
                                                        }}
                                                        element={element}
                                                        isHidden={(!isEditable && onPlayingEnd && (element.index > shownElementIndex))
-                                                           || element.type === StoryElementType.Place || element.type === StoryElementType.Empty}
+                                                           || element.type === StoryElementType.Place}
                                                        isEditable={isEditable}
                                                        onElementChange={onElementChange ? (newElement) => onElementChange(element.index, newElement) : undefined}
                                                        onElementDelete={onElementDelete ? () => onElementDelete(element.index) : undefined}

@@ -114,7 +114,7 @@ export const dbSelectStoryWithIndex = async (db: (Pool | PoolClient), storyIndex
             return {
                 success: false,
                 error: {
-                    type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
+                    type: ErrorType.STORY_ID_NOT_FOUND,
                     logLevel: LogLevel.Error,
                     error: "Story not found by index: " + storyIndex
                 }
@@ -591,7 +591,7 @@ export const dbSelectStoryIdByIndex = async (db: (Pool | PoolClient), lobbyCode:
             return {
                 success: false,
                 error: {
-                    type: ErrorType.STORY_BY_INDEX_NOT_FOUND,
+                    type: ErrorType.STORY_ID_NOT_FOUND,
                     logLevel: LogLevel.Error,
                     error: "Story not found by index"
                 }

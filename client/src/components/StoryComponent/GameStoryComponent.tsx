@@ -266,10 +266,9 @@ const GameStoryComponent = forwardRef(
             setSelectedElementIndex(null);
         }
 
-        const [selectedType, setSelectedType] = useState<StoryElementType | null>(null);
 
         const handleTypeSelect = (type: StoryElementType) => {
-            setSelectedType(type);
+            setType(type);
             handleTypeChange(type);
         };
 
@@ -293,7 +292,8 @@ const GameStoryComponent = forwardRef(
                         </div>
 
 
-                        {getStoryElementsForEachUser(story.elements, false).map((elements, index) => {
+                        {getStoryElementsForEachUser(story.elements, false).map((elements, index, array) => {
+                            if(lobby && !lobby.lobbySettings.seePrevStoryPart && index !== array.length - 1) return null;
                             return (
                                 <React.Fragment key={index}>
                                     <StoryUserComponent elements={elements} isEditable={false} />
@@ -321,12 +321,12 @@ const GameStoryComponent = forwardRef(
                                         value !== StoryElementType.Empty &&
                                         value !== StoryElementType.Place &&
                                         <div key={value}
-                                             className={`element-type-option ${selectedType === value ? 'selected' : ''}`}
+                                             className={`element-type-option ${type === value ? 'selected' : ''}`}
                                              onClick={() => handleTypeSelect(value)}>
-                                            {value ==StoryElementType.Image  && <FontAwesomeIcon icon={faImages} size="2x" />}
-                                            {value ==StoryElementType.Audio  && <FontAwesomeIcon icon={faMusic} size="2x" />}
-                                            {value ==StoryElementType.Text  && <FontAwesomeIcon icon={faFont} size="2x" />}
-                                            {value ==StoryElementType.Drawing && <FontAwesomeIcon icon={faPaintBrush} size="2x" />}
+                                            {value == StoryElementType.Image  && <FontAwesomeIcon icon={faImages} size="2x" />}
+                                            {value == StoryElementType.Audio  && <FontAwesomeIcon icon={faMusic} size="2x" />}
+                                            {value == StoryElementType.Text  && <FontAwesomeIcon icon={faFont} size="2x" />}
+                                            {value == StoryElementType.Drawing && <FontAwesomeIcon icon={faPaintBrush} size="2x" />}
                                         </div>
                                     ))}
 

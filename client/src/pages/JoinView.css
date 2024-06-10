@@ -71,9 +71,23 @@
     transition: transform 0.2s ease;
 }
 
-.background{
+.background--join{
     background-image: url('../assets/backgrounds/JoinView.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
+.header-buttons {
+    display: flex;
+    gap: 100px;
+}
+footer {
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    z-index: 2;
+    
+}
+
+

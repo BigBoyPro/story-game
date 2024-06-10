@@ -94,7 +94,7 @@ function GameView() {
                     </div>
                     <div className={"round"}>
                         <h2>Round</h2>
-                        <p className={"round__text"}>{lobby?.round}/{lobby?.roundsCount}</p>
+                        <p className={"round__text"}>{lobby?.round}/{(lobby && lobby.roundsCount > lobby.users.length)? lobby.roundsCount : lobby?.users.length}</p>
                     </div>
                 </div>
                 <div className="game-box">

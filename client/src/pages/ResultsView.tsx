@@ -4,6 +4,8 @@ import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
 import ResultVideo from "../assets/backgrounds/ResultView.mp4";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faForward, faShare } from '@fortawesome/free-solid-svg-icons'
 
 import {
     offEndGame,
@@ -42,7 +44,7 @@ function ResultsView() {
         onStoryAtPart(({story, userIndex, storiesCount}) => {
             setStory(story);
             setUserIndex(userIndex);
-            setStoriesCount(storiesCount);
+            setStoriesCount(storiesCount?? (lobby?.users.length || 0));
             console.log('Story at part', story, userIndex);
             console.log('Stories Count', storiesCount);
         });
@@ -61,7 +63,6 @@ function ResultsView() {
                 lobby.usersSubmitted = 0;
                 lobby.round = 0;
             }
-            redirection(lobby, navigate, Page.Lobby);
         });
 
         if (lobby && !story) requestGetStoryAtPart(lobby.code)
@@ -85,7 +86,6 @@ function ResultsView() {
         requestEndGame(lobby.code)
     };
 
-
     const handleActions = (actions: DrawingAction[]) => {
         let elements: DrawingElement[] = [];
         let oldActions: DrawingAction[] = [];
@@ -100,18 +100,19 @@ function ResultsView() {
     }
 
     const getDrawings = () => {
-        const canvases : HTMLCanvasElement[] = [];
+        const canvases: HTMLCanvasElement[] = [];
         if (story?.elements) {
             story.elements.forEach(element => {
                 if (element.type === StoryElementType.Drawing) {
-                    const canvas = new HTMLCanvasElement;
+                    const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d')!;
                     const roughCanvas = rough.canvas(canvas);
                     const drawingElements = handleActions(JSON.parse(element.content));
                     drawingElements.forEach(drawingElement => {
                         drawElement(roughCanvas, context, drawingElement, canvas.width, canvas.height);
                     });
-                    canvases.push(canvas)
+                    canvases.push(canvas);
+                    console.log('Canvas added:', canvas);
                 }
             });
         }
@@ -120,18 +121,24 @@ function ResultsView() {
 
     const handleSave = () => {
         if (!lobby) return;
-        if (story?.elements) savedComponentAsHTML(story?.elements, getDrawings());
+        //if (story?.elements) savedComponentAsHTML(story?.elements, getDrawings());
+        if (story?.elements) {
+            const canvases = getDrawings();
+            const drawingsAsDataURL = canvases.map(canvas => canvas.toDataURL("image/png"));
+            savedComponentAsHTML(story?.elements, drawingsAsDataURL);
+        }
     }
     return (
         <>
-            <video autoPlay loop muted className={"background"}>
+            <video autoPlay loop muted className={"background background--results"}>
                 <source src={ResultVideo} type="video/mp4"/>
             </video>
 
             <div className="results-page">
                 {lobby && story &&
                     <div className="game-box-results">
-                        <h2>Results</h2>
+                        <h2 className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
+
                         <div className="story-box-results">
 
                             <h3>{story.name}</h3>
@@ -139,13 +146,16 @@ function ResultsView() {
                             <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
                                                    onPlayingEnd={() => setIsPlaying(false)}
                             />
-
                         </div>
-                        <button onClick={handleSave}>Share Story</button>
+                        <button className="share-button" onClick={handleSave}>
+                            <FontAwesomeIcon icon={faShare} size="3x" />
+                        </button>
                         {!isPlaying &&
                             ((story.index < (storiesCount - 1) || userIndex < (storiesCount - 1)) ?
-                                <button className={"button"} onClick={handleNextUser}
-                                        disabled={lobby?.hostUserId !== userId}>Next Story</button>
+                                <button title="Next Story" className={"button"} onClick={handleNextUser}
+                                        disabled={lobby?.hostUserId !== userId}>
+                                    <FontAwesomeIcon icon={faForward} size="2x" />
+                                </button>
                                 :
                                 <button className={"button"} onClick={handleEndGame}
                                         disabled={lobby?.hostUserId !== userId}>End</button>)
