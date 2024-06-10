@@ -67,7 +67,7 @@
 }
 
 .button:hover:not(:disabled) {
-    background-color: #007BFF;
+    background-color: rgb(111, 102, 231);
 }
 
 /*.story-element textarea {*/

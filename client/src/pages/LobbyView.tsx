@@ -219,9 +219,6 @@ function LobbyView() {
                         </div>
 
 
-
-
-
                         <div className="lobby-settings">
                             <h2 className={"lobby-info__title lobby-info__title--settings"}>Settings:</h2>
                             <ul className={"lobby-settings__list"}>
@@ -231,9 +228,6 @@ function LobbyView() {
                                            onChange={(e) => handleMaxPlayersChange(parseInt(e.target.value))}/>
 
                                 </li>
-
-
-
 
                                 <li>
                                     <label id="maxTexts">Texts limit</label>
