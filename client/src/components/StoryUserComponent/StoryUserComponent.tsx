@@ -123,7 +123,7 @@ const StoryUserComponent = forwardRef(
                              backgroundSize: 'cover',
                              backgroundPosition: 'center',
                              backgroundRepeat: 'no-repeat'
-                         }}>
+                    }}>
                         {!isEditable && elements.length > 0 &&
                             (elements[0].userId === userId ?
                                 <h3>Your part:</h3>
