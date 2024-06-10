@@ -51,7 +51,13 @@ export enum PlaceType {
     Street = 'places/street.png',
     Bedroom = 'places/bedroom.png',
     HauntedHouse = 'places/haunted-house.png',
-    Romantic = 'places/romantic-outdoor.png'
+    Romantic = 'places/romantic-outdoor.png',
+    Cafeteria = 'places/Cafeteria.png',
+    Hospital = 'places/Hospital.png',
+    Library = 'places/Library.png',
+    School = 'places/School.png',
+    Train = 'places/Train.png',
+    Village = 'places/Village.png',
 }
 
 
