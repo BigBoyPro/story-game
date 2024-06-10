@@ -1,13 +1,22 @@
 import emailjs from '@emailjs/browser';
-import React, { useRef } from 'react';
 import './ContactView.css';
 import backButtonIcon from '../assets/icons/backButton.png';
 import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 
 
 
 
 export default function Contact() {
+  const [message, setMessage] = useState('');
+  const [wordCount, setWordCount] = useState(0);
+  const wordLimit = 150;
+
+  function handleMessageChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const words = e.target.value.trim().split(/\s+/).filter(word => word.length > 0);
+    setMessage(e.target.value);
+    setWordCount(words.length);
+  }
   function sendEmail(e: React.FormEvent<HTMLFormElement>){
       e.preventDefault();
 
@@ -25,7 +34,7 @@ export default function Contact() {
       e.currentTarget.reset();
   }
   return (
-  <div>
+  <div className="contact-container">
     <Link to="/" className="back-button">
                 <img src={backButtonIcon} alt="Back Button" />
     </Link>
@@ -35,7 +44,11 @@ export default function Contact() {
                 <label>Email</label>
                 <input type="email" name="user_email" />
                 <label>Message</label>
-                <textarea name="message" />
+                <textarea name="message"
+          value={message}
+          onChange={handleMessageChange}
+          maxLength={wordLimit * 6}/>
+          <div className="word-count">{wordCount} / {wordLimit} words</div>
                 <button type='submit'>Send</button>
             </form>
   </div> 

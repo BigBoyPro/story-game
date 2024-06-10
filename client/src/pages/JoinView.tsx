@@ -77,12 +77,14 @@ function JoinView() {
                             <img src={playButtonIcon} alt="Play Button"/>
                         </button>
                     </form>
-                    <button type="button" className={"contactButton"} onClick={handleContactClick}>
-                    Contact Us
-                </button> 
+                    
                     
                 </div>
             </div>
+            <footer><button type="button" className={"contactButton"} onClick={handleContactClick}>
+                    Contact Us
+                   </button>
+                    </footer>
             
                    
            
