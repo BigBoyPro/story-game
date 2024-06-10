@@ -49,7 +49,7 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
             return {success: false, error: {type: ErrorType.LOBBY_ALREADY_PLAYING, logLevel: LogLevel.Warning, error: "Lobby is already playing"}}
         }
         // upsert user
-        const user : User = {id: userId, nickname: nickname, lobbyCode: null, ready: false};
+        const user : User = {id: userId, nickname: nickname, lobbyCode: null, ready: false, connected: true};
         ({success, error} = await dbUpsertUser(client, user, true))
         if (!success) return {success, error};
 

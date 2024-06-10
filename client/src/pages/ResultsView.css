@@ -21,8 +21,8 @@
     box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
     z-index: 1;
     overflow: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    /*scrollbar-width: none;*/
+    /*-ms-overflow-style: none;*/
 }
 
 @media screen and (max-width: 600px) {
