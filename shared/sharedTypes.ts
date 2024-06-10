@@ -59,7 +59,18 @@ export enum AudioType {
     Scary = "audios/Scary.mp3",
     Romantic = "audios/Romantic.mp3",
     Sad = "audios/Sad.mp3",
-    Suspense = "audios/Suspense.mp3"
+    Suspense = "audios/Suspense.mp3",
+    Alarm="audios/Alarm.mp3",
+    Ambulance="audios/Ambulance.mp3",
+    Applause="audios/Applause.mp3",
+    Beach="audios/Beach.mp3",
+    Fantastic="audios/Fantastic.mp3",
+    Forest="audios/Forest.mp3",
+    Heartbeat="audios/Heartbeat.mp3",
+    Shimmering="audios/Shimmering.mp3",
+    Waiting="audios/Waiting.mp3",
+    Yay="audios/Yay.mp3",
+    Funny="audios/Funny.mp3",
 }
 
 export type User = {
