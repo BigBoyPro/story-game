@@ -60,6 +60,7 @@
 .leave-lobby__header_button:hover {
     background-color: transparent;
     transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
 }
 
 .lobby-info {
@@ -79,6 +80,7 @@
 }
 .lobby-info__title--settings {
     color: black;
+    font-size: x-large;
 }
 
 .sidebar {
@@ -187,6 +189,44 @@
 .button-play:hover {
     background-color: #43BA9E;
     transform: scale(1.1);
-
+    transition: transform 0.3s ease-in-out;
 }
 
+
+.lobby-settings__list li {
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(179, 173, 227, 0.29);
+    border-radius: 10%;
+}
+
+.lobby-settings__list li input {
+    z-index: 2;
+    max-width: 30%;
+    background-color: rgba(185,147,199,0.53);
+    color: black;
+}
+
+
+.lobby-settings__list li label {
+    font-family: 'Roboto', sans-serif;
+}
+
+input[type="checkbox"] {
+    transform: scale(1.5);
+
+}
+input[type="checkbox"]:checked {
+    background-color:rgba(185,147,199,0.53);
+}
+
+#selectTimerTimer {
+    background-color: rgba(185,147,199,0.53) ;
+    border-radius: 10%;
+}
+#selectTimerTimer:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
+}

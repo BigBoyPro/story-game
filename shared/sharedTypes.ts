@@ -51,7 +51,13 @@ export enum PlaceType {
     Street = 'places/street.png',
     Bedroom = 'places/bedroom.png',
     HauntedHouse = 'places/haunted-house.png',
-    Romantic = 'places/romantic-outdoor.png'
+    Romantic = 'places/romantic-outdoor.png',
+    Cafeteria = 'places/Cafeteria.png',
+    Hospital = 'places/Hospital.png',
+    Library = 'places/Library.png',
+    School = 'places/School.png',
+    Train = 'places/Train.png',
+    Village = 'places/Village.png',
 }
 
 
@@ -59,7 +65,18 @@ export enum AudioType {
     Scary = "audios/Scary.mp3",
     Romantic = "audios/Romantic.mp3",
     Sad = "audios/Sad.mp3",
-    Suspense = "audios/Suspense.mp3"
+    Suspense = "audios/Suspense.mp3",
+    Alarm="audios/Alarm.mp3",
+    Ambulance="audios/Ambulance.mp3",
+    Applause="audios/Applause.mp3",
+    Beach="audios/Beach.mp3",
+    Fantastic="audios/Fantastic.mp3",
+    Forest="audios/Forest.mp3",
+    Heartbeat="audios/Heartbeat.mp3",
+    Shimmering="audios/Shimmering.mp3",
+    Waiting="audios/Waiting.mp3",
+    Yay="audios/Yay.mp3",
+    Funny="audios/Funny.mp3",
 }
 
 export type User = {
@@ -70,8 +87,8 @@ export type User = {
 };
 
 export enum TimerSetting {
-    NORMAL = "normal",
-    DYNAMIC = "dynamic"
+    Normal = "normal",
+    Dynamic = "dynamic"
 }
 
 export type LobbySettings = {
@@ -247,6 +264,6 @@ export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     maxAudios: 10,
     maxImages: 10,
     maxDrawings: 10,
-    timerSetting: TimerSetting.NORMAL,
+    timerSetting: TimerSetting.Normal,
     roundSeconds: 15 * 60,
 }
