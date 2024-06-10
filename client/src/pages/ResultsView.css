@@ -76,6 +76,10 @@
     background-color: rgb(111, 102, 231);
 }
 
+.share-button{
+    float: right;
+    transition: background-color 0.3s ease;
+}
 .page-title{
     font-size: 3rem;
     font-weight: 700;
