@@ -148,7 +148,7 @@ const StoryUserComponent = forwardRef(
                                                        }}
                                                        element={element}
                                                        isHidden={(!isEditable && onPlayingEnd && (element.index > shownElementIndex))
-                                                           || element.type === StoryElementType.Place || element.type === StoryElementType.Empty}
+                                                           || element.type === StoryElementType.Place}
                                                        isEditable={isEditable}
                                                        onElementChange={onElementChange ? (newElement) => onElementChange(element.index, newElement) : undefined}
                                                        onElementDelete={onElementDelete ? () => onElementDelete(element.index) : undefined}
