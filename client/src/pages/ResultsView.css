@@ -78,10 +78,8 @@
 .page-title{
     font-size: 3rem;
     font-weight: 700;
-    color: #333;
     margin-bottom: 1.25rem;
     animation: zoomIn 2s ease-in-out;
-
 }
 @keyframes zoomIn {
     0% {transform: scale(0.5);}
