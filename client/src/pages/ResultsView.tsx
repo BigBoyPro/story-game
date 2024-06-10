@@ -146,7 +146,6 @@ function ResultsView() {
                             <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
                                                    onPlayingEnd={() => setIsPlaying(false)}
                             />
-
                         </div>
                         <button className="share-button" onClick={handleSave}>
                             <FontAwesomeIcon icon={faShare} size="3x" />
