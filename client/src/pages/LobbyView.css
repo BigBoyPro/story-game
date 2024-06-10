@@ -25,7 +25,12 @@
         max-height: calc(34vw * 4 / 5);
     }
 }
-
+.background--lobby{
+    background-image: url('../assets/backgrounds/LobbyView.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 .leave-lobby__header {
     z-index: 3;
@@ -60,6 +65,7 @@
 .leave-lobby__header_button:hover {
     background-color: transparent;
     transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
 }
 
 .lobby-info {
@@ -69,6 +75,8 @@
     justify-content: space-evenly;
     align-items: center;
     overflow: hidden;
+    font-size: max(1.2rem, 0.7vw);
+
 }
 .lobby-info__title {
     font-weight: bold;
@@ -79,6 +87,7 @@
 }
 .lobby-info__title--settings {
     color: black;
+    font-size: 160%;
 }
 
 .sidebar {
@@ -93,7 +102,8 @@
     gap: 1rem;
     box-shadow: 0 0.6vw 1vw rgba(0, 0, 0, 0.15);
     color: white;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .lobby-code {
@@ -111,7 +121,7 @@
     flex-direction: column;
     align-items: center;
     z-index: 2;
-    overflow: auto;
+
 }
 
 .players__list {
@@ -121,13 +131,14 @@
     grid-template-rows: repeat(auto-fill, 1fr);
     gap: 0.5rem;
     padding: 0.5rem;
+
 }
 
 .player{
     display: flex;
     width: 100%;
     padding: 0.5rem 1rem;
-    border-radius: 25rem;
+    border-radius: 0.8rem;
     justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
@@ -149,13 +160,13 @@
 }
 
 .lobby-settings__list {
-    width: 100%;
     list-style-type: none;
     display: grid;
-    grid-template-rows: repeat(auto-fill, 1fr);
-    gap: 0.5rem;
+    grid-auto-rows: 1fr; /* This will make each row the same height */
+    width: 100%;
+    gap: 0.7rem;
+    overflow-x: hidden;
 }
-
 
 .lobby-play-button{
     min-width: 0;
@@ -187,6 +198,57 @@
 .button-play:hover {
     background-color: #43BA9E;
     transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+
+.lobby-settings__list li {
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* This will create two columns of equal width */
+    align-items: center;
+    background-color: rgba(179, 173, 227, 0.29);
+    padding: 1rem;
+    border-radius: 0.8rem;
+}
+
+.lobby-settings__list label {
+    font-weight: bold;
+    color: black;
+}
+
+/*//input and select*/
+.lobby-settings__list li input, .lobby-settings__list li select {
+    z-index: 2;
+    background-color: rgba(185,147,199,0.53);
+    color: black;
+    width: 100%;
 
 }
+.lobby-settings__list li select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.8rem;
+    border: none;
+    background-color: rgba(185,147,199,0.53);
+    text-align: center;
+}
+.lobby-settings__list li select:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.lobby-settings__list li label {
+    font-family: 'Roboto', sans-serif;
+}
+
+.lobby-settings__list li input[type="checkbox"] {
+    transform: scale(1.25);
+
+}
+.lobby-settings__list li input[type="checkbox"]:checked {
+    background-color:rgba(185,147,199,0.53);
+}
+
+
 

@@ -4,6 +4,8 @@ import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
 import ResultVideo from "../assets/backgrounds/ResultView.mp4";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faForward } from '@fortawesome/free-solid-svg-icons'
 
 import {
     offEndGame,
@@ -61,7 +63,6 @@ function ResultsView() {
                 lobby.usersSubmitted = 0;
                 lobby.round = 0;
             }
-            redirection(lobby, navigate, Page.Lobby);
         });
 
         if (lobby && !story) requestGetStoryAtPart(lobby.code)
@@ -129,7 +130,7 @@ function ResultsView() {
     }
     return (
         <>
-            <video autoPlay loop muted className={"background"}>
+            <video autoPlay loop muted className={"background background--results"}>
                 <source src={ResultVideo} type="video/mp4"/>
             </video>
 
@@ -149,8 +150,10 @@ function ResultsView() {
                         <button onClick={handleSave}>Share Story</button>
                         {!isPlaying &&
                             ((story.index < (storiesCount - 1) || userIndex < (storiesCount - 1)) ?
-                                <button className={"button"} onClick={handleNextUser}
-                                        disabled={lobby?.hostUserId !== userId}>Next Story</button>
+                                <button title="Next Story" className={"button"} onClick={handleNextUser}
+                                        disabled={lobby?.hostUserId !== userId}>
+                                    <FontAwesomeIcon icon={faForward} size="2x" />
+                                </button>
                                 :
                                 <button className={"button"} onClick={handleEndGame}
                                         disabled={lobby?.hostUserId !== userId}>End</button>)

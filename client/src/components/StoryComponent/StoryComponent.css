@@ -5,7 +5,6 @@
     gap: 1rem;
     border-radius: 0.5rem;
     color: #111111;
-    border: yellow 1px solid;
 }
 
 .story-element {
@@ -19,8 +18,6 @@
     align-items: center;
 }
 
-
-
 .element-type-container {
     display: flex;
     gap: 1rem;
@@ -28,12 +25,9 @@
 }
 
 .element-type-option {
-    /*background: radial-gradient(circle, rgba(121, 218, 231, 0.56) 0%, rgb(84, 188, 211) 100%);*/
-    /*background-color: #8eb3d7;*/
     background-color: transparent;
     border-bottom-style: outset;
     padding: 0.5rem;
-    /*border-radius: 0.5rem;*/
     cursor: pointer;
     width: 7.25rem;
     height: 4.125rem;
@@ -50,7 +44,7 @@
 
 
 .element-type-option.selected {
-    background-color: #2960f1;
+    background-color: rgb(111, 102, 231);
     color: #fff;
 }
 
@@ -84,7 +78,7 @@
     align-items: center;
     border-radius: 0.8rem;
     background-color: transparent;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     font-weight: bold;
 }
 .add-button:hover , .finish-button:hover{
@@ -102,21 +96,16 @@
 .place-selector, .audio-selector {
     background-color: rgba(9, 5, 5, 0.54);
     color: #fff;
-
     transition: all 0.3s ease-in-out;
     font-size: 16px;
     padding: 10px;
     border-radius: 5px;
-    /*background-color: #ab8e93;*/
-    /*color: #333;*/
     width: 200px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
 
 .place-selector:focus , .audio-selector:focus{
     outline: none;
-    border-color: #007BFF;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
 
 .place-selector:hover, .audio-selector:hover{
