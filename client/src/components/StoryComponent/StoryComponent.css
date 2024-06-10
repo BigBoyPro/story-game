@@ -56,6 +56,10 @@
     display: grid;
 }
 
+.finish-button-container{
+    margin-bottom: 5rem;
+}
+
 .add-button{
     font-size: 1.5rem;
     padding: 1rem;
