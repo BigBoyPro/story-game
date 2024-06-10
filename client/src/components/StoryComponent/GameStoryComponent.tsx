@@ -292,7 +292,8 @@ const GameStoryComponent = forwardRef(
                         </div>
 
 
-                        {getStoryElementsForEachUser(story.elements, false).map((elements, index) => {
+                        {getStoryElementsForEachUser(story.elements, false).map((elements, index, array) => {
+                            if(lobby && !lobby.lobbySettings.seePrevStoryPart && index !== array.length - 1) return null;
                             return (
                                 <React.Fragment key={index}>
                                     <StoryUserComponent elements={elements} isEditable={false} />
