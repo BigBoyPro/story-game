@@ -20,7 +20,7 @@
     height: 90%;
     max-width: 80vw;
     max-height: 100vh;
-    background-color: transparent;
+    /*background-color: transparent;*/
     padding: 1.25rem;
     border-radius: 0.625rem;
     box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
@@ -28,6 +28,7 @@
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    background-color: rgba(102, 147, 231, 0.29);
 }
 
 @media screen and (max-width: 600px) {
@@ -75,14 +76,17 @@
     background-color: rgb(111, 102, 231);
 }
 
-/*.story-element textarea {*/
-/*    height: 10vh;*/
-/*    width: 20vw;*/
-/*    overflow:auto;*/
-/*    scrollbar-width: none;*/
-/*    -ms-overflow-style: none;*/
-/*    padding: 10px;*/
-/*    font-size: 16px;*/
-/*}*/
+.page-title{
+    font-size: 3rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1.25rem;
+    animation: zoomIn 2s ease-in-out;
+
+}
+@keyframes zoomIn {
+    0% {transform: scale(0.5);}
+    100% {transform: scale(1);}
+}
 
 

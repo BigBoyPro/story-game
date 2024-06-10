@@ -66,7 +66,7 @@ function LobbyView() {
         requestLeaveLobby(lobby.code);
     };
     const getColor = (index: number) => {
-        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f'];
+        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f','#dc6a7f', '#6a70dc', '#c5a821', 'rgba(185,147,199,0.53)' ];
         return colors[index % colors.length];
     };
 

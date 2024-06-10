@@ -132,7 +132,8 @@ function ResultsView() {
             <div className="results-page">
                 {lobby && story &&
                     <div className="game-box-results">
-                        <h2>Results</h2>
+                        <h2 className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
+
                         <div className="story-box-results">
 
                             <h3>{story.name}</h3>
