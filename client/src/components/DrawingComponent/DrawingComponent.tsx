@@ -12,7 +12,7 @@ import "./DrawingComponent.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faEraser, faFont, faMinus, faHand, faFill,faUndo, faRedo, faTimes, faSave  } from '@fortawesome/free-solid-svg-icons';
 import { faSquare, faCircle } from '@fortawesome/free-regular-svg-icons';
-import {isMobile} from 'react-device-detect';
+// import {isMobile} from 'react-device-detect';
 
 import {DRAW_INITIAL_ACTIONS_MILLISECONDS} from "../StoryElementComponent/StoryElementComponent.tsx";
 
@@ -1217,7 +1217,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             {isEditable &&
                 <>
                     <div className={"tools-container"}>
-                        {!isMobile && <div className={"non-mobile"}>
+                         <div className={"non-mobile"}>
                             <FontAwesomeIcon
                                 title="Select"
                                 size={"2x"}
@@ -1225,7 +1225,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 className={`icon ${tool === AltTool.Selection ? 'selected-icon' : ''}`}
                                 onClick={() => handleToolChange(AltTool.Selection)}
                             />
-                        </div>}
+                        </div>
                         <div>
                             <FontAwesomeIcon
                                 title="Line"
@@ -1253,7 +1253,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 onClick={() => handleToolChange(ElementType.Ellipse)}
                             />
                         </div>
-                        {!isMobile && <div className={"non-mobile"}>
+                        <div className={"non-mobile"}>
                             <FontAwesomeIcon
                                 title="Text"
                                 size={"2x"}
@@ -1261,7 +1261,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 className={`icon ${tool === ElementType.Text ? 'selected-icon' : ''}`}
                                 onClick={() => handleToolChange(ElementType.Text)}
                             />
-                        </div>}
+                        </div>
                         <div>
                             <FontAwesomeIcon
                                 title="Pencil"
