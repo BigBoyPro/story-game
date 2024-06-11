@@ -49,7 +49,7 @@ export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, cur
 }
 
 
-export enum Page {
+enum Page {
     Join = "/",
     Lobby = "/lobby",
     Game = "/game",
