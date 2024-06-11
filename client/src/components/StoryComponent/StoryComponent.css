@@ -1,4 +1,5 @@
 .story-page {
+    z-index: 2;
     display: flex;
     flex-direction: column;
     flex: 1;

@@ -12,7 +12,7 @@ import "./DrawingComponent.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faEraser, faFont, faMinus, faHand, faFill,faUndo, faRedo, faTimes, faSave  } from '@fortawesome/free-solid-svg-icons';
 import { faSquare, faCircle } from '@fortawesome/free-regular-svg-icons';
-
+import {isMobile} from 'react-device-detect';
 
 import {DRAW_INITIAL_ACTIONS_MILLISECONDS} from "../StoryElementComponent/StoryElementComponent.tsx";
 
@@ -617,7 +617,7 @@ const getNormalizedCanvasMouseCoordinates = (canvas: HTMLCanvasElement, mouse: P
     // Normalize the coordinates
     const normalizedX = clientX / canvasWidth;
     const normalizedY = clientY / canvasHeight;
-    return {clientX: normalizedX, clientY: normalizedY};
+    return {normalX: normalizedX, normalY: normalizedY};
 };
 
 //--------------------------------------------------------------------------------------------------------------------
@@ -782,13 +782,16 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
     useEffect(() => {
         window.addEventListener('mouseup', handleMouseUp);
         window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('touchend', handleMouseUp);
+        window.addEventListener('touchmove', handleMouseMove);
 
         // Clean up the event listener when the component unmounts
         return () => {
             window.removeEventListener('mouseup', handleMouseUp);
             window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('touchend', handleMouseUp);
+            window.removeEventListener('touchmove', handleMouseMove);
         };
-
     }, [
         canvasRef,
         canvasSize,
@@ -799,8 +802,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         selectedColor,
         pencilSize,
         fill,
-    ]); // Empty dependency array means this effect runs once on mount and clean up on unmount
-
+    ]);
 
     isEditable && useEffect(() => {
         const undoRedoFunction = (event: KeyboardEvent) => {
@@ -833,14 +835,23 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 //--------------------------------------------------------------------------------------------------------------------
 
 
-    const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
         if (!isEditable || !canvasRef.current) return;
-        const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
-            x: event.clientX,
-            y: event.clientY
+        let clientX, clientY;
+        if('clientX' in event) {
+            clientX = event.clientX
+            clientY = event.clientY
+        }else {
+            event.preventDefault();
+            clientX = event.touches[0].clientX
+            clientY = event.touches[0].clientY
+        }
+        const {normalX, normalY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
+            x: clientX,
+            y: clientY
         }, canvasSize.width, canvasSize.height);
         if (tool === AltTool.Selection) {
-            const clickedElement = getElementAtPosition(clientX, clientY, drawnElements, canvasRef.current, canvasSize.width, canvasSize.height);
+            const clickedElement = getElementAtPosition(normalX, normalY, drawnElements, canvasRef.current, canvasSize.width, canvasSize.height);
             if (clickedElement?.element && clickedElement.position !== null && clickedElement.element.type !== ElementType.Eraser) {
                 const {element, position} = clickedElement;
                 // setElements(prevState => prevState ?? prevState);
@@ -848,20 +859,20 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                 if (position === Position.Inside) {
                     if (element.coordinates) {
                         const offsetPoint: Point = {
-                            x: clientX - element.coordinates.x1,
-                            y: clientY - element.coordinates.y1
+                            x: normalX - element.coordinates.x1,
+                            y: normalY - element.coordinates.y1
                         }
                         setSelection({element, offsetPoint});
                     } else if (element.points) {
                         const offsetPoints: Point[] = element.points.map(point => ({
-                            x: clientX - point.x,
-                            y: clientY - point.y
+                            x: normalX - point.x,
+                            y: normalY - point.y
                         }));
                         setSelection({element, offsetPoints});
                     } else if (element.point) {
                         const offsetPoint: Point = {
-                            x: clientX - element.point.x,
-                            y: clientY - element.point.y
+                            x: normalX - element.point.x,
+                            y: normalY - element.point.y
                         }
                         setSelection({element, offsetPoint});
                     }
@@ -888,16 +899,16 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
             if (tool === ElementType.Rectangle || tool === ElementType.Line || tool === ElementType.Ellipse) {
                 element = updateShapeElement(element, {
-                    x1: clientX,
-                    y1: clientY,
-                    x2: clientX,
-                    y2: clientY
+                    x1: normalX,
+                    y1: normalY,
+                    x2: normalX,
+                    y2: normalY
                 }, canvasSize.height, canvasSize.width, fill ? true : undefined);
 
             } else if (tool === ElementType.Text) {
-                element = updateTextElement(element, {x: event.clientX, y: event.clientY}, "");
+                element = updateTextElement(element, {x: clientX, y: clientY}, "");
             } else if (tool === ElementType.Pencil || tool === ElementType.Eraser) {
-                element = updatePencilElement(element, [{x: clientX, y: clientY}]);
+                element = updatePencilElement(element, [{x: normalX, y: normalY}]);
             }
 
             setDrawnElements([...drawnElements, element]);
@@ -909,14 +920,24 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
 //--------------------------------------------------------------------------------------------------------------------
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent | TouchEvent) => {
+        let clientX, clientY;
+
+        if('clientX' in event) {
+            clientX = event.clientX
+            clientY = event.clientY
+        }else {
+            clientX = event.touches[0].clientX
+            clientY = event.touches[0].clientY
+        }
+
         if (!isEditable || !canvasRef.current) return;
-        const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
-            x: event.clientX,
-            y: event.clientY
+        const {normalX, normalY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
+            x: clientX,
+            y: clientY
         }, canvasSize.width, canvasSize.height);
         if (tool === AltTool.Selection) {
-            const hoveredElement = getElementAtPosition(clientX, clientY, drawnElements, canvasRef.current, canvasSize.width, canvasSize.height);
+            const hoveredElement = getElementAtPosition(normalX, normalY, drawnElements, canvasRef.current, canvasSize.width, canvasSize.height);
             if (hoveredElement?.element.type !== ElementType.Eraser) {
                 canvasRef.current.style.cursor = (hoveredElement && hoveredElement.position !== null) ? cursorForPosition(hoveredElement.position) : "default";
             } else {
@@ -936,17 +957,17 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                     updatedElement = updateShapeElement(element, {
                         x1,
                         y1,
-                        x2: clientX,
-                        y2: clientY
+                        x2: normalX,
+                        y2: normalY
                     }, canvasSize.height, canvasSize.width, undefined);
                 } else if (element.points) {
                     updatedElement = updatePencilElement(element, [...(element.points), {
-                        x: clientX,
-                        y: clientY
+                        x: normalX,
+                        y: normalY
                     }]);
                 }
             } else if (state === State.Writing) {
-                updatedElement = updateTextElement(selectedElement, {x: event.clientX, y: event.clientY});
+                updatedElement = updateTextElement(selectedElement, {x: clientX, y: clientY});
 
             } else {
                 if (state === State.Moving) {
@@ -955,8 +976,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         const newPoints: Point[] = selectedElement.points.map((point, index: number) => {
                             if (!selection.offsetPoints) return point;
                             return ({
-                                x: clientX - selection.offsetPoints[index].x,
-                                y: clientY - selection.offsetPoints[index].y,
+                                x: normalX - selection.offsetPoints[index].x,
+                                y: normalY - selection.offsetPoints[index].y,
                             });
                         });
                         updatedElement = updatePencilElement(selection.element, newPoints);
@@ -964,8 +985,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
                         const width = selectedElement.coordinates.x2 - selectedElement.coordinates.x1;
                         const height = selectedElement.coordinates.y2 - selectedElement.coordinates.y1;
-                        const newX1 = clientX - selection.offsetPoint.x;
-                        const newY1 = clientY - selection.offsetPoint.y;
+                        const newX1 = normalX - selection.offsetPoint.x;
+                        const newY1 = normalY - selection.offsetPoint.y;
                         const newCoordinates: Coordinates = {
                             x1: newX1,
                             y1: newY1,
@@ -975,13 +996,13 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                         updatedElement = updateShapeElement(element, newCoordinates, canvasSize.height, canvasSize.width);
                     } else if (selection.offsetPoint && selectedElement.point) {
                         const newPoint: Point = {
-                            x: clientX - selection.offsetPoint.x,
-                            y: clientY - selection.offsetPoint.y
+                            x: normalX - selection.offsetPoint.x,
+                            y: normalY - selection.offsetPoint.y
                         };
                         updatedElement = updateTextElement(selectedElement, newPoint, selectedElement.text);
                     }
                 } else if (state === State.Resizing && selectedElement.coordinates && selection.position !== undefined) {
-                    const newCoordinates = resizedCoordinates(clientX, clientY, selection.position, selectedElement.coordinates)!;
+                    const newCoordinates = resizedCoordinates(normalX, normalY, selection.position, selectedElement.coordinates)!;
                     updatedElement = updateShapeElement(selectedElement, newCoordinates, canvasSize.height, canvasSize.width);
                 }
             }
@@ -1116,13 +1137,13 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
         if (canvasRef.current && selection && selection.element.type === ElementType.Text && textAreaRef.current) {
             const rect = textAreaRef.current.getBoundingClientRect();
-            const {clientX, clientY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
+            const {normalX, normalY} = getNormalizedCanvasMouseCoordinates(canvasRef.current, {
                 x: rect.left,
                 y: rect.top
             }, canvasSize.width, canvasSize.height)
             const updatedElement = updateTextElement(selection.element, {
-                x: clientX,
-                y: clientY
+                x: normalX,
+                y: normalY
             }, textAreaRef.current?.value);
             const drawingElement: DrawingElement = {...updatedElement};
             pushAction({
@@ -1159,23 +1180,52 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
         }, 10);
     };
 
+    function calculateLeftPosition() {
+        const buttonLeft = colorPickerButtonRef.current?.offsetLeft || 0;
+        const buttonWidth = colorPickerButtonRef.current?.offsetWidth || 0;
+        const colorPickerWidth = colorPickerContainerRef.current?.offsetWidth  || 0;
+        const windowWidth = window.innerWidth;
 
+        let left = buttonLeft + buttonWidth / 2;
 
+        // If the color picker overflows out of the right edge of the window, adjust its position to the left
+        if (left + colorPickerWidth > windowWidth) {
+            left = windowWidth - colorPickerWidth;
+        }
+
+        return `${left}px`;
+    }
+
+    function calculateTopPosition() {
+        const buttonTop = colorPickerButtonRef.current?.offsetTop || 0;
+        const buttonHeight = colorPickerButtonRef.current?.offsetHeight || 0;
+        const colorPickerHeight = colorPickerContainerRef.current?.offsetHeight || 0;
+        const windowHeight = window.innerHeight;
+
+        let top = buttonTop + buttonHeight / 2;
+
+        // If the color picker overflows out of the bottom edge of the window, adjust its position up
+        if (top + colorPickerHeight > windowHeight) {
+            top = windowHeight - colorPickerHeight;
+        }
+
+        return `${top}px`;
+    }
 // ---------------------------------------------------------------------------------------------------------------------
     return (
         <div className={"drawing-page"}>
             {isEditable &&
                 <>
                     <div className={"tools-container"}>
-                        <div>
+                        {!isMobile && <div className={"non-mobile"}>
                             <FontAwesomeIcon
                                 title="Select"
                                 size={"2x"}
                                 icon={faHand}
-                                className={`icon ${tool === AltTool.Selection? 'selected-icon' : ''}`}
+                                className={`icon ${tool === AltTool.Selection ? 'selected-icon' : ''}`}
                                 onClick={() => handleToolChange(AltTool.Selection)}
                             />
-                        </div>
+                        </div>}
                         <div>
                             <FontAwesomeIcon
                                 title="Line"
@@ -1203,7 +1253,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 onClick={() => handleToolChange(ElementType.Ellipse)}
                             />
                         </div>
-                        <div>
+                        {!isMobile && <div className={"non-mobile"}>
                             <FontAwesomeIcon
                                 title="Text"
                                 size={"2x"}
@@ -1211,7 +1261,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 className={`icon ${tool === ElementType.Text ? 'selected-icon' : ''}`}
                                 onClick={() => handleToolChange(ElementType.Text)}
                             />
-                        </div>
+                        </div>}
                         <div>
                             <FontAwesomeIcon
                                 title="Pencil"
@@ -1301,8 +1351,8 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                             <div ref={colorPickerContainerRef}
                                  style={{
                                      position: 'fixed',
-                                     left: colorPickerButtonRef.current ? `${colorPickerButtonRef.current?.offsetLeft + colorPickerButtonRef.current?.offsetWidth / 2}px` : '0',
-                                     top: colorPickerButtonRef.current ? `${colorPickerButtonRef.current?.offsetTop + colorPickerButtonRef.current?.offsetHeight / 2}px` : '0',
+                                     left: calculateLeftPosition(),
+                                     top: calculateTopPosition(),
                                      zIndex: 2
                                  }}>
                                 <ChromePicker color={colors[colors.length - 1]} disableAlpha={true}
@@ -1311,8 +1361,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                                   updatedColors[selectedColor] = event.hex;
                                                   setColors(updatedColors);
                                               }}/>
-                            </div>
-                        )}
+                            </div>)}
 
                         {selectedColor >= initialColors.length &&
                             <button className={"color-button"} onClick={() => {
@@ -1329,7 +1378,9 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
             <div className={"canvas-container"}>
                 <canvas ref={canvasRef}
                         id="canvas"
-                        onMouseDown={handleMouseDown}>
+                        onMouseDown={handleMouseDown}
+                        onTouchStart={handleMouseDown}
+                >
                     Canvas
                 </canvas>
 
