@@ -15,9 +15,10 @@ function JoinView() {
     const navigate = useNavigate();
     const lobby = useContext(LobbyContext);
     const [errorMessage, setErrorMessage] = useState('');
+    const isIOS = /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent)
 
     useEffect(() => {
-        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        const video: HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
         video && video.play();
 
         onError((event: SocketEvent, error: OpError) => {
@@ -59,10 +60,14 @@ function JoinView() {
 
     return (
         <>
-            <video  loop muted  controls={false} id={"background"}
-                   className={"background background--join"}>
-                <source src={JoinVideo} type="video/mp4"/>
-            </video>
+            {isIOS ?
+                <div className={"background background--join"}/>
+                :
+                <video loop muted controls={false} id={"background"}
+                       className={"background background--join"}>
+                    <source src={JoinVideo} type="video/mp4"/>
+                </video>
+            }
             <header>
                 <div className="header-buttons">
                     <button type="button" className={"join__button-3d button-3d-icon--help"} onClick={handleHelpClick}>

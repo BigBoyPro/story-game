@@ -60,6 +60,7 @@ function LobbyView() {
         redirection(lobby, navigate, Page.Lobby);
     }, [navigate, lobby]);
 
+    const isIOS = /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent)
 
     const handleStartGame = () => {
         if (!lobby) return;
@@ -192,10 +193,13 @@ function LobbyView() {
     // Always block navigation
     return (
         <>
-
+        {isIOS ?
+            <div className={"background background--join"}/>
+            :
             <video  id={"background"} loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>
             </video>
+        }
 
 
             <div className={"main-page"}>

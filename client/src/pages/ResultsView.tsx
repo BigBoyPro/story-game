@@ -4,8 +4,8 @@ import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
 import ResultVideo from "../assets/backgrounds/ResultView.mp4";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faForward, faShareNodes } from '@fortawesome/free-solid-svg-icons'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {faForward, faShareNodes} from '@fortawesome/free-solid-svg-icons'
 
 import {
     offEndGame,
@@ -38,13 +38,16 @@ function ResultsView() {
     const [userIndex, setUserIndex] = useState<number>(0);
     const [storiesCount, setStoriesCount] = useState<number>(lobby?.users.length || 0);
     const [isPlaying, setIsPlaying] = useState(true);
+    const isIOS = /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent)
+
+
     useEffect(() => {
         redirection(lobby, navigate, Page.Results);
 
         onStoryAtPart(({story, userIndex, storiesCount}) => {
             setStory(story);
             setUserIndex(userIndex);
-            setStoriesCount(storiesCount?? (lobby?.users.length || 0));
+            setStoriesCount(storiesCount ?? (lobby?.users.length || 0));
             console.log('Story at part', story, userIndex);
             console.log('Stories Count', storiesCount);
         });
@@ -66,7 +69,7 @@ function ResultsView() {
         });
 
         if (lobby && !story) requestGetStoryAtPart(lobby.code)
-        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        const video: HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
         video && video.play();
         return () => {
             offStoryAtPart()
@@ -131,31 +134,35 @@ function ResultsView() {
     }
     return (
         <>
-            <video loop muted controls={false} className={"background background--results"}
-            id={"background"}>
-                <source src={ResultVideo} type="video/mp4"/>
-            </video>
+            {isIOS ?
+                <div className={"background background--join"}/>
+                :
+                <video loop muted controls={false} className={"background background--results"}
+                       id={"background"}>
+                    <source src={ResultVideo} type="video/mp4"/>
+                </video>
+            }
 
             <div className="results-page">
                 {lobby && story &&
                     <div className="game-box-results">
-                        <h2  className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
+                        <h2 className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
                         <div className="story-box-results">
 
-                            <h3 style={{ fontSize: '1.5em' }}>{story.name}...</h3>
+                            <h3 style={{fontSize: '1.5em'}}>{story.name}...</h3>
 
                             <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
                                                    onPlayingEnd={() => setIsPlaying(false)}
                             />
                         </div>
                         <button className="share-button" onClick={handleSave}>
-                            <FontAwesomeIcon icon={faShareNodes} size="3x" />
+                            <FontAwesomeIcon icon={faShareNodes} size="3x"/>
                         </button>
                         {!isPlaying &&
                             ((story.index < (storiesCount - 1) || userIndex < (storiesCount - 1)) ?
                                 <button title="Next Story" className={"button--results"} onClick={handleNextUser}
                                         disabled={lobby?.hostUserId !== userId}>
-                                    <FontAwesomeIcon icon={faForward} size="2x" />
+                                    <FontAwesomeIcon icon={faForward} size="2x"/>
                                 </button>
                                 :
                                 <button className={"button--results"} onClick={handleEndGame}
