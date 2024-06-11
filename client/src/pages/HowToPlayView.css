@@ -89,14 +89,13 @@
         font-size: 0.6em;
     }
 }
-.button-HTP {
-    background-color: #007BFF;
-    color: white;
-    padding: 0.5vw 1vw;
-    display: inline-block;
-    font-size: 0.8vw;
+img {
+    width: 5vw;
+    height: auto;
     cursor: pointer;
-    border-radius: 0.5vw;
-    box-shadow: 0 0.5vw 1vw 0 rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: transform 0.3s ease-in-out;
+}
+
+img:hover {
+    transform: scale(1.1);
 }

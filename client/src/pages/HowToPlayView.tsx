@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import './HowToPlayView.css';
 import backButtonIcon from '../assets/icons/backHowToPlay.png';
+import prevIcon from '../assets/icons/logo-P.png'; // Import the image for the "Previous" button
+import nextIcon from '../assets/icons/logo-N.png'; // Import the image for the "Next" button
 import { useState, useEffect } from 'react';
 
 function HowToPlayView() {
@@ -31,7 +33,7 @@ function HowToPlayView() {
 
     return (
         <div className="how-to-play-page">
-            <button className="button-HTP" onClick={goPrevRule}>Previous</button> {/* Move the left arrow button here */}
+            <img src={prevIcon} alt="Previous" onClick={goPrevRule} /> {/* Replace the "Previous" button with an image */}
             <div className="rules-text">
                 <Link to="/" className="back-button">
                     <img src={backButtonIcon} alt="Back Button" />
@@ -42,7 +44,7 @@ function HowToPlayView() {
                     {rules[currentRule]}
                 </p>
             </div>
-            <button className="button-HTP" onClick={goNextRule}>Next</button> {/* Move the right arrow button here */}
+            <img src={nextIcon} alt="Next" onClick={goNextRule} /> {/* Replace the "Next" button with an image */}
         </div>
     );
 }
