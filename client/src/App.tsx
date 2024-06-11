@@ -3,11 +3,11 @@ import {useEffect, useState} from "react";
 import {
     offError,
     offLeftLobby,
-    offLobbyInfo, offSubmitted,
+    offLobbyInfo,
     offUsersSubmitted,
     onError,
     onLeftLobby,
-    onLobbyInfo, onSubmitted,
+    onLobbyInfo,
     onUsersSubmitted,
     requestStory,
 
@@ -49,7 +49,7 @@ export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, cur
 }
 
 
-export enum Page {
+enum Page {
     Join = "/",
     Lobby = "/lobby",
     Game = "/game",
@@ -122,13 +122,7 @@ function App() {
             }
         });
 
-        onSubmitted((submitted : boolean) => {
-            console.log('Submitted:', submitted);
-            if(lobby) {
 
-                setLobby({...lobby ,usersSubmitted: submitted ? lobby.usersSubmitted + 1 : lobby.usersSubmitted - 1});
-            }
-        });
 
         onUsersSubmitted((usersSubmitted : number) => {
             console.log('Users Submitted:', usersSubmitted);
@@ -163,7 +157,6 @@ function App() {
             offError();
             offLeftLobby();
             offUsersSubmitted();
-            offSubmitted();
         }
 
     }, []);
@@ -173,8 +166,7 @@ function App() {
   return (
       <>
           <LobbyContext.Provider value={lobby}>
-              <RouterProvider key={lobby ? lobby.round : undefined} router={router}/>
-          </LobbyContext.Provider>
+              <RouterProvider key={lobby ? `${lobby.round}_${lobby.roundEndAt?.getTime()}` : undefined} router={router}/>          </LobbyContext.Provider>
       </>
   )
 }

@@ -26,6 +26,7 @@
     }
 }
 .background--lobby{
+    background-color: #ACCAD6;
     background-image: url('../assets/backgrounds/LobbyView.png');
     background-size: cover;
     background-position: center;
@@ -60,6 +61,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: transform 0.3s ease-in-out;
 }
 
 .leave-lobby__header_button:hover {
@@ -193,12 +195,23 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: transform 0.3s ease-in-out;
 }
 
-.button-play:hover {
+.button-play:hover:not(:disabled) {
     background-color: #43BA9E;
     transform: scale(1.1);
     transition: transform 0.3s ease-in-out;
+
+}
+.button-play:disabled {
+    cursor: not-allowed;
+    background-color: #ccc;
+    transform: scale(1);
+}
+
+.button-play:disabled:hover {
+    background-color: #ccc;
 }
 
 
@@ -232,9 +245,11 @@
     border: none;
     background-color: rgba(185,147,199,0.53);
     text-align: center;
+    transition: transform 0.3s ease-in-out;
+
 }
-.lobby-settings__list li select:hover {
-    transform: scale(1.1);
+.lobby-settings__list li select:hover:not(:disabled) {
+    transform: scale(1.02);
     transition: transform 0.3s ease-in-out;
 }
 

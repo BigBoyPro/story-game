@@ -49,6 +49,7 @@ const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
 
 const responseWarningsMap = new Map<SocketEvent, ErrorType[]>([
     [SocketEvent.JOIN_LOBBY, [ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.LOBBY_NOT_FOUND]],
+    [SocketEvent.GET_STORY, [ErrorType.ROUND_ENDED]],
     ]);
 
 
@@ -65,6 +66,7 @@ const eventsThatCanBeInfinitelyRetried = [
     SocketEvent.SUBMIT_LOBBY_MAX_DRAWINGS,
     SocketEvent.SUBMIT_LOBBY_TIMER_SETTING,
     SocketEvent.SUBMIT_LOBBY_ROUND_SECONDS,
+    SocketEvent.SUBMIT_STORY_ELEMENTS,
     // Add other events that can be retried infinitely
 ];
 

@@ -5,7 +5,7 @@ import {LobbyContext} from "../LobbyContext.tsx";
 import './ResultsView.css';
 import ResultVideo from "../assets/backgrounds/ResultView.mp4";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faForward, faShare } from '@fortawesome/free-solid-svg-icons'
+import { faForward, faShareNodes } from '@fortawesome/free-solid-svg-icons'
 
 import {
     offEndGame,
@@ -148,7 +148,7 @@ function ResultsView() {
                             />
                         </div>
                         <button className="share-button" onClick={handleSave}>
-                            <FontAwesomeIcon icon={faShare} size="3x" />
+                            <FontAwesomeIcon icon={faShareNodes} size="3x" />
                         </button>
                         {!isPlaying &&
                             ((story.index < (storiesCount - 1) || userIndex < (storiesCount - 1)) ?

@@ -1,0 +1,12 @@
+.duration-picker{
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/*.duration-picker__input{*/
+/*}*/
+
+.duration-picker__colon{
+    margin: 0 0.5rem;
+}

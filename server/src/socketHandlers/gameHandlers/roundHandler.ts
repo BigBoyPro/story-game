@@ -22,6 +22,7 @@ import {broadcastGetStoryElements, broadcastLobbyInfo} from "../socketService";
 const USERS_TIMEOUT_MILLISECONDS = 30 * 1000;
 
 const LOADING_TIMEOUT_MILLISECONDS = 3 * 1000;
+const REMAINING_MILLISECONDS_FOR_ACCELERATION = 20 * 1000;
 
 const lobbyTimeouts = new Map<string, NodeJS.Timeout>();
 
@@ -155,6 +156,51 @@ const newRound = (pool: Pool, lobby: Lobby) => {
         return {success: true, data: lobby};
     });
 };
+// Accelerate the round timer (DYNAMIC TIMER SETTING)
+export const onAccelerateRoundTimer = async (io: Server, pool: Pool, lobby: Lobby) => {
+    const {data: newLobby, success} = await processOp(() =>
+        accelerateRoundTimer(pool, lobby)
+    )
+    if (!success || !newLobby) {
+        console.error("error accelerating round timer");
+        return;
+    }
+
+    console.log("broadcasting lobby info");
+    broadcastLobbyInfo(io, newLobby.code, newLobby);
+    clearLobbyTimeouts(lobby.code);
+    waitForRound(io, pool, newLobby);
+}
+
+const accelerateRoundTimer = (pool: Pool, lobby: Lobby) => {
+    return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby>> => {
+        console.log("***accelerating round timer***");
+        clearLobbyTimeouts(lobby.code);
+
+        console.log("round: " + lobby.round);
+
+        if(!lobby.roundStartAt || !lobby.roundEndAt) return {success: false, error: {type: ErrorType.ROUND_START_END_NULL, logLevel: LogLevel.Error, error: "round start or end time is null"}};
+        const shiftedNow = Date.now() + LOADING_TIMEOUT_MILLISECONDS;
+        let roundEndTime: (Date | null) = new Date(shiftedNow + REMAINING_MILLISECONDS_FOR_ACCELERATION);
+
+        //lock the lobby row
+        let {error, success} = await dbLockRowLobby(client, lobby.code);
+        if (!success) return {success, error};
+
+        ({error, success} = await dbUpdateLobbyRound(client, lobby.code, lobby.round, lobby.roundStartAt, roundEndTime));
+        if (!success) return {success, error};
+
+        lobby.roundEndAt = roundEndTime;
+
+        return {success: true, data: lobby};
+    });
+
+}
+
+
+
+
+
 
 // Function to handle the restart of a round
 export const onRestartRound = async (io: Server, pool: Pool, lobby: Lobby) => {

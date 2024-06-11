@@ -163,4 +163,3 @@ function ResultsStoryComponentAsHTML({
     );
 }
 
-export default ResultsStoryComponentAsHTML;
