@@ -21,7 +21,9 @@ import {
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
 import {excludedBroadcastUsersSubmitted, isUserConnected, sendError, sendSubmitted} from "../socketService";
-import {onNewRound} from "./roundHandler";
+import {onAccelerateRoundTimer, onNewRound} from "./roundHandler";
+
+const MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION = 20 * 1000;
 
 // Main function to handle the submission of story elements
 export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string, elements: StoryElement[]) {
@@ -60,6 +62,14 @@ export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool
     if (lobby.usersSubmitted >= connectedUsersCount) {
         await onNewRound(io, pool, lobby);
         console.log("***round " + lobby.round + " ended***");
+
+    }else if(lobby.lobbySettings.timerSetting === TimerSetting.Dynamic && lobby.usersSubmitted >= (lobby.users.length/2) && lobby.roundEndAt){
+        // only if the remaining time is more than 10 seconds
+        // accelerate the round timer if more than half of the users have submitted
+        const remainingTime = lobby.roundEndAt.getTime() - new Date().getTime();
+        if(remainingTime > MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION){
+           await onAccelerateRoundTimer(io, pool, lobby);
+        }
 
     }
 }
