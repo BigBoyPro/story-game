@@ -194,7 +194,7 @@ function LobbyView() {
     return (
         <>
         {isIOS ?
-            <div className={"background background--join"}/>
+            <div className={"background background--lobby"}/>
             :
             <video  id={"background"} loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>

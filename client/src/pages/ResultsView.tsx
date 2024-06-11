@@ -135,7 +135,7 @@ function ResultsView() {
     return (
         <>
             {isIOS ?
-                <div className={"background background--join"}/>
+                <div className={"background background--results"}/>
                 :
                 <video loop muted controls={false} className={"background background--results"}
                        id={"background"}>
