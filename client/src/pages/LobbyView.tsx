@@ -52,6 +52,11 @@ function LobbyView() {
     const [roundSeconds, setRoundSeconds] = useState(lobby?.lobbySettings.roundSeconds || DEFAULT_LOBBY_SETTINGS.roundSeconds);
 
     useEffect(() => {
+        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        video && video.play();
+    }, []);
+
+    useEffect(() => {
         redirection(lobby, navigate, Page.Lobby);
     }, [navigate, lobby]);
 
@@ -188,7 +193,7 @@ function LobbyView() {
     return (
         <>
 
-            <video autoPlay loop muted className={"background background--lobby"}>
+            <video  id={"background"} loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>
             </video>
 
