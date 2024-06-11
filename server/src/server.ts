@@ -15,7 +15,7 @@ try {
     require('dotenv').config();
 
     const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
-    const PORT = process.env.PORT || 443;
+    const PORT = parseInt(process.env.PORT || "443");
 
     if (!SUPABASE_DATABASE_URL) {
         console.error('SUPABASE_DATABASE_URL is not set');
@@ -26,7 +26,7 @@ try {
     });
     const app = express();
     const server = http.createServer(app);
-    console.log('Starting server');
+
     app.use(express.json());
     app.use(cors());
     app.get('/test', (_req, res) => {
@@ -38,11 +38,9 @@ try {
             methods: ["GET", "POST"]
         }
     });
-    console.log('Server created');
+
     resetGames(io, pool).then(() => {
-        console.log('Games reset');
         setupSocketHandlers(io, pool);
-        console.log('Socket handlers set up');
         server.listen(PORT, () => {
             console.log("Server is running on port " + PORT);
         });

@@ -5,51 +5,56 @@
     background-size: cover;
     background-position: center;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     text-align: center;
+    padding: 0vh 20vw;
 }
 
 .rules-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
     color: #090505;
     font-size: 1.5em;
-    padding: 10vh;
+    padding: 5vh 0.5vw;
     margin: 10% 10%;
     text-align: center;
+}
+
+.rules-text p {
+    display: block; /* Change the display to block */
+    font-size: 1em;
+    padding: 2.5vh 5vw; /* Adjust the padding to give more space for the text */
+    margin: 8% 10% 2% 10%; /* Adjust the margin to give more space for the text */
+    color : brown;
+    text-align: center; /* Center the text */
+    width: 35vw;
 }
 
 .rules-text h2 {
     color: brown;
     font-size: 1em;
-    padding: 5vh;
-    margin: 10% 10%;
+    padding: 2.8vh;
+    margin: 1% 20%;
 }
 
 .rules-text h1 {
-    margin-top: 1%;
-    margin-bottom: 0.5em;
-    margin-right: 2%;
+    margin-top: 3%;
+    margin-bottom: 2em;
+    margin-right: 3%;
 }
 
-.rules-text h2 {
-    margin-top: 0.5em; /* Réduisez l'espace au-dessus du h2 */
-    margin-bottom: 1em; /* Augmentez l'espace sous le h2 */
-}
-
-.rules-text p {
-    margin-top: 1em; /* Augmentez l'espace au-dessus du p */
-    color : brown;
-}
-.rules-text h1, .rules-text h2, .rules-text p {
-    /*padding-left: 10%; /* Ajustez cette valeur pour déplacer le texte vers la droite */
-}
 .back-button {
     position: absolute;
-    top: 2vh;
-    left: 2vw;
-    width: 10vw;
-    height: 10vh;
+    top: 1vh;
+    left: 1vw;
+    width: 5vw;
+    height: 5vh;
 }
+
 .back-button img {
     width: 7.5vw;
     height: 15vh;
@@ -58,4 +63,46 @@
 
 .back-button img:hover {
     transform: scale(1.1);
+}
+
+/* Media queries for different screen sizes */
+@media (max-width: 1200px) {
+    .rules-text {
+        font-size: 1.2em;
+    }
+}
+
+@media (max-width: 992px) {
+    .rules-text {
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 768px) {
+    .rules-text {
+        font-size: 0.8em;
+    }
+}
+
+@media (max-width: 576px) {
+    .rules-text {
+        font-size: 0.6em;
+    }
+}
+.button {
+    background-color: #007BFF;
+    color: white;
+    padding: 0.5vw 1vw;
+    display: inline-block;
+    font-size: 0.8vw;
+    cursor: pointer;
+    border-radius: 0.5vw;
+    box-shadow: 0 0.5vw 1vw 0 rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.button:hover {
+    background-color: white;
+    color: #007BFF;
+    border: 0.2vw solid #007BFF;
 }
