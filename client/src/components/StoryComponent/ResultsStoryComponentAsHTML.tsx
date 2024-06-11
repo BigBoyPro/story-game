@@ -76,7 +76,6 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    
                     position: relative;
                     min-height: 100vh;
                     background-size: cover;
@@ -91,13 +90,11 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     max-width: 80vw;
                     max-height: 100vh;
                     background-color: transparent;
-                    
                     box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
                     z-index: 1;
                     overflow: auto;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
-                    
                 }
                 .story-page textarea {
                     border: 1px solid #ccc;
@@ -115,15 +112,12 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                 .story-page img {
                 
                 }
-                
-                
                 @media screen and (max-width: 600px) {
                     .game-box {
                         width: 90%;
                         padding: 1px;
                     }
                 }
-                
                 .game-box-results h2 {
                     text-align: center;
                     color: #333;
@@ -134,7 +128,6 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     border-top: 1px solid #eee;
                     padding-top: 1.25rem;
                 }
-                
                 .story-box-results h3 {
                     text-align: center;
                     color: #666;

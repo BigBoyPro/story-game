@@ -77,6 +77,7 @@ export enum AudioType {
     Waiting="audios/Waiting.mp3",
     Yay="audios/Yay.mp3",
     Funny="audios/Funny.mp3",
+    Tom="audios/Tom.mp3",
 }
 
 export type User = {
