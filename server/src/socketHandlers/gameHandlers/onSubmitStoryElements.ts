@@ -20,7 +20,7 @@ import {
     dbUpsertleteStoryElements
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
-import {excludedBroadcastUsersSubmitted, isUserConnected, sendError, sendSubmitted} from "../socketService";
+import {broadcastUsersSubmitted, isUserConnected, sendError, sendSubmitted} from "../socketService";
 import {onAccelerateRoundTimer, onNewRound} from "./roundHandler";
 
 const MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION = 20 * 1000;
@@ -52,9 +52,8 @@ export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool
     }
 
     // Send the submitted status to the user
-    sendSubmitted(userId, true);
     // Broadcast the users submitted to all users except the one who submitted
-    excludedBroadcastUsersSubmitted(userId, lobbyCode, lobby.usersSubmitted);
+    broadcastUsersSubmitted(io, lobbyCode, lobby.usersSubmitted);
     // Log the submission of story elements
     console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
     // get number of users connected
@@ -63,14 +62,17 @@ export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool
         await onNewRound(io, pool, lobby);
         console.log("***round " + lobby.round + " ended***");
 
-    }else if(lobby.lobbySettings.timerSetting === TimerSetting.Dynamic && lobby.usersSubmitted >= (lobby.users.length/2) && lobby.roundEndAt){
-        // only if the remaining time is more than 10 seconds
-        // accelerate the round timer if more than half of the users have submitted
-        const remainingTime = lobby.roundEndAt.getTime() - new Date().getTime();
-        if(remainingTime > MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION){
-           await onAccelerateRoundTimer(io, pool, lobby);
-        }
+    } else {
+        sendSubmitted(userId, true);
+        if (lobby.lobbySettings.timerSetting === TimerSetting.Dynamic && lobby.usersSubmitted >= (lobby.users.length / 2) && lobby.roundEndAt) {
+            // only if the remaining time is more than 10 seconds
+            // accelerate the round timer if more than half of the users have submitted
+            const remainingTime = lobby.roundEndAt.getTime() - new Date().getTime();
+            if (remainingTime > MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION) {
+                await onAccelerateRoundTimer(io, pool, lobby);
+            }
 
+        }
     }
 }
 

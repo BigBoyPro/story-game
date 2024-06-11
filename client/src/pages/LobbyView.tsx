@@ -33,11 +33,13 @@ import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
 import './LobbyView.css';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faPlay, faRightFromBracket} from '@fortawesome/free-solid-svg-icons'
-
+import DurationPickerComponent from "../components/DurationPickerComponent/DurationPickerComponent.tsx";
+import SpinnerComponent from "../components/SpinnerComponent/SpinnerComponent.tsx";
 
 function LobbyView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
 
     // Lobby Settings
     const [maxPlayers, setMaxPlayers] = useState(lobby?.lobbySettings.maxPlayers || DEFAULT_LOBBY_SETTINGS.maxPlayers);
@@ -59,11 +61,13 @@ function LobbyView() {
         if (!lobby) return;
         console.log('starting game')
         requestStartGame(lobby.code)
+        setIsLoading(true)
     }
     const handleBack = () => {
         if (!lobby) return;
         console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
+        setIsLoading(true)
     };
     const getColor = (index: number) => {
         const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f','#dc6a7f', '#6a70dc', '#c5a821', 'rgba(185,147,199,0.53)' ];
@@ -184,9 +188,16 @@ function LobbyView() {
     // Always block navigation
     return (
         <>
+            {isLoading && (
+                <div className="loading-overlay">
+                    <SpinnerComponent/>
+                </div>
+            )}
+
             <video autoPlay loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>
             </video>
+
 
             <div className={"main-page"}>
                 <div className={"lobby-box"}>
@@ -232,9 +243,9 @@ function LobbyView() {
 
 
                                 <li>
-                                    <label htmlFor="incrementNumber">Round time (s):</label>
-                                    <input type="number" id="roundTimer" step="1" min="50" value={roundSeconds}
-                                           onChange={(e) => handleRoundSecondsChange(parseInt(e.target.value))}
+                                    <label htmlFor="incrementNumber">Round Duration (m:s)</label>
+                                    <DurationPickerComponent durationSeconds={roundSeconds}
+                                           onChange={(newSeconds) => handleRoundSecondsChange(newSeconds)}
                                            disabled={lobby?.hostUserId !== userId}
                                     />
                                 </li>

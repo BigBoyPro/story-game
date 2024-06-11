@@ -7,7 +7,7 @@ import {
     dbUpdateUserLastActive, dbUpdateUserReady
 } from "../../db";
 import {isUserInLobby} from "../../utils/utils";
-import {excludedBroadcastUsersSubmitted, sendError, sendSubmitted} from "../socketService";
+import {broadcastUsersSubmitted, sendError, sendSubmitted} from "../socketService";
 
 // Main function to handle the unsubmission of story elements
 export async function onUnsubmitStoryElements(event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) {
@@ -37,7 +37,7 @@ export async function onUnsubmitStoryElements(event: SocketEvent, io: Server, po
     // Send the submitted status to the user
     sendSubmitted(userId, false);
     // Broadcast the users submitted to all users except the one who unsubmitted
-    excludedBroadcastUsersSubmitted(userId, lobbyCode, lobby.usersSubmitted);
+    broadcastUsersSubmitted(io, lobbyCode, lobby.usersSubmitted);
     // Log the unsubmission of story elements
     console.log("story elements unsubmitted by " + userId + " in lobby " + lobbyCode)
 

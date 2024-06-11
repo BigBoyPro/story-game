@@ -62,11 +62,9 @@ export const sendSubmitted = (userId: string, submitted: boolean) => {
     send(userId, SocketEvent.SUBMITTED, submitted);
 }
 
-export const excludedBroadcastUsersSubmitted = (excludedUserId: string, lobbyCode: string, usersSubmitted: number) => {
-    const userSocket = userSocketMap.get(excludedUserId);
-    if(userSocket) {
-        userSocket.to(lobbyCode).emit(SocketEvent.USERS_SUBMITTED, usersSubmitted);
-    }}
+export const broadcastUsersSubmitted = (io: Server, lobbyCode: string, usersSubmitted: number) => {
+    broadcast(io, lobbyCode, SocketEvent.USERS_SUBMITTED, usersSubmitted);
+}
 
 
 export const broadcastLobbyInfo = (io: Server, lobbyCode: string, lobby: Lobby) => {

@@ -26,6 +26,7 @@
     }
 }
 .background--lobby{
+    background-color: #ACCAD6;
     background-image: url('../assets/backgrounds/LobbyView.png');
     background-size: cover;
     background-position: center;

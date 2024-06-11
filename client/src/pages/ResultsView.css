@@ -8,6 +8,7 @@
     background-attachment: fixed;
 }
 .background--results{
+    background-color: #A8DAE7;
     background-image: url('../assets/backgrounds/ResultsView.png');
     background-size: cover;
     background-position: center;
@@ -16,7 +17,6 @@
 .game-box-results {
     width: 80%;
     max-width: 80%;
-    background-color: transparent;
     margin: 2% 5%;
     padding: 1.25rem;
     border-radius: 0.625rem;

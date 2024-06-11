@@ -3,6 +3,7 @@
     display: flex;
     width: 100%;
     min-height: 100%;
+    background-color: #DACDBA;
     background-image: url("../assets/backgrounds/GameView.png") ;
     background-attachment: scroll;
     background-size: cover;
@@ -12,25 +13,45 @@
 }
 
 .floating-elements, .users {
+    font-size: max(0.9rem, 0.7vw);
+
     flex-grow: 1;
     flex-shrink: 1;
-    flex-basis: 50%; /* Set the base size to 50% of the parent container */
+    flex-basis: 0;
 }
 
-.game-box {
-    flex-grow: 0; /* .game-box will not grow when the window is enlarged */
-    flex-shrink: 1; /* .game-box will shrink when the window is reduced and the other elements can no longer shrink */
-    flex-basis: 75%; /* .game-box will take up 500px of the .game-page width */
-    min-width: 40rem;
-}
+/*.game-box {*/
+/*    flex-grow: 0; !* .game-box will not grow when the window is enlarged *!*/
+/*    flex-shrink: 1; !* .game-box will shrink when the window is reduced and the other elements can no longer shrink *!*/
+/*    flex-basis: 75%; !* .game-box will take up 500px of the .game-page width *!*/
+/*    min-width: 40rem;*/
+/*}*/
 
 .game-box {
     position: relative;
     z-index: 1;
     padding: 5rem;
+    aspect-ratio: 5 / 4;
+    background-color: transparent;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/*we want the lobby-box to be sticked to the display in the background image*/
+@media (max-aspect-ratio: 17/8) {
+    .game-box {
+        max-width: calc(100vh * 15 / 16);
+        max-height: 100%;
+    }
+}
+
+@media (min-aspect-ratio: 17/8) {
+    .game-box {
+        max-width: 43%;
+        max-height: calc(43vw * 16 / 14);
+    }
 }
 
 .game-page h2{
@@ -53,6 +74,7 @@
     align-content: flex-start; /* Add this line */
 }
 .round{
+    /*border: black 1px solid;*/
     display: flex;
     flex-direction: column;
     padding: 1rem;
@@ -73,6 +95,7 @@
 }
 
 .timer{
+    /*border: black 1px solid;*/
     z-index: 1;
     display: flex;
     flex-direction: column;
@@ -80,6 +103,8 @@
     gap: 1rem;
     background-color: transparent;
     align-items: center;
+    color: #EDEDED;
+    font-weight: bold;
 }
 
 

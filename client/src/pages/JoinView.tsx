@@ -46,27 +46,24 @@ function JoinView() {
         <>
             <video autoPlay loop muted
                    className={"background background--join"}>
-                <source src={JoinVideo} type="video/mp4" />
+                <source src={JoinVideo} type="video/mp4"/>
             </video>
             <header>
                 <div className="header-buttons">
-                <button type="button" className={"join__button-3d button-3d-icon--help"} onClick={handleHelpClick}>
-                    <img src={helpButtonIcon} alt="Help Button"/>
-                </button>  
-                
-                
+                    <button type="button" className={"join__button-3d button-3d-icon--help"} onClick={handleHelpClick}>
+                        <img src={helpButtonIcon} alt="Help Button"/>
+                    </button>
+
+
                 </div>
-                </header>
-                
-                
-                
-             
-                 
+            </header>
+
+
             <div className={"main-page"}>
 
                 <div className={"join-box"}>
                     <form onSubmit={(event) => handleSubmit(event)}>
-                        <StoryGameLogo className={"join__logo"} />
+                        <StoryGameLogo className={"join__logo"}/>
                         <input onChange={(event) => setNickname(event.target.value)}
                                type="text" placeholder="Nickname" className="join__input"/>
                         <input onChange={(event) => setLobbyCode(event.target.value)}
@@ -75,18 +72,17 @@ function JoinView() {
                             <img src={playButtonIcon} alt="Play Button"/>
                         </button>
                     </form>
-                    
-                    
+
+
                 </div>
             </div>
-            <footer><button type="button" className={"contactButton"} onClick={handleContactClick}>
+            <footer>
+                <button type="button" className={"contactButton"} onClick={handleContactClick}>
                     Contact Us
-                   </button>
-                    </footer>
-            
-                   
-           
-            
+                </button>
+            </footer>
+
+
         </>
     );
 }
