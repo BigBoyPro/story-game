@@ -153,12 +153,12 @@ function ResultsView() {
                         </button>
                         {!isPlaying &&
                             ((story.index < (storiesCount - 1) || userIndex < (storiesCount - 1)) ?
-                                <button title="Next Story" className={"button"} onClick={handleNextUser}
+                                <button title="Next Story" className={"button--results"} onClick={handleNextUser}
                                         disabled={lobby?.hostUserId !== userId}>
                                     <FontAwesomeIcon icon={faForward} size="2x" />
                                 </button>
                                 :
-                                <button className={"button"} onClick={handleEndGame}
+                                <button className={"button--results"} onClick={handleEndGame}
                                         disabled={lobby?.hostUserId !== userId}>End</button>)
                         }
                     </div>

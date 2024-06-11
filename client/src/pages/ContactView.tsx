@@ -1,6 +1,5 @@
 import emailjs from '@emailjs/browser';
 import './ContactView.css';
-import backButtonIcon from '../assets/icons/backButton.png';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 
@@ -36,7 +35,7 @@ export default function Contact() {
   return (
   <div className="contact-container">
     <Link to="/" className="back-button">
-                <img src={backButtonIcon} alt="Back Button" />
+        Back
     </Link>
     <form className='contact-form' onSubmit={sendEmail}>
                 <label>Name</label>

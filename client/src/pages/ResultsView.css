@@ -71,17 +71,46 @@
 
 .share-button{
     float: right;
-    transition: background-color 0.3s ease;
+    transition: transform 0.3s ease-in-out;
 }
+
+
+.share-button:hover:not(:disabled) {
+    background-color: transparent;
+    transform: scale(1.05);
+    transition: transform 0.3s ease-in-out;
+}
+
 .page-title{
-    color: #ED7402;
+    color: white;
+    width: fit-content;
+    justify-self: center;
+    align-self: center;
+    background-color: #0028A0AA;
+    border-radius: 0.8rem;
     padding: 1rem;
     font-size: 3rem;
     font-weight: 700;
-    margin-bottom: 1.25rem;
+    margin: auto;
     animation: zoomIn 2s ease-in-out;
 }
 @keyframes zoomIn {
     0% {transform: scale(0.7);}
     100% {transform: scale(1);}
+}
+
+.button--results {
+    display: block;
+    width: 100%;
+    padding: 0.625rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #0028A0DD;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button--results:hover:not(:disabled) {
+    background-color: #0028A0;
 }
