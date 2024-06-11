@@ -17,6 +17,9 @@ function JoinView() {
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
+        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        video && video.play();
+
         onError((event: SocketEvent, error: OpError) => {
             if (event === SocketEvent.JOIN_LOBBY && error && (error.type === ErrorType.LOBBY_NOT_FOUND || error.type === ErrorType.LOBBY_MAX_PLAYERS_REACHED
                 || error.type === ErrorType.LOBBY_ALREADY_PLAYING)) {
@@ -56,7 +59,7 @@ function JoinView() {
 
     return (
         <>
-            <video autoPlay loop muted
+            <video  loop muted  controls={false} id={"background"}
                    className={"background background--join"}>
                 <source src={JoinVideo} type="video/mp4"/>
             </video>

@@ -35,7 +35,6 @@
 
 .game-box-results h2 {
     text-align: center;
-    color: #333;
     margin-bottom: 1.25rem;
 }
 
@@ -46,7 +45,6 @@
 
 .story-box-results h3 {
     text-align: center;
-    color: #666;
     margin-bottom: 1.25rem;
 }
 
@@ -76,12 +74,14 @@
     transition: background-color 0.3s ease;
 }
 .page-title{
+    color: #ED7402;
+    padding: 1rem;
     font-size: 3rem;
     font-weight: 700;
     margin-bottom: 1.25rem;
     animation: zoomIn 2s ease-in-out;
 }
 @keyframes zoomIn {
-    0% {transform: scale(0.5);}
+    0% {transform: scale(0.7);}
     100% {transform: scale(1);}
 }

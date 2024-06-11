@@ -66,7 +66,8 @@ function ResultsView() {
         });
 
         if (lobby && !story) requestGetStoryAtPart(lobby.code)
-
+        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        video && video.play();
         return () => {
             offStoryAtPart()
             offPart()
@@ -130,15 +131,15 @@ function ResultsView() {
     }
     return (
         <>
-            <video autoPlay loop muted className={"background background--results"}>
+            <video loop muted controls={false} className={"background background--results"}
+            id={"background"}>
                 <source src={ResultVideo} type="video/mp4"/>
             </video>
 
             <div className="results-page">
                 {lobby && story &&
                     <div className="game-box-results">
-                        <h2 style={{ color: 'rgb(162, 33, 33)'}} className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
-
+                        <h2  className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
                         <div className="story-box-results">
 
                             <h3 style={{ fontSize: '1.5em' }}>{story.name}...</h3>
