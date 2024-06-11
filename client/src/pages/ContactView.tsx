@@ -1,6 +1,5 @@
 import emailjs from '@emailjs/browser';
 import './ContactView.css';
-// import backButtonIcon from '../assets/icons/backButton.png';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
