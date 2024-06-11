@@ -12,10 +12,11 @@ import {
     offStory,
     offGetStoryElements, unsubmitStoryElements, userId, requestLeaveLobby, onSubmitted, offSubmitted
 } from "../utils/socketService.ts";
-import { redirection} from "../App.tsx";
+import {redirection} from "../App.tsx";
 import GameStoryComponent, {GameStoryComponentHandles} from "../components/StoryComponent/GameStoryComponent.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faRightFromBracket} from "@fortawesome/free-solid-svg-icons";
+
 function GameView() {
     const navigate = useNavigate();
     const lobby = useContext(LobbyContext);
@@ -42,9 +43,8 @@ function GameView() {
             }
         });
 
-        onSubmitted((_submitted : boolean) => {
+        onSubmitted((_submitted: boolean) => {
         });
-
 
 
         return () => {
@@ -131,10 +131,40 @@ function GameView() {
                 </div>
                 <div className="game-box">
                     <div className={"leave-lobby__header"}>
+                        <div className="floating-elements--mobile">
+                         <span className={"timer__clock--mobile"}>
+                              {lobby?.roundStartAt && lobby?.roundEndAt &&
+                                  <CountdownCircleTimer
+                                      isPlaying
+                                      duration={roundSeconds}
+                                      colors={['#6F66E7', '#6F66E7', '#CAA12E', '#E37434', '#E0491F']}
+                                      colorsTime={[roundSeconds, roundSeconds / 2, roundSeconds / 3, roundSeconds / 5, 0]}
+                                      initialRemainingTime={getSeconds(new Date(), lobby.roundEndAt)}
+                                      size={75} strokeWidth={5}
+                                      onComplete={() => {
+                                          console.log('round ended');
+                                      }}
+                                  >
+                                      {({remainingTime}) => {
+                                          const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+                                          const seconds = (remainingTime % 60).toString().padStart(2, '0');
+
+                                          return `${minutes}:${seconds}`;
+                                      }}
+                                  </CountdownCircleTimer>
+                              }
+                        </span>
+                            <div className={"round"}>
+                                <p className={"round__text--mobile"}>{lobby?.round}/{(lobby && lobby.roundsCount > lobby.users.length) ? lobby.roundsCount : lobby?.users.length}</p>
+                            </div>
+                        </div>
                         <button className={"leave-lobby__header_button"} onClick={handleBack} title="Leave Lobby">
                             <FontAwesomeIcon icon={faRightFromBracket} size="2x"/>
                         </button>
+
                     </div>
+
+
                     {story &&
                         <GameStoryComponent key={story.id}
                                             ref={storyComponentRef}
@@ -163,7 +193,8 @@ function GameView() {
 
             </div>
         </>
-    );
+    )
+        ;
 }
 
 export default GameView;
