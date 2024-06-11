@@ -25,6 +25,9 @@
         max-height: calc(34vw * 4 / 5);
     }
 }
+
+
+
 .background--lobby{
     background-color: #ACCAD6;
     background-image: url('../assets/backgrounds/LobbyView.png');
@@ -33,42 +36,6 @@
     background-repeat: no-repeat;
 }
 
-.leave-lobby__header {
-    z-index: 3;
-    position: absolute; /* Change this from relative to absolute */
-    top: 0; /* Add this */
-    right: 0;/* Change this from fixed to relative */
-    flex: 1.5;
-    min-height: 2.4rem;
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: space-between;
-    align-items: center;
-    color: black;
-    align-self: flex-start; /* Add this */
-    margin-left: auto; /* Add this */
-}
-
-
-.leave-lobby__header_button {
-    max-height: 100%;
-    aspect-ratio: 1/1;
-    /*background: radial-gradient(circle, rgba(121, 218, 231, 0.56) 0%, rgb(84, 188, 211) 100%);*/
-    /*background-color: #8eb3d7;*/
-    background-color: transparent;
-    padding: 0.5rem;
-    /*border-radius: 0.5rem;*/
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.3s ease-in-out;
-}
-
-.leave-lobby__header_button:hover {
-    background-color: transparent;
-    transform: scale(1.1);
-    transition: transform 0.3s ease-in-out;
-}
 
 .lobby-info {
     flex: 14;

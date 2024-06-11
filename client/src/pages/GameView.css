@@ -1,16 +1,87 @@
 .game-page {
-    z-index: 1;
     display: flex;
     width: 100%;
     min-height: 100%;
     background-color: #DACDBA;
-    background-image: url("../assets/backgrounds/GameView.png") ;
+    background-image: url("../assets/backgrounds/GameView.png");
     background-attachment: scroll;
     background-size: cover;
     background-position: center;
-    overflow:auto;
+    overflow: auto;
+    justify-content: center;
 
 }
+
+@media (max-height: 600px) {
+    body .game-page {
+        padding: 0;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .game-page .game-box {
+        padding: 1rem;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    /*hide */
+    .game-page .floating-elements, .game-page .users {
+        display: none;
+        overflow: hidden;
+        position: inherit;
+    }
+
+    .game-page .leave-lobby__header {
+        position: sticky;
+        flex-direction: row;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem;
+        width: 100%;
+        max-height: 10rem;
+    }
+
+    .game-page .leave-lobby__header .floating-elements--mobile {
+        z-index: 3;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 1rem;
+
+    }
+
+    .timer__clock--mobile {
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .round__text--mobile {
+        z-index: 3;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        background-color: white;
+        border-radius: 0.8rem;
+        font-size: 1.2rem;
+        min-width: 5rem
+    }
+
+}
+
 
 .floating-elements, .users {
     font-size: max(0.9rem, 0.7vw);
@@ -29,7 +100,7 @@
 
 .game-box {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     padding: 5rem;
     aspect-ratio: 5 / 4;
     background-color: transparent;
@@ -37,6 +108,10 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 1rem;
+}
+
+.floating-elements--mobile {
+    display: none;
 }
 
 /*we want the lobby-box to be sticked to the display in the background image*/
@@ -54,7 +129,8 @@
     }
 }
 
-.game-page h2{
+
+.game-page h2 {
     font-size: 130%;
     color: #e19a9a;
     font-weight: bold;
@@ -67,13 +143,14 @@
 
 .floating-elements {
     /*border: black 1px solid;*/
-    z-index: 1;
+    z-index: 2;
     display: flex;
     justify-content: space-evenly;
     flex-wrap: wrap;
     align-content: flex-start; /* Add this line */
 }
-.round{
+
+.round {
     /*border: black 1px solid;*/
     display: flex;
     flex-direction: column;
@@ -84,7 +161,7 @@
 
 }
 
-.round__text{
+.round__text {
     width: 10rem;
     text-align: center;
     z-index: 1;
@@ -94,7 +171,7 @@
     border-radius: 0.8rem;
 }
 
-.timer{
+.timer {
     /*border: black 1px solid;*/
     z-index: 1;
     display: flex;
@@ -121,7 +198,7 @@
 }
 
 
-.users__list{
+.users__list {
     max-width: 25rem;
     width: 100%;
     z-index: 1;
@@ -129,7 +206,7 @@
     gap: 1rem;
 }
 
-.user{
+.user {
     min-width: 10rem;
     z-index: 1;
     background-color: white;
@@ -140,4 +217,3 @@
     justify-content: center;
     align-items: center;
 }
-
