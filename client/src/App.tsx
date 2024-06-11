@@ -166,7 +166,7 @@ function App() {
                 </div>
             )}
             <LobbyContext.Provider value={lobby}>
-                    <RouterProvider key={lobby ? `${lobby.round}_${lobby.roundEndAt?.getTime()}_${lobby.hostUserId}` : undefined}
+                    <RouterProvider key={lobby ? `${lobby.round}_${lobby.hostUserId}` : undefined}
                                     router={router}/>
             </LobbyContext.Provider>
         </>
