@@ -8,3 +8,9 @@
     width: 100%;
     justify-content: center;
 }
+
+.story-user-elements h3{
+    color: rgb(162, 33, 33);
+    background-color: rgba(46, 46, 54, 0.31);
+    font-weight: bold;
+}

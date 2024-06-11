@@ -126,12 +126,12 @@ const StoryUserComponent = forwardRef(
                     }}>
                         {!isEditable && elements.length > 0 &&
                             (elements[0].userId === userId ?
-                                <h3>Your part:</h3>
+                                <h3 style= {{ color:'black'}}>Your part:</h3>
                                 :
                                 (isHidden !== undefined ?
-                                        <h3>{getUserNameFromId(elements[0].userId)}'s part:</h3>
+                                        <h3 style= {{ color:'black'}}>{getUserNameFromId(elements[0].userId)}'s part:</h3>
                                         :
-                                        <h3>Previous story part:</h3>
+                                        <h3 style= {{ color:'black'}}>Previous story part:</h3>
                                 ))
                         }
                         {elements.map((element, index) => {

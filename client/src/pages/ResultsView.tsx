@@ -137,11 +137,11 @@ function ResultsView() {
             <div className="results-page">
                 {lobby && story &&
                     <div className="game-box-results">
-                        <h2 className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
+                        <h2 style={{ color: 'rgb(162, 33, 33)'}} className="page-title">It's Story O'Clock ! Let's Dive into Your Tales</h2>
 
                         <div className="story-box-results">
 
-                            <h3>{story.name}</h3>
+                            <h3 style={{ fontSize: '1.5em' }}>{story.name}...</h3>
 
                             <ResultsStoryComponent key={story.id} story={story} shownUserIndex={userIndex}
                                                    onPlayingEnd={() => setIsPlaying(false)}
