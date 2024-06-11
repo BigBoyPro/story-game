@@ -31,7 +31,7 @@ function HowToPlayView() {
 
     return (
         <div className="how-to-play-page">
-            <button className="button" onClick={goPrevRule}>Previous</button> {/* Move the left arrow button here */}
+            <button className="button-HTP" onClick={goPrevRule}>Previous</button> {/* Move the left arrow button here */}
             <div className="rules-text">
                 <Link to="/" className="back-button">
                     <img src={backButtonIcon} alt="Back Button" />
@@ -42,7 +42,7 @@ function HowToPlayView() {
                     {rules[currentRule]}
                 </p>
             </div>
-            <button className="button" onClick={goNextRule}>Next</button> {/* Move the right arrow button here */}
+            <button className="button-HTP" onClick={goNextRule}>Next</button> {/* Move the right arrow button here */}
         </div>
     );
 }
