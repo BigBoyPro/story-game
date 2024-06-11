@@ -62,7 +62,7 @@
 
 .floating {
     position: sticky;
-    top: 0; /* Add this line */
+    top: 0;
 }
 
 .floating-elements {

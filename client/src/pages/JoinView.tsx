@@ -6,8 +6,9 @@ import helpButtonIcon from "../assets/icons/helpButton.png";
 import JoinVideo from "../assets/backgrounds/JoinView.mp4";
 import {useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
-import {Page, redirection} from "../App.tsx";
+import {redirection} from "../App.tsx";
 import "./JoinView.css";
+import {Page} from "../../../shared/sharedTypes.ts";
 
 
 function JoinView() {

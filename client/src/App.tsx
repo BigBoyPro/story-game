@@ -10,9 +10,8 @@ import {
     onLobbyInfo,
     onUsersSubmitted,
     requestStory,
-
 } from "./utils/socketService.ts";
-import {ErrorType, Lobby, LogLevel} from "../../shared/sharedTypes.ts";
+import {ErrorType, Lobby, LogLevel, Page} from "../../shared/sharedTypes.ts";
 
 import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
@@ -48,15 +47,6 @@ export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, cur
     }
 }
 
-
-enum Page {
-    Join = "/",
-    Lobby = "/lobby",
-    Game = "/game",
-    Results = "/results",
-    HowToPlay = "/how-to-play",
-    Contact = "/contact"
-}
 
 const WrongErrorsForPageMap = new Map<Page, ErrorType[]>([
     [Page.Join, [ErrorType.STORY_ID_NOT_FOUND, ErrorType.STORY_INDEX_OUT_OF_BOUNDS, ErrorType.PART_IS_NULL,

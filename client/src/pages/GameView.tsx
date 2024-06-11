@@ -1,4 +1,4 @@
-import {Story, StoryElement} from "../../../shared/sharedTypes.ts";
+import {Page, Story, StoryElement} from "../../../shared/sharedTypes.ts";
 import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
@@ -12,7 +12,7 @@ import {
     offStory,
     offGetStoryElements, unsubmitStoryElements, userId, requestLeaveLobby, onSubmitted, offSubmitted
 } from "../utils/socketService.ts";
-import {Page, redirection} from "../App.tsx";
+import {redirection} from "../App.tsx";
 import GameStoryComponent, {GameStoryComponentHandles} from "../components/StoryComponent/GameStoryComponent.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faRightFromBracket} from "@fortawesome/free-solid-svg-icons";
@@ -108,7 +108,6 @@ function GameView() {
                 </div>
             )}
             <div className="game-page">
-
                 <div className={"floating floating-elements"}>
                     <div className={"timer"}>
                         <h2>Timer</h2>

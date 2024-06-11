@@ -26,8 +26,8 @@ import {
     userId
 } from "../utils/socketService.ts";
 import {useNavigate} from "react-router-dom";
-import {Page, redirection} from "../App.tsx";
-import {DEFAULT_LOBBY_SETTINGS, TimerSetting} from "../../../shared/sharedTypes.ts";
+import {redirection} from "../App.tsx";
+import {DEFAULT_LOBBY_SETTINGS, Page, TimerSetting} from "../../../shared/sharedTypes.ts";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
 import './LobbyView.css';

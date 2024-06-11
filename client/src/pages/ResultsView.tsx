@@ -1,4 +1,4 @@
-import {Story, StoryElementType} from "../../../shared/sharedTypes.ts";
+import {Page, Story, StoryElementType} from "../../../shared/sharedTypes.ts";
 import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useState} from "react";
 import {LobbyContext} from "../LobbyContext.tsx";
@@ -19,7 +19,7 @@ import {
     requestNextPart,
     userId
 } from "../utils/socketService.ts";
-import {Page, redirection} from "../App.tsx";
+import {redirection} from "../App.tsx";
 import ResultsStoryComponent from "../components/StoryComponent/ResultsStoryComponent.tsx";
 import {savedComponentAsHTML} from "../components/StoryComponent/ResultsStoryComponentAsHTML.tsx";
 import {

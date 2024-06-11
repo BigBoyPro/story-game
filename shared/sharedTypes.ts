@@ -268,3 +268,12 @@ export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     timerSetting: TimerSetting.Normal,
     roundSeconds: 5 * 60,
 }
+
+export enum Page {
+    Join = "/",
+    Lobby = "/lobby",
+    Game = "/game",
+    Results = "/results",
+    HowToPlay = "/how-to-play",
+    Contact = "/contact"
+}
