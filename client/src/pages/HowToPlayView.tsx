@@ -3,7 +3,7 @@ import './HowToPlayView.css';
 import backButtonIcon from '../assets/icons/backHowToPlay.png';
 import prevIcon from '../assets/icons/logo-P.png'; // Import the image for the "Previous" button
 import nextIcon from '../assets/icons/logo-N.png'; // Import the image for the "Next" button
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 function HowToPlayView() {
     const [currentRule, setCurrentRule] = useState(0);
@@ -14,14 +14,6 @@ function HowToPlayView() {
         'Continuing the Story: In each round, every player will receive another player\'s story to continue.',
         'Winning the Game: The game continues until all players have contributed to each story. The most creative and engaging story, as voted by the players, wins!'
     ];
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setCurrentRule((currentRule + 1) % rules.length);
-        }, 5000); // Change rule every 5 seconds
-
-        return () => clearTimeout(timer); // Clear the timer if the component is unmounted
-    }, [currentRule, rules.length]);
 
     const goPrevRule = () => {
         setCurrentRule((currentRule - 1 + rules.length) % rules.length);

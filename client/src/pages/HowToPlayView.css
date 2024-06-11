@@ -49,15 +49,15 @@
 
 .back-button {
     position: absolute;
-    top: 1vh;
+    top: 7vh;
     left: 1vw;
-    width: 5vw;
-    height: 5vh;
+    width: 2.5vw;
+    height: 2.5vh;
 }
 
 .back-button img {
-    width: 7.5vw;
-    height: 15vh;
+    width: 5vw;
+    height: 10vh;
     transition: transform 0.3s ease-in-out;
 }
 
