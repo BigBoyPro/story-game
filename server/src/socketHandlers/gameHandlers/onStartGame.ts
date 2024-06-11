@@ -38,8 +38,8 @@ export async function onStartGame(event: SocketEvent, io: Server, pool: Pool, us
         return;
     }
     // Broadcast the lobby information to all users
-    broadcastLobbyInfo(io, lobby.code, lobby);
-    // Log the start of the game
+    // broadcastLobbyInfo(io, lobby.code, lobby);
+
     console.log("game started in lobby " + lobby.code);
 
     await onNewRound(io, pool, lobby);

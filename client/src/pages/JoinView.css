@@ -33,7 +33,10 @@
     max-height: 60%;
     object-fit: contain;
 }
-
+.error-label {
+    color: red;
+    font-size: 1.2rem;
+}
 
 .join__button-3d{
     aspect-ratio: 1/1;

@@ -32,8 +32,16 @@ const MAX_RETRIES = 5;
 
 const ongoingRequests = new Map<SocketEvent, { args: any[], retryCount: number }>();
 
+let setLoading: ((isLoading: boolean) => void ) | null = null;
+
+export const setLoadingState = (newSetLoading: (isLoading: boolean) => void) => {
+    setLoading = newSetLoading;
+};
+
+
 // Response Events:
 const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
+    [SocketEvent.GET_LOBBY, [SocketEvent.LOBBY_INFO]],
     [SocketEvent.JOIN_LOBBY, [SocketEvent.LOBBY_INFO]],
     [SocketEvent.CREATE_LOBBY, [SocketEvent.LOBBY_INFO]],
     [SocketEvent.START_GAME, [SocketEvent.LOBBY_INFO]],
@@ -42,15 +50,15 @@ const responseEventsMap = new Map<SocketEvent, SocketEvent[]>([
     [SocketEvent.GET_STORY_AT_PART, [SocketEvent.STORY_AT_PART]],
     [SocketEvent.END_GAME, [SocketEvent.LOBBY_INFO]],
     [SocketEvent.LEAVE_LOBBY, [SocketEvent.LEFT_LOBBY, SocketEvent.LOBBY_INFO]],
-    [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]],
+    [SocketEvent.SUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED, SocketEvent.LOBBY_INFO]],
     [SocketEvent.UNSUBMIT_STORY_ELEMENTS, [SocketEvent.SUBMITTED]]
 ]);
 
 
 const responseWarningsMap = new Map<SocketEvent, ErrorType[]>([
-    [SocketEvent.JOIN_LOBBY, [ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.LOBBY_NOT_FOUND]],
+    [SocketEvent.JOIN_LOBBY, [ErrorType.LOBBY_ALREADY_PLAYING, ErrorType.LOBBY_NOT_FOUND, ErrorType.LOBBY_MAX_PLAYERS_REACHED]],
     [SocketEvent.GET_STORY, [ErrorType.ROUND_ENDED]],
-    ]);
+]);
 
 
 const eventsThatCanBeInfinitelyRetried = [
@@ -99,6 +107,21 @@ const eventsThatCanCoexist = new Map<SocketEvent, SocketEvent[]>([
 
 ]);
 
+
+const requestsThatRequireLoading = [
+    // SocketEvent.GET_STORY,
+    // SocketEvent.GET_STORY_AT_PART,
+    SocketEvent.SUBMIT_STORY_ELEMENTS,
+    // SocketEvent.UNSUBMIT_STORY_ELEMENTS,
+    SocketEvent.JOIN_LOBBY,
+    SocketEvent.CREATE_LOBBY,
+    SocketEvent.LEAVE_LOBBY,
+    SocketEvent.START_GAME,
+    // SocketEvent.NEXT_PART,
+    SocketEvent.END_GAME
+];
+
+
 export const canRequest = (event: SocketEvent, args: any[]): boolean => {
     // If the event can be retried infinitely and the event is already ongoing, return true
     if (eventsThatCanBeInfinitelyRetried.includes(event) && ongoingRequests.has(event)) {
@@ -143,6 +166,11 @@ export const sendRequest = (event: SocketEvent, ...args: any[]) => {
     // Add the request to the ongoingRequests map
     ongoingRequests.set(event, {args: args, retryCount: 0});
 
+    if(setLoading && requestsThatRequireLoading.includes(event)) {
+        setLoading(true);
+        console.log('loading...for event', event);
+    }
+
     // Get the response events for this request event from the map
     const responseEvents = responseEventsMap.get(event);
 
@@ -150,12 +178,16 @@ export const sendRequest = (event: SocketEvent, ...args: any[]) => {
     if (responseEvents) {
         responseEvents.forEach(responseEvent => {
             socket.once(responseEvent, () => {
+                console.log('received response event ' + responseEvent + ' for request event ' + event);
                 ongoingRequests.delete(event);
+                if(setLoading && requestsThatRequireLoading.includes(event)){
+                    setLoading(false);
+                    console.log('finished loading for event', event);
+                }
             });
         });
     }
 }
-
 
 
 // Event Listeners:
@@ -209,17 +241,23 @@ const errorsThatShouldReload = [
 // The errors that aren't supposed to happen on that page (ignored)
 
 
-export const onError = (isWrongPage: (event: SocketEvent, error: OpError) => boolean) => {
-    socket.on(SocketEvent.ERROR, (event: SocketEvent, error? : OpError) => {
-        if(error && isWrongPage(event, error)){
+export const appOnError = (isWrongPage: (event: SocketEvent, error: OpError) => boolean) => {
+    socket.on(SocketEvent.ERROR, (event: SocketEvent, error?: OpError) => {
+        if (error && isWrongPage(event, error)) {
+            if(setLoading && requestsThatRequireLoading.includes(event)){
+                setLoading(false);
+                console.log('finished loading for event', event);
+            }
             console.log("error on wrong page...")
             return;
         }
         // If the error level is Error, retry the request after a delay
         if (error && error.logLevel === LogLevel.Error) {
-            if(errorsThatShouldReload.includes(error.type)){
+            if (errorsThatShouldReload.includes(error.type)) {
                 console.log("reloading page")
-                setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
+                setTimeout(() => {
+                    window.location.reload();
+                }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
                 return;
             }
             const request = ongoingRequests.get(event);
@@ -232,19 +270,35 @@ export const onError = (isWrongPage: (event: SocketEvent, error: OpError) => boo
                 } else {
                     console.log(`Max retry attempts reached for event ${event}.`);
                     console.log("reloading page")
-                    setTimeout(() => { window.location.reload(); }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, RETRY_MILLISECONDS); // Reload the page after 5 seconds
                 }
             } else {
                 console.log(`No request info found for event ${event}.`);
             }
-        }else if (error && error.logLevel === LogLevel.Warning) {
+        } else if (error && error.logLevel === LogLevel.Warning) {
             const responseWarnings = responseWarningsMap.get(event);
             if (responseWarnings && responseWarnings.includes(error.type)) {
                 ongoingRequests.delete(event);
+                if(setLoading && requestsThatRequireLoading.includes(event)){
+                    setLoading(false);
+                    console.log('finished loading for event', event);
+                }
             }
         }
 
 
+    });
+}
+
+export const appOffError = () => {
+    socket.off(SocketEvent.ERROR);
+}
+
+export const onError = (callback: (event: SocketEvent, error: OpError) => void) => {
+    socket.on(SocketEvent.ERROR, (event: SocketEvent, error: OpError) => {
+        callback(event, error);
     });
 }
 
@@ -386,7 +440,11 @@ export const offUsersSubmitted = () => {
     socket.off(SocketEvent.USERS_SUBMITTED);
 }
 
-export const onStoryAtPart = (callback: ({story, userIndex, storiesCount}: { story: Story, userIndex: number, storiesCount: number}) => void) => {
+export const onStoryAtPart = (callback: ({story, userIndex, storiesCount}: {
+    story: Story,
+    userIndex: number,
+    storiesCount: number
+}) => void) => {
     // log content of elements
 
     socket.on(SocketEvent.STORY_AT_PART, ({story, userIndex, storiesCount}) => {
@@ -398,7 +456,7 @@ export const offStoryAtPart = () => {
     socket.off(SocketEvent.STORY_AT_PART);
 }
 
-export const onPart = (callback: ({userIndex, storiesCount} : {userIndex: number, storiesCount: number}) => void) => {
+export const onPart = (callback: ({userIndex, storiesCount}: { userIndex: number, storiesCount: number }) => void) => {
     socket.on(SocketEvent.PART, ({userIndex, storiesCount}) => {
         callback({userIndex, storiesCount});
     });

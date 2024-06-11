@@ -50,7 +50,7 @@ const StoryElementComponent = forwardRef(
         const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
         const utterance = useRef<SpeechSynthesisUtterance | null>(null);
         const audioRef = useRef<HTMLAudioElement>(null);
-        const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+        const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         const shouldPlayOnLoad = useRef(false);
 
         const elementRef = useRef<HTMLDivElement>(null);

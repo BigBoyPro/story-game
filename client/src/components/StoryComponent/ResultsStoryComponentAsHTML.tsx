@@ -6,6 +6,29 @@ import { getStoryElementsForEachUser } from "./StoryComponent.ts";
 import ReactDOMServer from 'react-dom/server';
 
 export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDataUrls: string[]) => {
+    function ResultsStoryComponentAsHTML({
+                                             storyElements,
+                                         }: {
+        storyElements: StoryElement[],
+    }) {
+        return (
+            <div className="story-page">
+                {getStoryElementsForEachUser(storyElements).map((elements, index) => {
+                    return (
+                        <React.Fragment key={index}>
+                            <StoryUserComponent
+                                elements={elements}
+                                isEditable={false}
+                                resultsProps={{
+                                    isHidden: false,
+                                }}
+                            />
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+        );
+    }
     const componentHTML = ReactDOMServer.renderToStaticMarkup(
         <ResultsStoryComponentAsHTML storyElements={storyElements}  />
     );
@@ -137,29 +160,5 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     console.log('HTML file has been saved.');
-}
-
-function ResultsStoryComponentAsHTML({
-                                         storyElements,
-                                     }: {
-    storyElements: StoryElement[],
-}) {
-    return (
-        <div className="story-page">
-            {getStoryElementsForEachUser(storyElements).map((elements, index) => {
-                return (
-                    <React.Fragment key={index}>
-                        <StoryUserComponent
-                            elements={elements}
-                            isEditable={false}
-                            resultsProps={{
-                                isHidden: false,
-                            }}
-                        />
-                    </React.Fragment>
-                );
-            })}
-        </div>
-    );
 }
 

@@ -26,7 +26,7 @@ import {
     userId
 } from "../utils/socketService.ts";
 import {useNavigate} from "react-router-dom";
-import {redirection} from "../App.tsx";
+import { redirection} from "../App.tsx";
 import {DEFAULT_LOBBY_SETTINGS, Page, TimerSetting} from "../../../shared/sharedTypes.ts";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
@@ -34,12 +34,11 @@ import './LobbyView.css';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faPlay, faRightFromBracket} from '@fortawesome/free-solid-svg-icons'
 import DurationPickerComponent from "../components/DurationPickerComponent/DurationPickerComponent.tsx";
-import SpinnerComponent from "../components/SpinnerComponent/SpinnerComponent.tsx";
 
 function LobbyView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(false);
+    // const changeIsLoading = useContext(ChangeIsLoadingContext);
 
     // Lobby Settings
     const [maxPlayers, setMaxPlayers] = useState(lobby?.lobbySettings.maxPlayers || DEFAULT_LOBBY_SETTINGS.maxPlayers);
@@ -61,13 +60,13 @@ function LobbyView() {
         if (!lobby) return;
         console.log('starting game')
         requestStartGame(lobby.code)
-        setIsLoading(true)
+        // changeIsLoading(true)
     }
     const handleBack = () => {
         if (!lobby) return;
         console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
-        setIsLoading(true)
+        // changeIsLoading(true)
     };
     const getColor = (index: number) => {
         const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f','#dc6a7f', '#6a70dc', '#c5a821', 'rgba(185,147,199,0.53)' ];
@@ -188,11 +187,6 @@ function LobbyView() {
     // Always block navigation
     return (
         <>
-            {isLoading && (
-                <div className="loading-overlay">
-                    <SpinnerComponent/>
-                </div>
-            )}
 
             <video autoPlay loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>

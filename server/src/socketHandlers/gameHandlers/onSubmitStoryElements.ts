@@ -60,16 +60,18 @@ export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool
     const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id)).length;
     if (lobby.usersSubmitted >= connectedUsersCount) {
         await onNewRound(io, pool, lobby);
-        console.log("***round " + lobby.round + " ended***");
 
     } else {
         sendSubmitted(userId, true);
-        if (lobby.lobbySettings.timerSetting === TimerSetting.Dynamic && lobby.usersSubmitted >= (lobby.users.length / 2) && lobby.roundEndAt) {
-            // only if the remaining time is more than 10 seconds
-            // accelerate the round timer if more than half of the users have submitted
-            const remainingTime = lobby.roundEndAt.getTime() - new Date().getTime();
-            if (remainingTime > MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION) {
-                await onAccelerateRoundTimer(io, pool, lobby);
+        if (lobby.lobbySettings.timerSetting === TimerSetting.Dynamic && lobby.roundEndAt) {
+            // if more than half of the users have submitted
+            if((lobby.users.length === 2 && lobby.usersSubmitted === 1 ) || (lobby.users.length > 2 && lobby.usersSubmitted >= Math.ceil((lobby.users.length + 1)/ 2))) {
+                // only if the remaining time is more than 10 seconds
+                // accelerate the round timer if more than half of the users have submitted
+                const remainingTime = lobby.roundEndAt.getTime() - new Date().getTime();
+                if (remainingTime > MIN_REMAINING_MILLISECONDS_FOR_ACCELERATION) {
+                    await onAccelerateRoundTimer(io, pool, lobby);
+                }
             }
 
         }

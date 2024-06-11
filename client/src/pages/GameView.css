@@ -109,6 +109,7 @@
 
 
 .users {
+    margin: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -129,6 +130,7 @@
 }
 
 .user{
+    min-width: 10rem;
     z-index: 1;
     background-color: white;
     padding: 1rem;

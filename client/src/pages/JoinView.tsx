@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {requestCreateLobby, requestJoinLobby} from "../utils/socketService.ts";
+import {onError, requestCreateLobby, requestJoinLobby} from "../utils/socketService.ts";
 import StoryGameLogo from "../assets/logos/logo.svg?react";
 import playButtonIcon from "../assets/icons/playButton.png"
 import helpButtonIcon from "../assets/icons/helpButton.png";
@@ -8,12 +8,22 @@ import {useNavigate} from "react-router-dom";
 import {LobbyContext} from "../LobbyContext.tsx";
 import {redirection} from "../App.tsx";
 import "./JoinView.css";
-import {Page} from "../../../shared/sharedTypes.ts";
+import {ErrorType, OpError, Page, SocketEvent} from "../../../shared/sharedTypes.ts";
 
 
 function JoinView() {
     const navigate = useNavigate();
     const lobby = useContext(LobbyContext);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        onError((event: SocketEvent, error: OpError) => {
+            if (event === SocketEvent.JOIN_LOBBY && error && (error.type === ErrorType.LOBBY_NOT_FOUND || error.type === ErrorType.LOBBY_MAX_PLAYERS_REACHED
+                || error.type === ErrorType.LOBBY_ALREADY_PLAYING)) {
+                setErrorMessage(error.error);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         redirection(lobby, navigate, Page.Join);
@@ -24,6 +34,7 @@ function JoinView() {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setErrorMessage('');
         if (lobbyCode && lobbyCode.length > 0) {
             // join existing lobby
             requestJoinLobby(nickname, lobbyCode)
@@ -72,6 +83,7 @@ function JoinView() {
                         <button type="submit" className={"join__button-3d button-3d-icon--play"}>
                             <img src={playButtonIcon} alt="Play Button"/>
                         </button>
+                        {errorMessage && <label className="error-label">{errorMessage}</label>}
                     </form>
 
 

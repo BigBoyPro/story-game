@@ -1,15 +1,15 @@
 import './App.css'
 import {useEffect, useState} from "react";
 import {
-    offError,
+    appOffError,
     offLeftLobby,
     offLobbyInfo,
     offUsersSubmitted,
-    onError,
+    appOnError,
     onLeftLobby,
     onLobbyInfo,
     onUsersSubmitted,
-    requestStory,
+    requestStory, setLoadingState,
 } from "./utils/socketService.ts";
 import {ErrorType, Lobby, LogLevel, Page} from "../../shared/sharedTypes.ts";
 
@@ -23,6 +23,7 @@ import {LobbyContext} from "./LobbyContext.tsx";
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
 import ContactView from "./pages/ContactView.tsx";
+import SpinnerComponent from "./components/SpinnerComponent/SpinnerComponent.tsx";
 
 
 const getPageForLobby = (lobby: Lobby | null) => {
@@ -39,9 +40,9 @@ const getPageForLobby = (lobby: Lobby | null) => {
     return Page.Join;
 }
 
-export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
+export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage: Page) => {
     let nextPage: Page = getPageForLobby(lobby);
-    if(nextPage !== currentPage) {
+    if (nextPage !== currentPage) {
         console.log('Redirecting from', currentPage, 'to', nextPage);
         navigate(nextPage, {replace: true});
     }
@@ -86,6 +87,10 @@ const router = createBrowserRouter(
 function App() {
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    useEffect(() => {
+        setLoadingState(setIsLoading);
+    }, []);
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
             event.preventDefault();
@@ -104,19 +109,19 @@ function App() {
             const oldLobbyRound = lobby?.round;
             console.log('Lobby Info:', newLobby);
             setLobby(newLobby);
-            if(newLobby && newLobby.round != oldLobbyRound) {
+            if (newLobby && newLobby.round != oldLobbyRound) {
                 if (newLobby.round > 0) {
                     console.log("requesting new story because round changed")
                     requestStory(newLobby.code)
                 }
             }
+
         });
 
 
-
-        onUsersSubmitted((usersSubmitted : number) => {
+        onUsersSubmitted((usersSubmitted: number) => {
             console.log('Users Submitted:', usersSubmitted);
-            if(lobby) {
+            if (lobby) {
                 setLobby({...lobby, usersSubmitted});
             }
         });
@@ -126,7 +131,7 @@ function App() {
             setLobby(null);
         });
 
-        onError((event, error) => {
+        appOnError((event, error) => {
             switch (error.logLevel) {
                 case LogLevel.Error:
                     console.error("event: " + event + ", error type: " + error.type + " : " + error.error);
@@ -138,13 +143,14 @@ function App() {
                     console.info("event: " + event + ", error type: " + error.type + " : " + error.error);
                     break;
             }
-            const currentPage : Page = getPageForLobby(lobby);
+
+            const currentPage: Page = getPageForLobby(lobby);
             return !!((WrongErrorsForPageMap.get(currentPage)?.includes(error.type)))
         });
 
         return () => {
             offLobbyInfo();
-            offError();
+            appOffError();
             offLeftLobby();
             offUsersSubmitted();
         }
@@ -152,13 +158,19 @@ function App() {
     }, []);
 
 
-
-  return (
-      <>
-          <LobbyContext.Provider value={lobby}>
-              <RouterProvider key={lobby ? `${lobby.round}_${lobby.roundEndAt?.getTime()}` : undefined} router={router}/>          </LobbyContext.Provider>
-      </>
-  )
+    return (
+        <>
+            {isLoading && (
+                <div className="loading-overlay">
+                    <SpinnerComponent/>
+                </div>
+            )}
+            <LobbyContext.Provider value={lobby}>
+                    <RouterProvider key={lobby ? `${lobby.round}_${lobby.roundEndAt?.getTime()}` : undefined}
+                                    router={router}/>
+            </LobbyContext.Provider>
+        </>
+    )
 }
 
 export default App

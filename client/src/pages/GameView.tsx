@@ -12,19 +12,18 @@ import {
     offStory,
     offGetStoryElements, unsubmitStoryElements, userId, requestLeaveLobby, onSubmitted, offSubmitted
 } from "../utils/socketService.ts";
-import {redirection} from "../App.tsx";
+import { redirection} from "../App.tsx";
 import GameStoryComponent, {GameStoryComponentHandles} from "../components/StoryComponent/GameStoryComponent.tsx";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faRightFromBracket} from "@fortawesome/free-solid-svg-icons";
-import SpinnerComponent from "../components/SpinnerComponent/SpinnerComponent.tsx";
 function GameView() {
     const navigate = useNavigate();
     const lobby = useContext(LobbyContext);
+    // const changeIsLoading = useContext(ChangeIsLoadingContext);
     // const user = lobby?.users.find(user => user.id === userId);
     const [story, setStory] = useState<Story | null>(null);
     const newStoryElementsRef = useRef<StoryElement[]>([]);
     const storyComponentRef = useRef<GameStoryComponentHandles>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         redirection(lobby, navigate, Page.Game);
@@ -32,7 +31,6 @@ function GameView() {
         onStory((story) => {
             console.log('story received!', story);
             setStory(story);
-            setIsLoading(false);
         });
 
         onGetStoryElements(() => {
@@ -41,12 +39,10 @@ function GameView() {
             if (e && lobby) {
                 console.log('story elements sent!', e);
                 submitStoryElements(lobby.code, e);
-                setIsLoading(true);
             }
         });
 
         onSubmitted((_submitted : boolean) => {
-            setIsLoading(false);
         });
 
 
@@ -75,7 +71,6 @@ function GameView() {
         if (newStoryElementsRef.current.length > 0) {
             console.log("sending story elements", newStoryElementsRef.current);
             submitStoryElements(lobby.code, newStoryElementsRef.current);
-            setIsLoading(true);
         }
     }
 
@@ -92,7 +87,6 @@ function GameView() {
         if (!lobby) return;
         console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
-        setIsLoading(true);
     };
     const getSeconds = (start: Date | null, end: Date | null) => {
         if (!start || !end) return 0;
@@ -102,11 +96,6 @@ function GameView() {
     const roundSeconds = getSeconds(lobby.roundStartAt, lobby.roundEndAt);
     return (
         <>
-            {isLoading && (
-                <div className="loading-overlay">
-                    <SpinnerComponent/>
-                </div>
-            )}
             <div className="game-page">
                 <div className={"floating floating-elements"}>
                     <div className={"timer"}>
@@ -122,7 +111,6 @@ function GameView() {
                                     size={100} strokeWidth={10}
                                     onComplete={() => {
                                         console.log('round ended');
-                                        setIsLoading(true);
                                     }}
                                 >
                                     {({remainingTime}) => {
@@ -147,7 +135,6 @@ function GameView() {
                             <FontAwesomeIcon icon={faRightFromBracket} size="2x"/>
                         </button>
                     </div>
-                    {lobby?.round && lobby.round > 1}
                     {story &&
                         <GameStoryComponent key={story.id}
                                             ref={storyComponentRef}

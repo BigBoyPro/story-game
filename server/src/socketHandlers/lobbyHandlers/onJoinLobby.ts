@@ -50,7 +50,7 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
         }
         if (lobby.users.length >= lobby.lobbySettings.maxPlayers) return {success: false, error: {
                 type: ErrorType.LOBBY_MAX_PLAYERS_REACHED,
-                logLevel: LogLevel.Error,
+                logLevel: LogLevel.Warning,
                 error: "Lobby is full"
             }}
         // upsert user
