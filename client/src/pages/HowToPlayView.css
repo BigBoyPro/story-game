@@ -100,9 +100,3 @@
     box-shadow: 0 0.5vw 1vw 0 rgba(0,0,0,0.2);
     transition: background-color 0.3s ease, color 0.3s ease;
 }
-
-.button:hover {
-    background-color: white;
-    color: #007BFF;
-    border: 0.2vw solid #007BFF;
-}
