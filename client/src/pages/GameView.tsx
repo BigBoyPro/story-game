@@ -102,7 +102,7 @@ function GameView() {
                         <h2>Timer</h2>
                         {lobby?.roundStartAt && lobby?.roundEndAt &&
                             <span className={"timer__clock"}>
-                                <CountdownCircleTimer
+                                <CountdownCircleTimer key={lobby.roundEndAt.getTime()}
                                     isPlaying
                                     duration={roundSeconds}
                                     colors={['#6F66E7', '#6F66E7', '#CAA12E', '#E37434', '#E0491F']}

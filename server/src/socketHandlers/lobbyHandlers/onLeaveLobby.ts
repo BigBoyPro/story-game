@@ -58,7 +58,7 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
 
         let activeUser = null;
         for (const user of lobby.users) {
-            if (user.id !== userId) {
+            if (user.id !== userId && isUserConnected(user.id)) {
                 activeUser = user;
                 break;
             }

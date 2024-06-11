@@ -6,7 +6,7 @@ import {
     dbSelectUserLobbyCode,
     dbTransaction, dbUpdateLobbyHost,
 } from "../db";
-import {broadcastLobbyInfo, sendError} from "./socketService";
+import {broadcastLobbyInfo, isUserConnected, sendError} from "./socketService";
 
 export async function onDisconnect(event: SocketEvent, io: Server, pool: Pool, userId: string) {
 
@@ -36,7 +36,7 @@ const disconnect = (pool: Pool, userId: string): Promise<OpResult<Lobby|null>> =
 
         let activeUser = null;
         for (const user of lobby.users) {
-            if (user.id !== userId) {
+            if (user.id !== userId && isUserConnected(user.id)) {
                 activeUser = user;
                 break;
             }
