@@ -127,11 +127,19 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     margin: 0;
                 }
                 .story-element {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    margin-top: 10px;
-                }
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #fff; /* Ajoute un fond blanc */
+    border: none; /* Supprime la bordure */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); /* Ajoute une ombre pour donner de la profondeur */
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1); /* Ajoute une transition pour l'effet de survol */
+}
+
+.story-element:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23); /* Augmente l'ombre au survol */
+}
                 .story-element img {
                     max-width: 100%;
                     height: auto;
