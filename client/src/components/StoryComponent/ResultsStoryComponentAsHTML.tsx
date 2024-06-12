@@ -108,6 +108,16 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     align-items: center;
                     padding: 20px;
                 }
+                .story-user-elements{
+                    border-radius: 0.5rem;
+                    background-color: #fbfbfb;
+                    padding: 2rem;
+                    align-content: center;
+                    justify-content: center;
+                    display: flex;
+                    gap: 1rem;
+                    flex-direction: column;
+                }
                 .story-user {
                     display: flex;
                     flex-direction: column;
@@ -120,26 +130,26 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     margin: 0;
                 }
                 .story-user-elements h3 {
-                    align-items: center;
+                    margin: auto;
                     color: #090505;
                 }
                 .story-user p {
                     margin: 0;
                 }
+              
                 .story-element {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    background-color: #fff; /* Ajoute un fond blanc */
-    border: none; /* Supprime la bordure */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); /* Ajoute une ombre pour donner de la profondeur */
-    transition: all 0.3s cubic-bezier(.25,.8,.25,1); /* Ajoute une transition pour l'effet de survol */
-}
-
-.story-element:hover {
-    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23); /* Augmente l'ombre au survol */
-}
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    padding: 1rem; /* Ajoute un fond blanc */
+                    border-radius: 0.5rem ;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); /* Ajoute une ombre pour donner de la profondeur */
+                    transition: all 0.3s cubic-bezier(.25,.8,.25,1); /* Ajoute une transition pour l'effet de survol */
+                }
+                
+                .story-element:hover {
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23); /* Augmente l'ombre au survol */
+                }
                 .story-element img {
                     max-width: 100%;
                     height: auto;
@@ -154,11 +164,19 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     margin-top: 10px;
                 }
                 html {
-                height: 100%;
-                background: linear-gradient(1deg, #C3FDD5, #8EAFF8);
-                background-size: cover;
-                background-repeat: no-repeat;
-                background-attachment: fixed;
+                    height: 100%;
+                    background-size: cover;
+                    background: linear-gradient(1deg, #C3FDD5, #8EAFF8) no-repeat fixed;
+                }
+                .chat-bubble {
+                    font-size: 16px;
+                    border: 1px solid #ccc;
+                    max-width: 80rem;
+                    width: 100%;
+                    background: #fff;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                    outline: none;
+                    border-radius: 0.5rem;
                 }
         </style>
             

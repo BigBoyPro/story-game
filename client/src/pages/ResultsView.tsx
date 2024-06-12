@@ -110,6 +110,8 @@ function ResultsView() {
             story.elements.forEach(element => {
                 if (element.type === StoryElementType.Drawing) {
                     const canvas = document.createElement('canvas');
+                    canvas.width = 720;
+                    canvas.height = 405;
                     const context = canvas.getContext('2d')!;
                     const roughCanvas = rough.canvas(canvas);
                     const drawingElements = handleActions(JSON.parse(element.content));
