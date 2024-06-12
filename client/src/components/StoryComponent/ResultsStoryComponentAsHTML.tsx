@@ -58,8 +58,18 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
         }
     };
 
+    // Function to remove divs with class "button-container"
+    const removeButtonContainers = () => {
+        const buttonContainers = tempDiv.getElementsByClassName('button-container');
+        while (buttonContainers.length > 0) {
+            buttonContainers[0].parentNode!.removeChild(buttonContainers[0]);
+        }
+    };
+
+
     removeElement('button');
     removeElement('audio');
+    removeButtonContainers();
     replaceCanvasWithImage();
 
     const cleanedHTML = tempDiv.innerHTML;
@@ -96,6 +106,7 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     scrollbar-width: none;
                     -ms-overflow-style: none;
                 }
+                
                 .story-page textarea {
                     border: 1px solid #ccc;
                     border-radius: 15px;
@@ -109,15 +120,33 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     resize: none;
                     outline: none;
                 }
-                .story-page img {
+               
                 
+                .story-page img {
+                    border-radius: 0.5rem;
+                    max-width: 100%;
+                    max-height: 100%;
                 }
+                
+                .story-element {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    padding: 1rem;
+                    border-radius: 0.5rem;
+                    background-color: transparent;
+                    justify-content: center;
+                    align-items: center;
+               }
+                
+                
                 @media screen and (max-width: 600px) {
                     .game-box {
                         width: 90%;
                         padding: 1px;
                     }
                 }
+                
                 .game-box-results h2 {
                     text-align: center;
                     color: #333;
@@ -128,6 +157,7 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
                     border-top: 1px solid #eee;
                     padding-top: 1.25rem;
                 }
+                
                 .story-box-results h3 {
                     text-align: center;
                     color: #666;
@@ -155,3 +185,28 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
     console.log('HTML file has been saved.');
 }
 
+function ResultsStoryComponentAsHTML({
+                                         storyElements,
+                                     }: {
+    storyElements: StoryElement[],
+}) {
+    return (
+        <div className="story-page">
+            {getStoryElementsForEachUser(storyElements).map((elements, index) => {
+                return (
+                    <React.Fragment key={index}>
+                        <StoryUserComponent
+                            elements={elements}
+                            isEditable={false}
+                            resultsProps={{
+                                isHidden: false,
+                            }}
+                        />
+                    </React.Fragment>
+                );
+            })}
+        </div>
+    );
+}
+
+export default ResultsStoryComponentAsHTML;
