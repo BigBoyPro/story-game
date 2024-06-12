@@ -90,6 +90,7 @@ function ResultsView() {
         requestEndGame(lobby.code)
     };
 
+    // Save Story
     const handleActions = (actions: DrawingAction[]) => {
         let elements: DrawingElement[] = [];
         let oldActions: DrawingAction[] = [];
@@ -125,13 +126,13 @@ function ResultsView() {
 
     const handleSave = () => {
         if (!lobby) return;
-        //if (story?.elements) savedComponentAsHTML(story?.elements, getDrawings());
         if (story?.elements) {
             const canvases = getDrawings();
             const drawingsAsDataURL = canvases.map(canvas => canvas.toDataURL("image/png"));
             savedComponentAsHTML(story?.elements, drawingsAsDataURL);
         }
     }
+    //
     return (
         <>
             {isIOS ?

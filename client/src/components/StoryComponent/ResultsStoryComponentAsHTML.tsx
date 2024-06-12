@@ -29,6 +29,7 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
             </div>
         );
     }
+
     const componentHTML = ReactDOMServer.renderToStaticMarkup(
         <ResultsStoryComponentAsHTML storyElements={storyElements}  />
     );
@@ -40,36 +41,50 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
     // Function to replace all canvas elements with images
     const replaceCanvasWithImage = () => {
         const canvasElements = tempDiv.getElementsByTagName('canvas');
-        for (let i = 0; i < canvasElements.length; i++) {
-            const canvas = canvasElements[i];
-            const dataUrl = drawingsAsDataUrls[i]; // Assuming the dataUrls are in the same order as canvas elements
+        const canvasArray = Array.from(canvasElements);
+
+        canvasArray.forEach((canvas, i) => {
+            const dataUrl = drawingsAsDataUrls[i];
             const img = document.createElement('img');
             img.src = dataUrl;
             img.alt = `Drawing ${i}`;
             canvas.parentNode!.replaceChild(img, canvas);
-        }
+        });
     };
 
     // Function to remove all specified elements from the temporary DOM element
-    const removeElement = (tagName: string) => {
+    const filterElements = (tagName: string) => {
         const elements = tempDiv.getElementsByTagName(tagName);
-        while (elements.length > 0) {
-            elements[0].parentNode!.removeChild(elements[0]);
+        switch (tagName) {
+            case "audio":
+                while (elements.length > 0) {
+                    const audioElement = elements[0];
+                    const label = document.createElement('label');
+                    label.textContent = audioElement.getAttribute('src');
+                    audioElement.parentNode!.replaceChild(label, audioElement);
+                }
+                break;
+            case "button":
+                while (elements.length > 0) {
+                    elements[0].parentNode!.removeChild(elements[0]);
+                }
+                break;
         }
     };
 
     // Function to remove divs with class "button-container"
-    const removeButtonContainers = () => {
-        const buttonContainers = tempDiv.getElementsByClassName('button-container');
+    const removeContainers = (containerName: string) => {
+        const buttonContainers = tempDiv.getElementsByClassName(containerName);
         while (buttonContainers.length > 0) {
             buttonContainers[0].parentNode!.removeChild(buttonContainers[0]);
         }
     };
 
-
-    removeElement('button');
-    removeElement('audio');
-    removeButtonContainers();
+    filterElements('audio');
+    //
+    filterElements('button');
+    removeContainers('button-container');
+    //
     replaceCanvasWithImage();
 
     const cleanedHTML = tempDiv.innerHTML;
@@ -81,89 +96,7 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Saved Story</title>
-            <style>
-                .story-page {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    position: relative;
-                    min-height: 100vh;
-                    background-size: cover;
-                    background-attachment: scroll;
-                    flex-direction: column;
-                    gap: 1rem;
-                    padding: 1rem;
-                    border-radius: 0.8rem;
-                    text-align: center;
-                    height: 100vh;
-                    width: 100vw;
-                    max-width: 80vw;
-                    max-height: 100vh;
-                    background-color: transparent;
-                    box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
-                    z-index: 1;
-                    overflow: auto;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-                
-                .story-page textarea {
-                    border: 1px solid #ccc;
-                    border-radius: 15px;
-                    padding: 10px 15px;
-                    font-size: 16px;
-                    max-width: 80rem;
-                    width: 100%;
-                    margin: 10px 0;
-                    background-color: #d5c2c2;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-                    resize: none;
-                    outline: none;
-                }
-               
-                
-                .story-page img {
-                    border-radius: 0.5rem;
-                    max-width: 100%;
-                    max-height: 100%;
-                }
-                
-                .story-element {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                    padding: 1rem;
-                    border-radius: 0.5rem;
-                    background-color: transparent;
-                    justify-content: center;
-                    align-items: center;
-               }
-                
-                
-                @media screen and (max-width: 600px) {
-                    .game-box {
-                        width: 90%;
-                        padding: 1px;
-                    }
-                }
-                
-                .game-box-results h2 {
-                    text-align: center;
-                    color: #333;
-                    margin-bottom: 1.25rem;
-                }
-                
-                .story-box-results {
-                    border-top: 1px solid #eee;
-                    padding-top: 1.25rem;
-                }
-                
-                .story-box-results h3 {
-                    text-align: center;
-                    color: #666;
-                    margin-bottom: 1.25rem;
-                }
-            </style>
+            
         </head>
         <body>
             ${cleanedHTML}
