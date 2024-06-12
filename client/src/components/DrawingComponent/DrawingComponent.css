@@ -7,6 +7,8 @@
 
 }
 
+
+
 .canvas-container{
     display: flex;
     border: 0.1rem solid black;
@@ -38,6 +40,19 @@ canvas{
     box-shadow: 0 0 0 0.1rem #000, 0 0 0 0.1rem #fff;
 }
 
+@media (max-width: 1000px) {
+    .drawing-page .color-button {
+        width: 1.7rem;
+        height: 1.7rem;
+    }
+    .drawing-page .tools-container {
+        height: 4rem;
+    }
+    .drawing-page .colors-container {
+        padding: 0.3rem;
+        gap: 0.3rem;
+    }
+}
 
 .tools-container {
     z-index: 3;

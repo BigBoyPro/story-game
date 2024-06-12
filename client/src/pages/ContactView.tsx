@@ -1,9 +1,9 @@
 import emailjs from '@emailjs/browser';
 import './ContactView.css';
-import backButtonIcon from '../assets/icons/backButton.png';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
-
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faCircleArrowLeft} from "@fortawesome/free-solid-svg-icons";
 
 
 
@@ -36,7 +36,7 @@ export default function Contact() {
   return (
   <div className="contact-container">
     <Link to="/" className="back-button">
-                <img src={backButtonIcon} alt="Back Button" />
+        <FontAwesomeIcon icon={faCircleArrowLeft} size="3x"/>
     </Link>
     <form className='contact-form' onSubmit={sendEmail}>
                 <label>Name</label>

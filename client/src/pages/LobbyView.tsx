@@ -26,18 +26,19 @@ import {
     userId
 } from "../utils/socketService.ts";
 import {useNavigate} from "react-router-dom";
-import {Page, redirection} from "../App.tsx";
-import {DEFAULT_LOBBY_SETTINGS, TimerSetting} from "../../../shared/sharedTypes.ts";
+import { redirection} from "../App.tsx";
+import {DEFAULT_LOBBY_SETTINGS, Page, TimerSetting} from "../../../shared/sharedTypes.ts";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
 import './LobbyView.css';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faPlay, faRightFromBracket} from '@fortawesome/free-solid-svg-icons'
-
+import DurationPickerComponent from "../components/DurationPickerComponent/DurationPickerComponent.tsx";
 
 function LobbyView() {
     const lobby = useContext(LobbyContext);
     const navigate = useNavigate();
+    // const changeIsLoading = useContext(ChangeIsLoadingContext);
 
     // Lobby Settings
     const [maxPlayers, setMaxPlayers] = useState(lobby?.lobbySettings.maxPlayers || DEFAULT_LOBBY_SETTINGS.maxPlayers);
@@ -51,22 +52,30 @@ function LobbyView() {
     const [roundSeconds, setRoundSeconds] = useState(lobby?.lobbySettings.roundSeconds || DEFAULT_LOBBY_SETTINGS.roundSeconds);
 
     useEffect(() => {
+        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        video && video.play();
+    }, []);
+
+    useEffect(() => {
         redirection(lobby, navigate, Page.Lobby);
     }, [navigate, lobby]);
 
+    const isIOS = /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent)
 
     const handleStartGame = () => {
         if (!lobby) return;
         console.log('starting game')
         requestStartGame(lobby.code)
+        // changeIsLoading(true)
     }
     const handleBack = () => {
         if (!lobby) return;
         console.log('leaving lobby')
         requestLeaveLobby(lobby.code);
+        // changeIsLoading(true)
     };
     const getColor = (index: number) => {
-        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f'];
+        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f','#dc6a7f', '#6a70dc', '#c5a821', 'rgba(185,147,199,0.53)' ];
         return colors[index % colors.length];
     };
 
@@ -184,9 +193,14 @@ function LobbyView() {
     // Always block navigation
     return (
         <>
-            <video autoPlay loop muted className={"background background--lobby"}>
+        {isIOS ?
+            <div className={"background background--lobby"}/>
+            :
+            <video  id={"background"} loop muted className={"background background--lobby"}>
                 <source src={LobbyVideo} type="video/mp4"/>
             </video>
+        }
+
 
             <div className={"main-page"}>
                 <div className={"lobby-box"}>
@@ -223,41 +237,26 @@ function LobbyView() {
                             <ul className={"lobby-settings__list"}>
                                 <li>
                                     <label id="maxPlayers">Players limit</label>
-                                    <input type="number" id="maxPlayers" value={maxPlayers}
-                                           onChange={(e) => handleMaxPlayersChange(parseInt(e.target.value))}/>
+                                    <input type="number" id="maxPlayers" value={maxPlayers} min="1"
+                                           onChange={(e) => handleMaxPlayersChange(parseInt(e.target.value))}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
 
                                 </li>
 
-                                <li>
-                                    <label id="maxTexts">Texts limit</label>
-                                    <input type="number" id="nbOfTexts" value={maxTexts}
-                                           onChange={(e) => handleMaxTextsChange(parseInt(e.target.value))}/>
-                                </li>
-                                <li>
-                                    <label id="maxAudios">Audios limit</label>
-                                    <input type="number" id="nbOfAudios" value={maxAudios}
-                                           onChange={(e) => handleMaxAudiosChange(parseInt(e.target.value))}/>
-                                </li>
-                                <li>
-                                    <label id="maxImages">Images limit</label>
-                                    <input type="number" id="nbOfImages" value={maxImages}
-                                           onChange={(e) => handleMaxImagesChange(parseInt(e.target.value))}/>
-                                </li>
-                                <li>
-                                    <label id="maxDrawings">Drawings limit</label>
-                                    <input type="number" id="nbOfDrawings" value={maxDrawings}
-                                           onChange={(e) => handleMaxDrawingsChange(parseInt(e.target.value))}/>
-                                </li>
 
                                 <li>
-                                    <label htmlFor="incrementNumber">Round time (s):</label>
-                                    <input type="number" id="roundTimer" step="1" min="0" value={roundSeconds}
-                                           onChange={(e) => handleRoundSecondsChange(parseInt(e.target.value))}/>
+                                    <label htmlFor="incrementNumber">Round Duration (m:s)</label>
+                                    <DurationPickerComponent durationSeconds={roundSeconds}
+                                           onChange={(newSeconds) => handleRoundSecondsChange(newSeconds)}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
                                 </li>
                                 <li>
                                     <label id="timerSetting">Timer type</label>
                                     <select id="selectTimerTimer" value={timerSetting}
-                                            onChange={(e) => handleTimerSettingChange(e.target.value as TimerSetting)}>
+                                            onChange={(e) => handleTimerSettingChange(e.target.value as TimerSetting)}
+                                            disabled={lobby?.hostUserId !== userId}>
                                         {Object.values(TimerSetting).map((value, index) => (
                                             <option key={value}
                                                     value={value}>{Object.keys(TimerSetting)[index]}</option>
@@ -269,12 +268,44 @@ function LobbyView() {
                                 <li>
                                     <label id="seePrevStoryPart">See full previous story</label>
                                     <input type="checkbox" id="prevPart" checked={seePrevStoryPart}
-                                           onChange={(e) => handleSeePrevStoryPartChange(e.target.checked)}/>
+                                           onChange={(e) => handleSeePrevStoryPartChange(e.target.checked)}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
                                 </li>
                                 <li>
                                     <label id="tss">Text-To-Speech</label>
                                     <input type="checkbox" id="tss" checked={withTextToSpeech}
-                                           onChange={(e) => handleWithTextToSpeechChange(e.target.checked)}/>
+                                           onChange={(e) => handleWithTextToSpeechChange(e.target.checked)}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
+                                </li>
+                                <li>
+                                    <label id="maxTexts">Texts limit</label>
+                                    <input type="number" id="nbOfTexts" value={maxTexts} min="0"
+                                           onChange={(e) => handleMaxTextsChange(parseInt(e.target.value))}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
+                                </li>
+                                <li>
+                                    <label id="maxAudios">Audios limit</label>
+                                    <input type="number" id="nbOfAudios" value={maxAudios} min="0"
+                                           onChange={(e) => handleMaxAudiosChange(parseInt(e.target.value))}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
+                                </li>
+                                <li>
+                                    <label id="maxImages">Images limit</label>
+                                    <input type="number" id="nbOfImages" value={maxImages} min="0"
+                                           onChange={(e) => handleMaxImagesChange(parseInt(e.target.value))}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
+                                </li>
+                                <li>
+                                    <label id="maxDrawings">Drawings limit</label>
+                                    <input type="number" id="nbOfDrawings" value={maxDrawings} min="0"
+                                           onChange={(e) => handleMaxDrawingsChange(parseInt(e.target.value))}
+                                           disabled={lobby?.hostUserId !== userId}
+                                    />
                                 </li>
 
 

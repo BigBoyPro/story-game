@@ -77,6 +77,7 @@ export enum AudioType {
     Waiting="audios/Waiting.mp3",
     Yay="audios/Yay.mp3",
     Funny="audios/Funny.mp3",
+    Tom="audios/Tom.mp3",
 }
 
 export type User = {
@@ -236,6 +237,8 @@ export enum ErrorType {
     DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT = "DB_ERROR_SELECT_LOBBY_ROUNDS_COUNT",
     DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER = "DB_ERROR_UPDATE_LOBBY_USER_INDEX_ORDER",
     USER_INDEX_ORDER_IS_NULL = "USER_INDEX_ORDER_IS_NULL",
+    ROUND_START_END_NULL = "ROUND_START_END_NULL",
+    ROUND_ENDED = "ROUND_ENDED",
 }
 
 export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promise<OpResult<T>> => {
@@ -264,5 +267,14 @@ export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
     maxImages: 10,
     maxDrawings: 10,
     timerSetting: TimerSetting.Normal,
-    roundSeconds: 15 * 60,
+    roundSeconds: 5 * 60,
+}
+
+export enum Page {
+    Join = "/",
+    Lobby = "/lobby",
+    Game = "/game",
+    Results = "/results",
+    HowToPlay = "/how-to-play",
+    Contact = "/contact"
 }

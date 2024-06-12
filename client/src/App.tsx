@@ -1,18 +1,17 @@
 import './App.css'
 import {useEffect, useState} from "react";
 import {
-    offError,
+    appOffError,
     offLeftLobby,
-    offLobbyInfo, offSubmitted,
+    offLobbyInfo,
     offUsersSubmitted,
-    onError,
+    appOnError,
     onLeftLobby,
-    onLobbyInfo, onSubmitted,
+    onLobbyInfo,
     onUsersSubmitted,
-    requestStory,
-
+    requestStory, setLoadingState,
 } from "./utils/socketService.ts";
-import {ErrorType, Lobby, LogLevel} from "../../shared/sharedTypes.ts";
+import {ErrorType, Lobby, LogLevel, Page} from "../../shared/sharedTypes.ts";
 
 import {createBrowserRouter, createRoutesFromElements, NavigateFunction, Route, RouterProvider} from 'react-router-dom';
 
@@ -24,6 +23,7 @@ import {LobbyContext} from "./LobbyContext.tsx";
 import GameView from "./pages/GameView.tsx";
 import ResultsView from "./pages/ResultsView.tsx";
 import ContactView from "./pages/ContactView.tsx";
+import SpinnerComponent from "./components/SpinnerComponent/SpinnerComponent.tsx";
 
 
 const getPageForLobby = (lobby: Lobby | null) => {
@@ -40,23 +40,14 @@ const getPageForLobby = (lobby: Lobby | null) => {
     return Page.Join;
 }
 
-export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage : Page) => {
+export const redirection = (lobby: null | Lobby, navigate: NavigateFunction, currentPage: Page) => {
     let nextPage: Page = getPageForLobby(lobby);
-    if(nextPage !== currentPage) {
+    if (nextPage !== currentPage) {
         console.log('Redirecting from', currentPage, 'to', nextPage);
         navigate(nextPage, {replace: true});
     }
 }
 
-
-export enum Page {
-    Join = "/",
-    Lobby = "/lobby",
-    Game = "/game",
-    Results = "/results",
-    HowToPlay = "/how-to-play",
-    Contact = "/contact"
-}
 
 const WrongErrorsForPageMap = new Map<Page, ErrorType[]>([
     [Page.Join, [ErrorType.STORY_ID_NOT_FOUND, ErrorType.STORY_INDEX_OUT_OF_BOUNDS, ErrorType.PART_IS_NULL,
@@ -96,6 +87,10 @@ const router = createBrowserRouter(
 function App() {
 
     const [lobby, setLobby] = useState<Lobby | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    useEffect(() => {
+        setLoadingState(setIsLoading);
+    }, []);
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
             event.preventDefault();
@@ -114,25 +109,19 @@ function App() {
             const oldLobbyRound = lobby?.round;
             console.log('Lobby Info:', newLobby);
             setLobby(newLobby);
-            if(newLobby && newLobby.round != oldLobbyRound) {
+            if (newLobby && newLobby.round != oldLobbyRound) {
                 if (newLobby.round > 0) {
                     console.log("requesting new story because round changed")
                     requestStory(newLobby.code)
                 }
             }
+
         });
 
-        onSubmitted((submitted : boolean) => {
-            console.log('Submitted:', submitted);
-            if(lobby) {
 
-                setLobby({...lobby ,usersSubmitted: submitted ? lobby.usersSubmitted + 1 : lobby.usersSubmitted - 1});
-            }
-        });
-
-        onUsersSubmitted((usersSubmitted : number) => {
+        onUsersSubmitted((usersSubmitted: number) => {
             console.log('Users Submitted:', usersSubmitted);
-            if(lobby) {
+            if (lobby) {
                 setLobby({...lobby, usersSubmitted});
             }
         });
@@ -142,7 +131,7 @@ function App() {
             setLobby(null);
         });
 
-        onError((event, error) => {
+        appOnError((event, error) => {
             switch (error.logLevel) {
                 case LogLevel.Error:
                     console.error("event: " + event + ", error type: " + error.type + " : " + error.error);
@@ -154,29 +143,34 @@ function App() {
                     console.info("event: " + event + ", error type: " + error.type + " : " + error.error);
                     break;
             }
-            const currentPage : Page = getPageForLobby(lobby);
+
+            const currentPage: Page = getPageForLobby(lobby);
             return !!((WrongErrorsForPageMap.get(currentPage)?.includes(error.type)))
         });
 
         return () => {
             offLobbyInfo();
-            offError();
+            appOffError();
             offLeftLobby();
             offUsersSubmitted();
-            offSubmitted();
         }
 
     }, []);
 
 
-
-  return (
-      <>
-          <LobbyContext.Provider value={lobby}>
-              <RouterProvider key={lobby ? lobby.round : undefined} router={router}/>
-          </LobbyContext.Provider>
-      </>
-  )
+    return (
+        <>
+            {isLoading && (
+                <div className="loading-overlay">
+                    <SpinnerComponent/>
+                </div>
+            )}
+            <LobbyContext.Provider value={lobby}>
+                    <RouterProvider key={lobby ? `${lobby.round}_${lobby.hostUserId}` : undefined}
+                                    router={router}/>
+            </LobbyContext.Provider>
+        </>
+    )
 }
 
 export default App

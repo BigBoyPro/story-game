@@ -1,6 +1,7 @@
 .results-page {
     display: flex;
     justify-content: center;
+    flex-direction: column;
     align-items: center;
     width: 100%;
     position: relative;
@@ -8,6 +9,7 @@
     background-attachment: fixed;
 }
 .background--results{
+    background-color: #A8DAE7;
     background-image: url('../assets/backgrounds/ResultsView.png');
     background-size: cover;
     background-position: center;
@@ -16,12 +18,13 @@
 .game-box-results {
     width: 80%;
     max-width: 80%;
-    background-color: transparent;
     margin: 2% 5%;
     padding: 1.25rem;
     border-radius: 0.625rem;
     box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
     z-index: 1;
+    background-color: rgba(102, 147, 231, 0.29);
+
 }
 
 @media screen and (max-width: 600px) {
@@ -33,7 +36,6 @@
 
 .game-box-results h2 {
     text-align: center;
-    color: #333;
     margin-bottom: 1.25rem;
 }
 
@@ -44,7 +46,6 @@
 
 .story-box-results h3 {
     text-align: center;
-    color: #666;
     margin-bottom: 1.25rem;
 }
 
@@ -69,14 +70,72 @@
     background-color: rgb(111, 102, 231);
 }
 
-/*.story-element textarea {*/
-/*    height: 10vh;*/
-/*    width: 20vw;*/
-/*    overflow:auto;*/
-/*    scrollbar-width: none;*/
-/*    -ms-overflow-style: none;*/
-/*    padding: 10px;*/
-/*    font-size: 16px;*/
-/*}*/
+.share-button{
+    float: right;
+    transition: transform 0.3s ease-in-out;
+}
 
 
+.share-button:hover:not(:disabled) {
+    background-color: transparent;
+    transform: scale(1.05);
+    transition: transform 0.3s ease-in-out;
+}
+
+.page-title{
+    color: white;
+    width: fit-content;
+    justify-self: center;
+    align-self: center;
+    background-color: #0028A0AA;
+    border-radius: 0.8rem;
+    padding: 1rem;
+    font-size: 3rem;
+    font-weight: 700;
+    margin: auto;
+    animation: zoomIn 2s ease-in-out;
+}
+@keyframes zoomIn {
+    0% {transform: scale(0.7);}
+    100% {transform: scale(1);}
+}
+
+.button--results {
+    font-size: 1.8rem;
+    display: block;
+    width: 100%;
+    padding: 0.625rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #0028A0DD;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease-in-out;
+}
+
+.button--results:hover:not(:disabled) {
+    background-color: #0028A0;
+    transform: scale(1.01);
+    transition: background-color 0.3s ease, transform 0.3s ease-in-out;
+}
+
+.button--results:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.button--results:disabled:hover {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.footer-lobby-code__text {
+    background-color: white;
+    padding: 0.7rem;
+    border-radius: 0.8rem;
+    font-size: min(max(0.9rem, 0.7vw), 1.3rem);
+}
+.footer-lobby-code__text--bold {
+    font-weight: bold;
+    font-size: min(max(1rem, 0.8vw), 1.5rem);
+}

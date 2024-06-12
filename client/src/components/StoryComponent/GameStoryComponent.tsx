@@ -1,32 +1,26 @@
-import React, { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, {forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from "react";
 import "./StoryComponent.css"
-import { AudioType, PlaceType, Story, StoryElement, StoryElementType } from "../../../../shared/sharedTypes.ts";
-import { LobbyContext } from "../../LobbyContext.tsx";
-import { userId } from "../../utils/socketService.ts";
+import {AudioType, Lobby, PlaceType, Story, StoryElement, StoryElementType} from "../../../../shared/sharedTypes.ts";
+import {LobbyContext} from "../../LobbyContext.tsx";
+import {userId} from "../../utils/socketService.ts";
 import StoryUserComponent from "../StoryUserComponent/StoryUserComponent.tsx";
-import { uploadImage } from "../../utils/imageAPI.ts";
-import DrawingComponent, { DrawingAction } from "../DrawingComponent/DrawingComponent.tsx";
-import { getStoryElementsForEachUser } from "./StoryComponent.ts";
+import {uploadImage} from "../../utils/imageAPI.ts";
+import DrawingComponent, {DrawingAction} from "../DrawingComponent/DrawingComponent.tsx";
+import {getStoryElementsForEachUser} from "./StoryComponent.ts";
 
 
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
-import { faImages } from '@fortawesome/free-solid-svg-icons'
-import { faMusic } from '@fortawesome/free-solid-svg-icons'
-import { faFont } from '@fortawesome/free-solid-svg-icons'
-import { faPaintBrush } from '@fortawesome/free-solid-svg-icons'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import {faImages, faMusic, faFont, faPaintBrush, faPlus, faBan} from '@fortawesome/free-solid-svg-icons'
+
 // import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
-
-
-
 
 
 export interface GameStoryComponentHandles {
     forceSave: () => StoryElement[];
 }
 
-const createStoryElement = (index: number, storyId: number , round: number, type: StoryElementType, content: string): StoryElement => {
+const createStoryElement = (index: number, storyId: number, round: number, type: StoryElementType, content: string): StoryElement => {
     return {
         index,
         userId,
@@ -40,12 +34,12 @@ const createStoryElement = (index: number, storyId: number , round: number, type
 
 const GameStoryComponent = forwardRef(
     function GameStoryComponent({
-        story,
-        initialNewStoryElements = [],
-        onNewStoryElementsChange,
-        onSave,
-        onCancel,
-    }: {
+                                    story,
+                                    initialNewStoryElements = [],
+                                    onNewStoryElementsChange,
+                                    onSave,
+                                    onCancel,
+                                }: {
         story: Story,
         initialNewStoryElements: StoryElement[],
         onNewStoryElementsChange: (newNewStoryElements: StoryElement[]) => void,
@@ -53,11 +47,11 @@ const GameStoryComponent = forwardRef(
         onCancel: () => void,
     }, ref: React.Ref<GameStoryComponentHandles>) {
         useImperativeHandle(ref, () => ({
-            forceSave,
-        }
+                forceSave,
+            }
 
-    ));
-    const [placeImage, setPlaceImage] = useState(PlaceType.None);
+        ));
+        const [placeImage, setPlaceImage] = useState(PlaceType.None);
 
 
         const forceSave = (): StoryElement[] => {
@@ -71,8 +65,8 @@ const GameStoryComponent = forwardRef(
 
         const lobby = useContext(LobbyContext);
         const [storyElements, setStoryElements] = useState<StoryElement[]>
-            (() : StoryElement[] => {
-                if(!lobby) return [];
+        ((): StoryElement[] => {
+                if (!lobby) return [];
                 const elements = initialNewStoryElements;
                 const placeElement = elements.find((e) => e.type === StoryElementType.Place);
                 if (!placeElement) {
@@ -83,14 +77,12 @@ const GameStoryComponent = forwardRef(
                     if (newElement)
                         elements.unshift(newElement);
 
-                }
-                else{
-                     setPlaceImage(placeElement.content as PlaceType);
+                } else {
+                    setPlaceImage(placeElement.content as PlaceType);
                 }
                 return elements;
             }
-
-            );
+        );
 
         const [hasSubmitted, setHasSubmitted] = useState(false);
 
@@ -111,16 +103,15 @@ const GameStoryComponent = forwardRef(
         }, [storyElements]);
 
         useEffect(() => {
-            const placeElement = storyElements.find((e) => e.type === StoryElementType.Place);
-            if(placeElement)
-            {
-               placeElement.content = placeImage;
-               const updatedElements = [...storyElements];
-               updatedElements[placeElement.index] =placeElement;
-               setStoryElements(updatedElements);
-            }
+                const placeElement = storyElements.find((e) => e.type === StoryElementType.Place);
+                if (placeElement) {
+                    placeElement.content = placeImage;
+                    const updatedElements = [...storyElements];
+                    updatedElements[placeElement.index] = placeElement;
+                    setStoryElements(updatedElements);
+                }
 
-        },[placeImage]
+            }, [placeImage]
         );
 
         const handleDrawingActionsChange = (newActions: DrawingAction[]) => {
@@ -156,7 +147,6 @@ const GameStoryComponent = forwardRef(
                 }
             }
         }
-
 
 
         const addStoryElement = (round: number, type: StoryElementType, content: string) => {
@@ -196,7 +186,7 @@ const GameStoryComponent = forwardRef(
         };
 
         const handleElementChange = (index: number, storyElement: StoryElement) => {
-            if(!lobby) return;
+            if (!lobby) return;
             updateElement(index, lobby.round, storyElement.type, storyElement.content);
         };
 
@@ -243,7 +233,7 @@ const GameStoryComponent = forwardRef(
                 const temp = updatedStoryElements[index];
                 updatedStoryElements[index] = updatedStoryElements[index - 1];
                 updatedStoryElements[index - 1] = temp;
-                return updatedStoryElements.map((element, index) => ({ ...element, index }));
+                return updatedStoryElements.map((element, index) => ({...element, index}));
             });
         };
 
@@ -255,7 +245,7 @@ const GameStoryComponent = forwardRef(
                 const temp = updatedStoryElements[index];
                 updatedStoryElements[index] = updatedStoryElements[index + 1];
                 updatedStoryElements[index + 1] = temp;
-                return updatedStoryElements.map((element, index) => ({ ...element, index }));
+                return updatedStoryElements.map((element, index) => ({...element, index}));
             });
         };
 
@@ -272,12 +262,28 @@ const GameStoryComponent = forwardRef(
             handleTypeChange(type);
         };
 
+        const canAddElement = (lobby: Lobby | null, type: StoryElementType) => {
+            if (!lobby) return false;
+            switch (type) {
+                case StoryElementType.Text:
+                    return storyElements.filter(e => e.type === type).length < lobby.lobbySettings.maxTexts
+                case StoryElementType.Audio:
+                    return storyElements.filter(e => e.type === type).length < lobby.lobbySettings.maxAudios
+                case StoryElementType.Image:
+                    return storyElements.filter(e => e.type === type).length < lobby.lobbySettings.maxImages
+                case StoryElementType.Drawing:
+                    return storyElements.filter(e => e.type === type).length < lobby.lobbySettings.maxDrawings
+                default:
+                    return true;
+            }
+        };
         return (
             <div className="story-page">
                 {hasSubmitted || !isDrawing ?
                     <>
                         <div className={"place-selector-container"}>
-                            <select className={"place-selector"} onChange={(event) => setPlaceImage(event.target.value as PlaceType)}>
+                            <select className={"place-selector"}
+                                    onChange={(event) => setPlaceImage(event.target.value as PlaceType)}>
                                 {Object.values(PlaceType).map((value, index) => {
                                     const key = Object.keys(PlaceType)[index];
                                     const displayText = key === 'None' ? 'Choose a place' : key;
@@ -292,23 +298,24 @@ const GameStoryComponent = forwardRef(
                         </div>
 
 
-                        {getStoryElementsForEachUser(story.elements, false).map((elements, index) => {
+                        {getStoryElementsForEachUser(story.elements, false).map((elements, index, array) => {
+                            if (lobby && !lobby.lobbySettings.seePrevStoryPart && index !== array.length - 1) return null;
                             return (
                                 <React.Fragment key={index}>
-                                    <StoryUserComponent elements={elements} isEditable={false} />
+                                    <StoryUserComponent elements={elements} isEditable={false}/>
                                 </React.Fragment>
                             );
                         })}
                         {/* new element for the current user*/}
                         <StoryUserComponent elements={storyElements}
-                            isEditable={!hasSubmitted}
-                            gameProps={{
-                                onElementChange: handleElementChange,
-                                onElementDelete: handleElementDelete,
-                                onElementEdit: handleElementEdit,
-                                onUp: handleElementUp,
-                                onDown: handleElementDown
-                            }}
+                                            isEditable={!hasSubmitted}
+                                            gameProps={{
+                                                onElementChange: handleElementChange,
+                                                onElementDelete: handleElementDelete,
+                                                onElementEdit: handleElementEdit,
+                                                onUp: handleElementUp,
+                                                onDown: handleElementDown
+                                            }}
                         />
 
                         {!hasSubmitted ?
@@ -322,10 +329,14 @@ const GameStoryComponent = forwardRef(
                                         <div key={value}
                                              className={`element-type-option ${type === value ? 'selected' : ''}`}
                                              onClick={() => handleTypeSelect(value)}>
-                                            {value == StoryElementType.Image  && <FontAwesomeIcon icon={faImages} size="2x" />}
-                                            {value == StoryElementType.Audio  && <FontAwesomeIcon icon={faMusic} size="2x" />}
-                                            {value == StoryElementType.Text  && <FontAwesomeIcon icon={faFont} size="2x" />}
-                                            {value == StoryElementType.Drawing && <FontAwesomeIcon icon={faPaintBrush} size="2x" />}
+                                            {value == StoryElementType.Image &&
+                                                <FontAwesomeIcon icon={faImages} size="2x"/>}
+                                            {value == StoryElementType.Audio &&
+                                                <FontAwesomeIcon icon={faMusic} size="2x"/>}
+                                            {value == StoryElementType.Text &&
+                                                <FontAwesomeIcon icon={faFont} size="2x"/>}
+                                            {value == StoryElementType.Drawing &&
+                                                <FontAwesomeIcon icon={faPaintBrush} size="2x"/>}
                                         </div>
                                     ))}
 
@@ -359,15 +370,21 @@ const GameStoryComponent = forwardRef(
                                 </div>
 
                                 <div className="add-button-container">
-                                    <button onClick={handleElementAdd} className={"add-button"} >
-                                        <FontAwesomeIcon icon={faPlus} size="2x"/>
-                                    </button>
+                                    {canAddElement(lobby, type) ?
+                                        <button onClick={handleElementAdd} className={"add-button"}>
+                                            <FontAwesomeIcon icon={faPlus} size="2x"/>
+                                        </button>
+                                        :
+                                        <button className={"add-button"} disabled title={`Maximum number of ${type}s reached`}>
+                                            <FontAwesomeIcon icon={faBan} size="2x"/>
+                                        </button>
+                                    }
                                 </div>
 
 
-
                                 <div className={"finish-button-container"}>
-                                    <button className={"finish-button"} disabled={storyElements.length === 0} onClick={handleFinish}>
+                                    <button className={"finish-button"} disabled={storyElements.length === 0}
+                                            onClick={handleFinish}>
                                         Finish
                                     </button>
                                 </div>
@@ -378,8 +395,8 @@ const GameStoryComponent = forwardRef(
                     </>
                     :
                     <DrawingComponent initialActions={drawingActionsRef.current} isEditable={!hasSubmitted}
-                        onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}
-                        onCancel={handleCancelDrawing} />
+                                      onActionsChange={handleDrawingActionsChange} onSave={AddDrawingElement}
+                                      onCancel={handleCancelDrawing}/>
                 }
             </div>
         )

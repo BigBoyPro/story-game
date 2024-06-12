@@ -51,13 +51,13 @@
 
 .clock-circle {
     fill: none;
-    stroke: white;
+    stroke: #F0EAEA;
     stroke-width: 10;
 }
 
 .clock-timer {
     fill: none;
-    stroke: red;
+    stroke: #BA3B03;
     stroke-width: 10;
     stroke-dasharray: 282.6;
     stroke-dashoffset: 282.6;
