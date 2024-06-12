@@ -26,7 +26,7 @@ import {
     userId
 } from "../utils/socketService.ts";
 import {useNavigate} from "react-router-dom";
-import { redirection} from "../App.tsx";
+import {redirection} from "../App.tsx";
 import {DEFAULT_LOBBY_SETTINGS, Page, TimerSetting} from "../../../shared/sharedTypes.ts";
 import CrownIcon from "../assets/icons/theCrown.png"
 import LobbyVideo from "../assets/backgrounds/LobbyView.mp4";
@@ -52,7 +52,7 @@ function LobbyView() {
     const [roundSeconds, setRoundSeconds] = useState(lobby?.lobbySettings.roundSeconds || DEFAULT_LOBBY_SETTINGS.roundSeconds);
 
     useEffect(() => {
-        const video:  HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
+        const video: HTMLVideoElement | null = document.getElementById('background') as HTMLVideoElement;
         video && video.play();
     }, []);
 
@@ -75,7 +75,7 @@ function LobbyView() {
         // changeIsLoading(true)
     };
     const getColor = (index: number) => {
-        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f','#dc6a7f', '#6a70dc', '#c5a821', 'rgba(185,147,199,0.53)' ];
+        const colors = ['#d056f5', '#609fcc', '#469d9d', '#dc6a7f', '#dc6a7f', '#6a70dc', '#c5a821', 'rgba(185,147,199,0.53)'];
         return colors[index % colors.length];
     };
 
@@ -188,18 +188,16 @@ function LobbyView() {
     }
 
 
-
-
     // Always block navigation
     return (
         <>
-        {isIOS ?
-            <div className={"background background--lobby"}/>
-            :
-            <video  id={"background"} loop muted className={"background background--lobby"}>
-                <source src={LobbyVideo} type="video/mp4"/>
-            </video>
-        }
+            {isIOS ?
+                <div className={"background background--lobby"}/>
+                :
+                <video id={"background"} loop muted className={"background background--lobby"}>
+                    <source src={LobbyVideo} type="video/mp4"/>
+                </video>
+            }
 
 
             <div className={"main-page"}>
@@ -248,8 +246,8 @@ function LobbyView() {
                                 <li>
                                     <label htmlFor="incrementNumber">Round Duration (m:s)</label>
                                     <DurationPickerComponent durationSeconds={roundSeconds}
-                                           onChange={(newSeconds) => handleRoundSecondsChange(newSeconds)}
-                                           disabled={lobby?.hostUserId !== userId}
+                                                             onChange={(newSeconds) => handleRoundSecondsChange(newSeconds)}
+                                                             disabled={lobby?.hostUserId !== userId}
                                     />
                                 </li>
                                 <li>

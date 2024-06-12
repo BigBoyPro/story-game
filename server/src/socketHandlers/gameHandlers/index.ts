@@ -4,6 +4,7 @@ import {onEndGame} from "./onEndGame";
 import {onGetStory} from "./onGetStory";
 import {onGetStoryAtPart} from "./onGetStoryAtPart";
 import {onNextPart} from "./onNextPart";
+import {onUnsubmitStoryElements} from "./onUnsubmitStoryElements";
 
 export {
     onStartGame,
@@ -11,5 +12,6 @@ export {
     onEndGame,
     onGetStory,
     onGetStoryAtPart,
-    onNextPart
+    onNextPart,
+    onUnsubmitStoryElements
 }

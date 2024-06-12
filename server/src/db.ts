@@ -215,7 +215,7 @@ export const dbSelectStoryElementsUniqueUserIdsCount = async (db: (Pool | PoolCl
     }
 }
 
-export const dbSelectLobbyCount = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<number>> => {
+export const dbSelectLobbyCodeCount = async (db: (Pool | PoolClient), lobbyCode: string): Promise<OpResult<number>> => {
     try {
         const res = await db.query(`SELECT COUNT(*)
                                     FROM lobbies

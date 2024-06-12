@@ -80,6 +80,14 @@ export enum AudioType {
     Tom="audios/Tom.mp3",
 }
 
+export enum Page {
+    Join = "/",
+    Lobby = "/lobby",
+    Game = "/game",
+    Results = "/results",
+    HowToPlay = "/how-to-play",
+    Contact = "/contact"
+}
 export type User = {
     id: string;
     nickname: string;
@@ -102,6 +110,17 @@ export type LobbySettings = {
     maxDrawings: number;           // number of input
     timerSetting: TimerSetting;    // dynamic or not
     roundSeconds: number;          // config of the timer
+}
+export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
+    maxPlayers: 8,
+    seePrevStoryPart: false,
+    withTextToSpeech: false,
+    maxTexts: 10,
+    maxAudios: 10,
+    maxImages: 10,
+    maxDrawings: 10,
+    timerSetting: TimerSetting.Normal,
+    roundSeconds: 5 * 60,
 }
 
 export type Lobby = {
@@ -257,24 +276,4 @@ export const processOp = async <T>(operation: () => Promise<OpResult<T>>): Promi
         }
     }
     return res;
-}
-export const DEFAULT_LOBBY_SETTINGS: LobbySettings = {
-    maxPlayers: 8,
-    seePrevStoryPart: false,
-    withTextToSpeech: false,
-    maxTexts: 10,
-    maxAudios: 10,
-    maxImages: 10,
-    maxDrawings: 10,
-    timerSetting: TimerSetting.Normal,
-    roundSeconds: 5 * 60,
-}
-
-export enum Page {
-    Join = "/",
-    Lobby = "/lobby",
-    Game = "/game",
-    Results = "/results",
-    HowToPlay = "/how-to-play",
-    Contact = "/contact"
 }

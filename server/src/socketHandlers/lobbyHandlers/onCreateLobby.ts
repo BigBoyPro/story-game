@@ -13,7 +13,7 @@ import {
 import {broadcastLobbyInfo, join, sendError} from "../socketService";
 import {
     dbInsertLobby,
-    dbSelectLobbyCount, dbSelectUserLobbyCode,
+    dbSelectLobbyCodeCount, dbSelectUserLobbyCode,
     dbTransaction,
     dbUpdateUserLobbyCode,
     dbUpsertUser
@@ -99,7 +99,7 @@ const generateUniqueLobbyCode = async (pool: Pool): Promise<OpResult<string>> =>
             // Convert the ASCII value to a character and add it to the lobbyCode
             lobbyCode += String.fromCharCode(ascii);
         }
-        const {data: lobbyCount, error, success} = await dbSelectLobbyCount(pool, lobbyCode);
+        const {data: lobbyCount, error, success} = await dbSelectLobbyCodeCount(pool, lobbyCode);
         if (!success) return {success, error};
         unique = lobbyCount === 0;
     }

@@ -41,7 +41,7 @@ export const onLeaveLobby = async (event: SocketEvent, io: Server, pool: Pool, u
     console.log("user " + userId + " left lobby " + lobbyCode);
 
     // if game is in progress and all users submitted
-    if(lobby && lobby.round > 0) {
+    if (lobby && lobby.round > 0) {
         const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id) && user.lobbyCode === lobbyCode).length;
         if (lobby.usersSubmitted >= connectedUsersCount) {
             await onNewRound(io, pool, lobby);
@@ -92,18 +92,23 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
             return {success: true, data: null};
         }
 
-        if(lobby.round !== 0){
+        if (lobby.round !== 0) {
             // if user is in order add disconnected user
             if (user) {
                 // if user is in order add disconnected user
-                if(lobby.userIndexOrder && lobby.userIndexOrder[userId] !== undefined){
+                if (lobby.userIndexOrder && lobby.userIndexOrder[userId] !== undefined) {
                     console.log("user " + userId + " is in order");
-                    lobby.users = lobby.users.map(u => u.id === userId ? {...user, nickname: "Disconnected x(",ready: false, lobbyCode: null} : u);
+                    lobby.users = lobby.users.map(u => u.id === userId ? {
+                        ...user,
+                        nickname: "Disconnected x(",
+                        ready: false,
+                        lobbyCode: null
+                    } : u);
                 }
             }
-            if(lobby.round > 0){
+            if (lobby.round > 0) {
                 // don't wait for user
-                if(user && user.ready){
+                if (user && user.ready) {
                     // update users submitted
                     ({success, error} = await dbUpdateLobbyUsersSubmittedDecrement(client, lobbyCode))
                     if (!success) return {success, error};
@@ -114,7 +119,7 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
                     if (!success) return {success, error};
                 }
             }
-        }else {
+        } else {
             console.log("user " + userId + " is not in order");
             lobby.users = lobby.users.filter(user => user.id !== userId);
         }
