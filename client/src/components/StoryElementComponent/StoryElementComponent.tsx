@@ -69,7 +69,7 @@ const StoryElementComponent = forwardRef(
                 textAreaRef.current.style.height = 'auto';
                 textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
             }
-        }, [element.content, isEditable]);
+        });
 
 
         function handleAudioPlay() {
