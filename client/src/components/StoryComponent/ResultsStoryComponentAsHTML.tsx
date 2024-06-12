@@ -96,6 +96,63 @@ export const savedComponentAsHTML = (storyElements: StoryElement[], drawingsAsDa
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Saved Story</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                }
+                .story-page {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 20px;
+                }
+                .story-user {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    border: 1px solid #000;
+                    padding: 10px;
+                }
+                .story-user h2 {
+                    margin: 0;
+                }
+                .story-user-elements h3 {
+                    align-items: center;
+                    color: #090505;
+                }
+                .story-user p {
+                    margin: 0;
+                }
+                .story-element {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin-top: 10px;
+                }
+                .story-element img {
+                    max-width: 100%;
+                    height: auto;
+                }
+                .story-element audio {
+                    margin-top: 10px;
+                }
+                .story-element label {
+                    margin-top: 10px;
+                }
+                .story-element p {
+                    margin-top: 10px;
+                }
+                html {
+                height: 100%;
+                background: linear-gradient(1deg, #C3FDD5, #8EAFF8);
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                }
+        </style>
             
         </head>
         <body>
