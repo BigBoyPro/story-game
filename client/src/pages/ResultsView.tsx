@@ -170,7 +170,12 @@ function ResultsView() {
                         }
                     </div>
                 }
+                {lobby && <div className="footer-lobby-code">
+                    <p className={"footer-lobby-code__text"}>
+                        <strong className={"footer-lobby-code__text--bold"}>Lobby code:</strong> {lobby.code}</p>
+                </div>}
             </div>
+
         </>
     );
 }

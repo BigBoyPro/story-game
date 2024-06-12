@@ -276,8 +276,22 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
                 }
             };
         }
-        const usersRes = await dbSelectUsersInLobby(db, lobbyCode);
-        if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
+        const {data: users, error, success} = await dbSelectUsersInLobby(db, lobbyCode);
+        if (!success || !users) return {success: false, error: error};
+        //if a user is in the user_index_order but not in the users table, add a user with the id and Disconnected nickname
+        //but check first if the user_index_order is not empty or null
+        const userIndexOrder: { [key: string]: number } | null = data[0].user_index_order;
+        if (userIndexOrder) {
+            const userIds = users.map(user => user.id);
+            for (const userOrderId of Object.keys(userIndexOrder)) {
+                if (!userIds.includes(userOrderId)) {
+                    users.push({id: userOrderId, nickname: "Disconnected x(", lobbyCode: null, ready: false});
+                }
+            }
+            // sort users by user_index_order
+            users.sort((a, b) => userIndexOrder[a.id] - userIndexOrder[b.id]);
+        }
+
         const lobby: Lobby = {
             code: lobbyCode,
             hostUserId: data[0].host_user_id,
@@ -287,7 +301,7 @@ export const dbSelectLobby = async (db: (Pool | PoolClient), lobbyCode: string, 
             usersSubmitted: data[0].users_submitted,
             roundStartAt: data[0].round_start_at ? new Date(data[0].round_start_at) : null,
             roundEndAt: data[0].round_end_at ? new Date(data[0].round_end_at) : null,
-            users: usersRes.data,
+            users: users,
             currentStoryIndex: data[0].current_story_index,
             currentUserIndex: data[0].current_user_index,
             lobbySettings: {
@@ -619,8 +633,24 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
         const data = res.rows;
         const lobbies: Lobby[] = [];
         for (const lobby of data) {
-            const usersRes = await dbSelectUsersInLobby(db, lobby.code);
-            if (!usersRes.success || !usersRes.data) return {success: false, error: usersRes.error};
+            const {data: users, error, success} = await dbSelectUsersInLobby(db, lobby.code);
+            if (!success || !users) return {success: false, error: error};
+
+            // if a user is in the user_index_order but not in the users table, add a user with the id and deactivated nickname
+            // but check first if the user_index_order is not empty or null
+            const userIndexOrder : { [key: string]: number } | null = lobby.user_index_order;
+
+            if (userIndexOrder) {
+                const userIds = users.map(user => user.id);
+                for (const userOrderId of Object.keys(userIndexOrder)) {
+                    if (!userIds.includes(userOrderId)) {
+                        users.push({id: userOrderId, nickname: "Disconnected x(", lobbyCode: null, ready: false});
+                    }
+                }
+                // sort users by user_index_order
+                users.sort((a, b) => userIndexOrder[a.id] - userIndexOrder[b.id]);
+            }
+
             lobbies.push({
                 code: lobby.code,
                 hostUserId: lobby.host_user_id,
@@ -630,7 +660,7 @@ export const dbSelectLobbiesWithHost = async (db: (Pool | PoolClient), userIds: 
                 userIndexOrder: lobby.user_index_order,
                 roundStartAt: lobby.round_start_at ? new Date(lobby.round_start_at) : null,
                 roundEndAt: lobby.round_end_at ? new Date(lobby.round_end_at) : null,
-                users: usersRes.data,
+                users: users,
                 currentStoryIndex: lobby.current_story_index,
                 currentUserIndex: lobby.current_user_index,
                 lobbySettings: {
@@ -789,8 +819,12 @@ export const dbUpsertleteStoryElements = async (db: (Pool | PoolClient), element
 }
 export const dbInsertLobby = async (db: (Pool | PoolClient), lobby: Lobby): Promise<OpResult<null>> => {
     try {
-        await db.query(`INSERT INTO lobbies (code, host_user_id, round, rounds_count, users_submitted, user_index_order, round_start_at, round_end_at, current_story_index, current_user_index, max_players, see_prev_story_part, with_text_to_speech, max_texts, max_audios, max_images, max_drawings, timer_setting, round_seconds)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`, [lobby.code, lobby.hostUserId, lobby.round, lobby.roundsCount, lobby.usersSubmitted, lobby.userIndexOrder,lobby.roundStartAt, lobby.roundEndAt, lobby.currentStoryIndex, lobby.currentUserIndex, lobby.lobbySettings.maxPlayers, lobby.lobbySettings.seePrevStoryPart, lobby.lobbySettings.withTextToSpeech, lobby.lobbySettings.maxTexts, lobby.lobbySettings.maxAudios, lobby.lobbySettings.maxImages, lobby.lobbySettings.maxDrawings, lobby.lobbySettings.timerSetting, lobby.lobbySettings.roundSeconds]);
+        await db.query(`INSERT INTO lobbies (code, host_user_id, round, rounds_count, users_submitted, user_index_order,
+                                             round_start_at, round_end_at, current_story_index, current_user_index,
+                                             max_players, see_prev_story_part, with_text_to_speech, max_texts,
+                                             max_audios, max_images, max_drawings, timer_setting, round_seconds)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
+                                $19)`, [lobby.code, lobby.hostUserId, lobby.round, lobby.roundsCount, lobby.usersSubmitted, lobby.userIndexOrder, lobby.roundStartAt, lobby.roundEndAt, lobby.currentStoryIndex, lobby.currentUserIndex, lobby.lobbySettings.maxPlayers, lobby.lobbySettings.seePrevStoryPart, lobby.lobbySettings.withTextToSpeech, lobby.lobbySettings.maxTexts, lobby.lobbySettings.maxAudios, lobby.lobbySettings.maxImages, lobby.lobbySettings.maxDrawings, lobby.lobbySettings.timerSetting, lobby.lobbySettings.roundSeconds]);
         return {success: true};
     } catch (error) {
         return {
@@ -1017,7 +1051,9 @@ export const dbUpdateLobbyRoundsCount = async (db: (Pool | PoolClient), lobbyCod
     }
 }
 
-export const dbUpdateLobbyUserIndexOrder = async (db: (Pool | PoolClient), lobbyCode: string, userIndexOrder: {[key: string] : number}): Promise<OpResult<null>> => {
+export const dbUpdateLobbyUserIndexOrder = async (db: (Pool | PoolClient), lobbyCode: string, userIndexOrder: {
+    [key: string]: number
+} | null): Promise<OpResult<null>> => {
     try {
         await db.query(`UPDATE lobbies
                         SET user_index_order = $1

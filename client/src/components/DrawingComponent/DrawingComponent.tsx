@@ -1211,13 +1211,21 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
         return `${top}px`;
     }
+
+    let canvasX =0
+    let canvasY =0;
+    if(canvasRef.current && selection && selection.element.point) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        canvasX = selection.element.point.x - canvasRect.left;
+        canvasY = selection.element.point.y - canvasRect.top;
+    }
 // ---------------------------------------------------------------------------------------------------------------------
     return (
         <div className={"drawing-page"}>
             {isEditable &&
                 <>
                     <div className={"tools-container"}>
-                         <div className={"non-mobile"}>
+                        <div className={"non-mobile"}>
                             <FontAwesomeIcon
                                 title="Select"
                                 size={"2x"}
@@ -1293,7 +1301,7 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                                 />
                                 <input type="checkbox"
                                        id="fill"
-                                       style={{ display: 'none' }}
+                                       style={{display: 'none'}}
                                        disabled={tool !== ElementType.Rectangle && tool !== ElementType.Ellipse}
                                        checked={fill}
                                        onChange={(event) => setFill(event.currentTarget.checked)}
@@ -1303,44 +1311,23 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
 
                         <div>
 
-                            <input id="pencilSize" type="range" min="1" max="100" value={pencilSize} onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>
+                            <input id="pencilSize" type="range" min="1" max="100" value={pencilSize}
+                                   onChange={(event) => setPencilSize(parseInt(event.currentTarget.value))}/>
 
-                            {tool === ElementType.Text && state == State.Writing && selection && selection.element.point &&
-                                <textarea
-                                    ref={textAreaRef}
-                                    autoFocus={true}
-                                    style={{
-                                        position: 'absolute',
-                                        left: `${selection.element.point.x}px`,
-                                        top: `${selection.element.point.y}px`,
-                                        fontSize: '2.4rem',
-                                        backgroundColor: 'transparent',
-                                        border: 'none',
-                                        color: colors[selectedColor],
-                                    }}
-                                    defaultValue={selection.element.text}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleWritingEnd();
-                                        }
-                                    }}
-                                />
-                            }
                         </div>
                     </div>
 
                     <div className={"colors-container"}>
                         {colors.map((c, index) => {
                             return (
-                                    <button key={index} style={{
-                                        backgroundColor: c,
-                                        boxShadow: selectedColor === index ? '0 0 0 0.1rem #3C78D8, 0 0 0 0.1rem #3C78D8' : '0 0 0 0.1rem #000, 0 0 0 0.1rem #fff'
-                                    }}
-                                            className={"color-button"}
-                                            onClick={() => {
-                                                setSelectedColor(index)
-                                            }}/>
+                                <button key={index} style={{
+                                    backgroundColor: c,
+                                    boxShadow: selectedColor === index ? '0 0 0 0.1rem #3C78D8, 0 0 0 0.1rem #3C78D8' : '0 0 0 0.1rem #000, 0 0 0 0.1rem #fff'
+                                }}
+                                        className={"color-button"}
+                                        onClick={() => {
+                                            setSelectedColor(index)
+                                        }}/>
                             );
                         })}
                         <button ref={colorPickerButtonRef} className={"color-button"}
@@ -1375,7 +1362,29 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                     </div>
                 </>
             }
-            <div className={"canvas-container"}>
+            <div className={"canvas-container"} style={{position: 'relative'}}>
+                {tool === ElementType.Text && state == State.Writing && selection && selection.element.point &&
+                    <textarea
+                        ref={textAreaRef}
+                        autoFocus={true}
+                        style={{
+                            position: 'absolute',
+                            left: `${canvasX}px`,
+                            top: `${canvasY}px`,
+                            fontSize: '2.4rem',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: colors[selectedColor],
+                        }}
+                        defaultValue={selection.element.text}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleWritingEnd();
+                            }
+                        }}
+                    />
+                }
                 <canvas ref={canvasRef}
                         id="canvas"
                         onMouseDown={handleMouseDown}
@@ -1383,19 +1392,27 @@ function DrawingComponent({initialActions = [], isEditable, onActionsChange, onS
                 >
                     Canvas
                 </canvas>
-
             </div>
             {isEditable &&
                 <>
                     <div className={"buttons"}>
-                        <div className={"draw-buttons-container"} >
-                            <button onClick={undo} className={"button"}><FontAwesomeIcon icon={faUndo} title="Undo" size="2x" className="icone" /></button>
-                            <button onClick={redo} className={"button"}><FontAwesomeIcon icon={faRedo} title="Redo" size="2x" className="icone" /></button>
+                        <div className={"draw-buttons-container"}>
+                            <button onClick={undo} className={"button"}><FontAwesomeIcon icon={faUndo} title="Undo"
+                                                                                         size="2x" className="icone"/>
+                            </button>
+                            <button onClick={redo} className={"button"}><FontAwesomeIcon icon={faRedo} title="Redo"
+                                                                                         size="2x" className="icone"/>
+                            </button>
                         </div>
 
                         <div className={"element-buttons-container"}>
-                            <button onClick={onCancel} className={"button"}><FontAwesomeIcon icon={faTimes} title="Cancel" size="2x" className="icone" /></button>
-                            <button onClick={onSave} className={"button"}><FontAwesomeIcon icon={faSave} title="Save" size="2x" className="icone" /></button>
+                            <button onClick={onCancel} className={"button"}><FontAwesomeIcon icon={faTimes}
+                                                                                             title="Cancel" size="2x"
+                                                                                             className="icone"/>
+                            </button>
+                            <button onClick={onSave} className={"button"}><FontAwesomeIcon icon={faSave} title="Save"
+                                                                                           size="2x" className="icone"/>
+                            </button>
                         </div>
                     </div>
                 </>

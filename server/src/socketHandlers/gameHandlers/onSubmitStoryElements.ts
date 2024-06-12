@@ -57,7 +57,7 @@ export async function onSubmitStoryElements(event: SocketEvent, io: Server, pool
     // Log the submission of story elements
     console.log("story elements sent by " + userId + " in lobby " + lobbyCode)
     // get number of users connected
-    const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id)).length;
+    const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id) && user.lobbyCode === lobbyCode).length;
     if (lobby.usersSubmitted >= connectedUsersCount) {
         await onNewRound(io, pool, lobby);
 

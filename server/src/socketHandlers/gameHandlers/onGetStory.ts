@@ -64,7 +64,7 @@ const getStory = async (pool: Pool, userId: string, lobbyCode: string): Promise<
 
 
     // get user index
-    if(lobby.userIndexOrder === null || lobby.userIndexOrder[userId] === null)
+    if(lobby.userIndexOrder === null || lobby.userIndexOrder[userId] === null || lobby.userIndexOrder[userId] === undefined)
         return {success: false, error: {type: ErrorType.USER_INDEX_ORDER_IS_NULL, logLevel: LogLevel.Error, error: "user index is null"}};
     const userIndex = lobby.userIndexOrder[userId]
     // shuffle the user order based on the lobby code

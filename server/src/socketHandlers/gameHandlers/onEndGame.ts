@@ -1,7 +1,14 @@
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {ErrorType, Lobby, LogLevel, OpResult, processOp, SocketEvent} from "../../../../shared/sharedTypes";
-import {dbDeleteAllStories, dbSelectLobby, dbTransaction, dbUpdateLobbyRound, dbUpdateUserLastActive} from "../../db";
+import {
+    dbDeleteAllStories,
+    dbSelectLobby,
+    dbTransaction,
+    dbUpdateLobbyRound,
+    dbUpdateLobbyUserIndexOrder,
+    dbUpdateUserLastActive
+} from "../../db";
 import {broadcastLobbyInfo, sendError} from "../socketService";
 
 // Main function to handle the end of a game
@@ -67,6 +74,15 @@ const endGame = (pool: Pool, userId: string, lobbyCode: string): Promise<OpResul
         lobby.round = 0;
         lobby.roundStartAt = null;
         lobby.roundEndAt = null;
+
+        // Reset the user index order
+        ({success, error} = await dbUpdateLobbyUserIndexOrder(client, lobbyCode, null));
+        // If the reset fails, return an error
+        if (!success) return {success, error};
+        lobby.userIndexOrder = null;
+
+        // purge all disconnected users that have a different lobby code
+        lobby.users = lobby.users.filter(user => user.lobbyCode === lobbyCode);
 
         // Return the updated lobby
         return {success: true, data: lobby};

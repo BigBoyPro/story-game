@@ -8,7 +8,7 @@
     justify-content: space-between;
     align-items: center;
     text-align: center;
-    padding: 0vh 20vw;
+    padding: 0 20vw;
 }
 
 .rules-text {
@@ -95,13 +95,13 @@
         font-size: 0.6em;
     }
 }
-img {
+.how-to-play-page img {
     width: 5vw;
     height: auto;
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
 }
 
-img:hover {
+.how-to-play-page img:hover {
     transform: scale(1.1);
 }

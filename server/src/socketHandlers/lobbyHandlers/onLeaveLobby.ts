@@ -9,7 +9,7 @@ import {
     dbUpdateUserLastActive,
     dbUpdateUserLobbyCode, dbUpdateUserReady
 } from "../../db";
-import {excludedBroadcastLobbyInfo, isUserConnected, leave, sendError, sendLobbyInfo} from "../socketService";
+import {broadcastLobbyInfo, isUserConnected, leave, sendError, sendLobbyInfo} from "../socketService";
 import {onNewRound} from "../gameHandlers/roundHandler";
 
 export const onLeaveLobby = async (event: SocketEvent, io: Server, pool: Pool, userId: string, lobbyCode: string) => {
@@ -35,14 +35,14 @@ export const onLeaveLobby = async (event: SocketEvent, io: Server, pool: Pool, u
 
     if (lobby) {
         leave(userId, lobby.code);
-        excludedBroadcastLobbyInfo(userId, lobby.code, lobby);
+        broadcastLobbyInfo(io, lobby.code, lobby);
     }
     sendLobbyInfo(userId, null);
     console.log("user " + userId + " left lobby " + lobbyCode);
 
     // if game is in progress and all users submitted
     if(lobby && lobby.round > 0) {
-        const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id)).length;
+        const connectedUsersCount = lobby.users.filter(user => isUserConnected(user.id) && user.lobbyCode === lobbyCode).length;
         if (lobby.usersSubmitted >= connectedUsersCount) {
             await onNewRound(io, pool, lobby);
         }
@@ -58,11 +58,13 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
 
         let activeUser = null;
         for (const user of lobby.users) {
-            if (user.id !== userId && isUserConnected(user.id)) {
+            if (user.id !== userId) {
                 activeUser = user;
                 break;
             }
         }
+
+        const connectedUser = activeUser && isUserConnected(activeUser.id) && activeUser.lobbyCode === lobbyCode ? activeUser : null;
         // if user is host change host
         if (lobby.hostUserId === userId) {
             if (activeUser) {
@@ -80,11 +82,9 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
 
         console.log("user " + userId + " removed from lobby " + lobbyCode);
         const user = lobby.users.find(user => user.id === userId);
-        if (user) {
-            lobby.users = lobby.users.filter(user => user.id !== userId);
-        }
 
-        if (!activeUser) {
+
+        if (!connectedUser && lobby.users.length === 1) {
             // remove lobby if user is the last one
             ({success, error} = await dbDeleteLobby(client, lobbyCode))
             if (!success) return {success, error};
@@ -92,19 +92,33 @@ const leaveLobby = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRe
             return {success: true, data: null};
         }
 
-        if(lobby.round > 0){
-            // don't wait for user
-            if(user && user.ready){
-                // update users submitted
-                ({success, error} = await dbUpdateLobbyUsersSubmittedDecrement(client, lobbyCode))
-                if (!success) return {success, error};
-                lobby.usersSubmitted--;
-
-                // update user ready
-                ({success, error} = await dbUpdateUserReady(client, userId, false))
-                if (!success) return {success, error};
+        if(lobby.round !== 0){
+            // if user is in order add disconnected user
+            if (user) {
+                // if user is in order add disconnected user
+                if(lobby.userIndexOrder && lobby.userIndexOrder[userId] !== undefined){
+                    console.log("user " + userId + " is in order");
+                    lobby.users = lobby.users.map(u => u.id === userId ? {...user, nickname: "Disconnected x(",ready: false, lobbyCode: null} : u);
+                }
             }
+            if(lobby.round > 0){
+                // don't wait for user
+                if(user && user.ready){
+                    // update users submitted
+                    ({success, error} = await dbUpdateLobbyUsersSubmittedDecrement(client, lobbyCode))
+                    if (!success) return {success, error};
+                    lobby.usersSubmitted--;
+
+                    // update user ready
+                    ({success, error} = await dbUpdateUserReady(client, userId, false))
+                    if (!success) return {success, error};
+                }
+            }
+        }else {
+            console.log("user " + userId + " is not in order");
+            lobby.users = lobby.users.filter(user => user.id !== userId);
         }
+
         return {success: true, data: lobby};
     });
 }

@@ -217,3 +217,24 @@
     justify-content: center;
     align-items: center;
 }
+
+.footer-lobby-code {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.8rem;
+
+}
+
+.footer-lobby-code__text {
+    background-color: white;
+    padding: 0.7rem;
+    border-radius: 0.8rem;
+    font-size: max(0.9rem, 0.7vw);
+}
+.footer-lobby-code__text--bold {
+    font-weight: bold;
+    font-size: max(1rem, 0.8vw);
+}

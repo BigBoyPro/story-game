@@ -9,7 +9,7 @@ import {
     dbUpdateLobbyUserIndexOrder,
     dbUpdateUserLastActive
 } from "../../db";
-import {broadcastLobbyInfo, sendError} from "../socketService";
+import {sendError} from "../socketService";
 import {onNewRound} from "./roundHandler";
 
 // Main function to handle the start of a game
@@ -84,9 +84,9 @@ const startGame = (pool: Pool, userId: string, lobbyCode: string): Promise<OpRes
 
         // update user index order
         const userIndexOrder : {[key: string]: number} = {};
-        for (let i = 0; i < lobby.users.length; i++) {
-            userIndexOrder[lobby.users[i].id] = i;
-        }
+         // remove all users that are have a lobby code different from the lobby code because they are disconnected
+        lobby.users = lobby.users.filter(user => user.lobbyCode === lobbyCode);
+        lobby.users.forEach((user, index) => userIndexOrder[user.id] = index);
         ({success, error} = await dbUpdateLobbyUserIndexOrder(client, lobbyCode, userIndexOrder));
 
 

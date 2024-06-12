@@ -39,6 +39,7 @@ export const isUserConnected = (userId: string) => {
 
 
 
+
 const send = (userId: string, event: string, ...args: any[]) => {
     const userSocket = userSocketMap.get(userId);
     if(userSocket) {
@@ -142,16 +143,6 @@ export const excludedBroadcastLobbyRoundSeconds = (excludedUserId: string, lobby
     }
 }
 
-
-
-
-
-export const excludedBroadcastLobbyInfo = (excludedUserId: string, lobbyCode: string, lobby: Lobby) => {
-    const userSocket = userSocketMap.get(excludedUserId);
-    if(userSocket) {
-        userSocket.to(lobbyCode).emit(SocketEvent.LOBBY_INFO, lobby);
-    }
-}
 
 export const broadcastStoryAtPart = (io: Server, lobbyCode: string, storyAndUserAndCount: {story: Story, userIndex: number, storiesCount: number}) => {
     broadcast(io, lobbyCode, SocketEvent.STORY_AT_PART, storyAndUserAndCount);
@@ -281,6 +272,7 @@ export const setupSocketHandlers = (io: Server, pool: Pool) => {
             console.log("user disconnected");
             if(socket.userId) {
                 userSocketMap.delete(socket.userId);
+                // if user is in a lobby wait for him to reconnect and if he doesn't reconnect in 10 seconds remove him from the lobby
                 await onDisconnect(SocketEvent.DISCONNECT, io, pool, socket.userId);
             }
         });

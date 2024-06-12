@@ -1,57 +1,44 @@
-import {Lobby, OpResult, processOp, SocketEvent} from "../../../shared/sharedTypes";
+import {OpResult, processOp, SocketEvent} from "../../../shared/sharedTypes";
 import {Server} from "socket.io";
 import {Pool, PoolClient} from "pg";
 import {
-    dbSelectLobby,
     dbSelectUserLobbyCode,
-    dbTransaction, dbUpdateLobbyHost,
+    dbTransaction,
 } from "../db";
-import {broadcastLobbyInfo, isUserConnected, sendError} from "./socketService";
+import {isUserConnected, sendError} from "./socketService";
+import {onLeaveLobby} from "./lobbyHandlers";
+
+const DISCONNECT_TIMEOUT = 10000;
 
 export async function onDisconnect(event: SocketEvent, io: Server, pool: Pool, userId: string) {
 
-    let {data: lobby, error, success} = await processOp(() =>
+    let {data: lobbyCode, error, success} = await processOp(() =>
         disconnect(pool, userId)
     );
     if (!success) {
         error && sendError(userId, event, error);
         return;
     }
-    if (lobby) {
-        broadcastLobbyInfo(io, lobby.code, lobby);
+    if (lobbyCode) {
+        // if user is in a lobby wait for him to reconnect and if he doesn't reconnect in 10 seconds remove him from the lobby by calling onLeaveLobby
+        console.log("user " + userId + " disconnected from lobby " + lobbyCode);
+        setTimeout(async () => {
+            console.log("checking if user " + userId + " reconnected");
+            if (!isUserConnected(userId)) {
+                await onLeaveLobby(event, io, pool, userId, lobbyCode)
+            }
+        }, DISCONNECT_TIMEOUT);
+
     }
 }
 
-const disconnect = (pool: Pool, userId: string): Promise<OpResult<Lobby|null>> => {
-    return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<Lobby|null>> => {
+const disconnect = (pool: Pool, userId: string): Promise<OpResult<string|null>> => {
+    return dbTransaction(pool, async (client: PoolClient): Promise<OpResult<string|null>> => {
         // get lobby code
         let {data: lobbyCode, error, success} = await dbSelectUserLobbyCode(client, userId);
         if (!success ) return {success, error};
         if(!lobbyCode) return {success: true, data: null};
 
-        // get lobby
-        let lobby;
-        ({data: lobby, error, success} = await dbSelectLobby(client, lobbyCode, true));
-        if (!success || !lobby) return {success, error};
-
-        let activeUser = null;
-        for (const user of lobby.users) {
-            if (user.id !== userId && isUserConnected(user.id)) {
-                activeUser = user;
-                break;
-            }
-        }
-        // if user is host change host
-        if (lobby.hostUserId === userId) {
-            if (activeUser) {
-                ({success, error} = await dbUpdateLobbyHost(client, lobbyCode, activeUser.id))
-                if (!success) return {success, error};
-                lobby.hostUserId = activeUser.id;
-
-                console.log("host changed to " + activeUser.id);
-            }
-        }
-
-        return {success: true, data: lobby};
+        return {success: true, data: lobbyCode};
     })
 };

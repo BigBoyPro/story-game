@@ -207,14 +207,14 @@ const StoryElementComponent = forwardRef(
                     }
                     break;
                 case StoryElementType.Image:
-                    result = <img src={element.content} alt="Story element" width="250"/>;
+                    result = <img src={element.content} alt="Story element"/>;
                     break;
                 case StoryElementType.Drawing:
                     const actions = JSON.parse(element.content)
                     result = <DrawingComponent initialActions={actions} isEditable={false}/>;
                     break;
                 case StoryElementType.Audio:
-                    result = <audio ref={audioRef} controls src={element.content} loop
+                    result = <audio ref={audioRef} controls src={element.content}
                                     onLoadedData={() => {
                                         if (shouldPlayOnLoad.current) {
                                             play(false);

@@ -45,10 +45,15 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
         }
 
         //if lobby is already playing
-        if (lobby.round !== 0) {
-            return {success: false, error: {type: ErrorType.LOBBY_ALREADY_PLAYING, logLevel: LogLevel.Warning, error: "Lobby is already playing"}}
+        const disconnectedUser = lobby.users.find(user => user.id === userId);
+        if (lobby.round !== 0 && !disconnectedUser) {
+            return {success: false, error: {
+                    type: ErrorType.LOBBY_ALREADY_PLAYING,
+                    logLevel: LogLevel.Warning,
+                    error: "Lobby is already playing"
+                }}
         }
-        if (lobby.users.length >= lobby.lobbySettings.maxPlayers) return {success: false, error: {
+        if (lobby.users.length >= lobby.lobbySettings.maxPlayers && !disconnectedUser) return {success: false, error: {
                 type: ErrorType.LOBBY_MAX_PLAYERS_REACHED,
                 logLevel: LogLevel.Warning,
                 error: "Lobby is full"
@@ -61,7 +66,13 @@ const joinLobby = (pool: Pool, userId: string, nickname: string, lobbyCode: stri
         // join lobby
         ({success, error} = await dbUpdateUserLobbyCode(client, userId, lobbyCode))
         if (!success) return {success, error};
-        lobby.users.push(user);
+        user.lobbyCode = lobbyCode;
+        // if user was in the lobby before and rejoined update his nickname
+        if(disconnectedUser){
+            lobby.users = lobby.users.map(u => u.id === userId ? user : u);
+        }else {
+            lobby.users.push(user);
+        }
 
 
         return {success: true, data: lobby};

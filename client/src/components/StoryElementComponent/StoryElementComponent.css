@@ -9,6 +9,12 @@
     align-items: center;
 }
 
+.story-element img {
+    border-radius: 0.5rem;
+    max-width: 100%;
+    max-height: 100%;
+}
+
 .buttons-container{
     justify-content: space-evenly;
     display: flex;
@@ -39,16 +45,17 @@
 
 
 .chat-bubble {
+    overflow-y: hidden;
+    resize: none;
+    font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 15px;
     padding: 10px 15px;
-    font-size: 16px;
     max-width: 80rem;
     width: 100%;
     margin: 10px 0;
     background-color: #d5c2c2;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    resize: none;
     outline: none;
 }
 
@@ -63,12 +70,6 @@
 }
 
 
-.story-element textarea {
-    height: auto;
-    overflow-y: hidden;
-    resize: none;
-    padding: 10px;
-    font-size: 16px;
-}
+
 
 
